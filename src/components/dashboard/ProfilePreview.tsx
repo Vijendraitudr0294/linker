@@ -63,6 +63,8 @@ const ProfilePreview = ({ settings, user, links, catalogItems = [], showSocialIc
   const hasPhoto = !!settings.backgroundImage;
   const hasLinks = links.length > 0;
   const hasTabs = catalogItems.length > 0 || hasLinks;
+  const shopTabLabel = settings.shopTabLabel?.trim() || "Shop";
+  const linksTabLabel = settings.linksTabLabel?.trim() || "Links";
   const [activeTab, setActiveTab] = useState<"links" | "shop">("shop");
 
   useEffect(() => {
@@ -92,6 +94,7 @@ const ProfilePreview = ({ settings, user, links, catalogItems = [], showSocialIc
   const bgStyle = computeBgStyle(sharedAppearance);
 
   const categories = [...new Set(catalogItems.map((i) => i.category || "General"))];
+  const publicProfileBase = typeof window !== "undefined" ? `${window.location.host}/p` : "link.bio";
   const isAiMusicTheme = settings.themeId?.startsWith("ai-image-");
 
   const screenContent = (() => {
@@ -288,12 +291,12 @@ const ProfilePreview = ({ settings, user, links, catalogItems = [], showSocialIc
           )}
           <div className="text-center space-y-1 relative z-10">
             <h3 className="text-xl font-black tracking-tight" style={{ color: cardText }}>
-              {user?.name || "Your Name"}
+              {user?.name || user?.username || ""}
             </h3>
             {user?.username && (
               <p className="text-[10px] font-bold opacity-60 flex items-center justify-center gap-1" style={{ color: cardSub }}>
                  <Link2 className="w-3 h-3" />
-                 link.bio/{user.username}
+                 {publicProfileBase}/{user.username}
               </p>
             )}
             {user?.bio && (
@@ -357,7 +360,7 @@ const ProfilePreview = ({ settings, user, links, catalogItems = [], showSocialIc
                     color: activeTab === "shop" ? btnText : cardSub
                   }}
                 >
-                  <ShoppingBag className="w-3 h-3" /> Shop
+                  <ShoppingBag className="w-3 h-3" /> {shopTabLabel}
                 </button>
               )}
               {hasLinks && (
@@ -371,9 +374,7 @@ const ProfilePreview = ({ settings, user, links, catalogItems = [], showSocialIc
                     backgroundColor: activeTab === "links" ? btnBg : "transparent",
                     color: activeTab === "links" ? btnText : cardSub
                   }}
-                >
-                  Links
-                </button>
+                >{linksTabLabel}</button>
               )}
             </div>
           )}
@@ -565,3 +566,7 @@ const ProfilePreview = ({ settings, user, links, catalogItems = [], showSocialIc
 };
 
 export default ProfilePreview;
+
+
+
+

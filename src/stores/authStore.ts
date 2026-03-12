@@ -154,6 +154,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   updateProfile: async (data) => {
     const { user } = get();
     if (!user) return;
+
     const updateData: Record<string, unknown> = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.username !== undefined) updateData.username = data.username;
@@ -164,18 +165,49 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     if (data.social_stats !== undefined) updateData.social_stats = data.social_stats;
     if (data.creator_metrics !== undefined) updateData.creator_metrics = data.creator_metrics;
 
-    const { error } = await supabase
-      .from("profiles")
-      .update(updateData)
-      .eq("user_id", user.user_id);
+    const pendingData: Record<string, unknown> = { ...updateData };
+    const skippedColumns = new Set<string>();
 
-    if (error) {
+    while (Object.keys(pendingData).length > 0) {
+      const { error } = await supabase
+        .from("profiles")
+        .update(pendingData)
+        .eq("user_id", user.user_id);
+
+      if (!error) {
+        const appliedData = Object.fromEntries(
+          Object.entries(data).filter(([key]) => Object.prototype.hasOwnProperty.call(pendingData, key))
+        ) as Partial<UserProfile>;
+
+        set({ user: { ...user, ...appliedData } });
+
+        const changed = Object.keys(pendingData).join(", ");
+        logActivity("profile_edit", `Updated: ${changed}`);
+        return;
+      }
+
+      const missingColumnMatch = /Could not find the '([^']+)' column/i.exec(error.message || "");
+      const missingColumn = missingColumnMatch?.[1];
+
+      if (missingColumn && Object.prototype.hasOwnProperty.call(pendingData, missingColumn)) {
+        delete pendingData[missingColumn];
+        skippedColumns.add(missingColumn);
+        continue;
+      }
+
+      const duplicateUsername =
+        error.code === "23505" &&
+        (error.message?.includes("profiles_username_key") || error.details?.includes("(username)"));
+
+      if (duplicateUsername) {
+        throw new Error("This username is already taken. Try another one.");
+      }
+
       throw new Error(error.message || "Failed to update profile");
     }
-    
-    set({ user: { ...user, ...data } });
 
-    const changed = Object.keys(updateData).join(", ");
-    logActivity("profile_edit", `Updated: ${changed}`);
+    if (skippedColumns.size > 0) {
+      logActivity("profile_edit", `Skipped unsupported fields: ${Array.from(skippedColumns).join(", ")}`);
+    }
   },
 }));

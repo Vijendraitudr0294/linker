@@ -1,18 +1,16 @@
-import { useState, useEffect, useMemo, lazy, Suspense } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { SocialIcon, isEmbedPlatform } from "@/components/SocialIcon";
 import type { SocialLinkConfig } from "@/stores/authStore";
-import { Zap, ExternalLink, User, ShoppingBag, Users, Music, Link2 } from "lucide-react";
-import ProfileHeaderActions from "@/components/public/ProfileHeaderActions";
+import { Zap, ExternalLink, User, ShoppingBag, Loader2, Share2, MessageCircle, PlayCircle, Newspaper } from "lucide-react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { Link, useParams } from "react-router-dom";
+import { toast } from "sonner";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import type { SocialPlatform } from "@/stores/linksStore";
 import EmbedRenderer from "@/components/public/EmbedRenderer";
 import ContactForm from "@/components/public/ContactForm";
 import PublicCatalog from "@/components/public/PublicCatalog";
-import PublicCartFooter from "@/components/public/PublicCartFooter";
-import CheckoutModal from "@/components/public/CheckoutModal";
 import StarryBackground from "@/components/animations/StarryBackground";
 import { computePalette, computeBgStyle, getLinkButtonClasses, getLinkButtonStyle, getLinkIconBgStyle, getFooterColor, type ProfileAppearance } from "@/lib/profileRenderer";
 
@@ -34,6 +32,10 @@ interface ProfileData {
     engagement_rate?: string;
     avg_views?: string;
     reach?: string;
+    tab_labels?: {
+      shop?: string;
+      links?: string;
+    };
   };
 }
 interface LinkData {
@@ -58,6 +60,8 @@ interface AppearanceData {
   background_overlay?: string;
   animated_gradient?: string;
   animation_class?: string;
+  shop_tab_label?: string;
+  links_tab_label?: string;
 }
 
 const defaultAppearance: AppearanceData = {
@@ -71,12 +75,103 @@ const defaultAppearance: AppearanceData = {
   gradient_to: null,
   font_family: "Inter",
   show_avatar: true,
+  shop_tab_label: "Shop",
+  links_tab_label: "Links",
 };
 
 
 
+interface MediaCardItem {
+  id: string;
+  title: string;
+  url: string;
+  platform: SocialPlatform;
+  platformLabel: string;
+  kind: "video" | "news";
+  thumbnailUrl?: string;
+}
+
+const getYouTubeId = (url: string) => {
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([^&?/]+)/i);
+  return match?.[1] || null;
+};
+
+const inferSocialPlatform = (url: string, platform: string): SocialPlatform => {
+  const current = (platform || "website") as SocialPlatform;
+  const lower = url.toLowerCase();
+  if (current !== "website" && current !== "other") return current;
+  if (lower.includes("youtu")) return "youtube";
+  if (lower.includes("instagram.com")) return "instagram";
+  if (lower.includes("tiktok.com")) return "tiktok";
+  if (lower.includes("facebook.com")) return "facebook";
+  if (lower.includes("twitter.com") || lower.includes("x.com")) return "twitter";
+  if (lower.includes("vimeo.com")) return "video-embed";
+  return current;
+};
+
+const toMediaCardItem = (link: LinkData): MediaCardItem | null => {
+  const url = (link.url || "").trim();
+  if (!url) return null;
+
+  const combinedText = `${link.title} ${url}`.toLowerCase();
+  const platform = inferSocialPlatform(url, link.platform);
+  const youtubeId = getYouTubeId(url);
+
+  const isVideoLike =
+    platform === "video-embed" ||
+    platform === "youtube" ||
+    platform === "instagram" ||
+    platform === "tiktok" ||
+    platform === "facebook" ||
+    platform === "twitter" ||
+    url.includes("youtube.com") ||
+    url.includes("youtu.be") ||
+    url.includes("vimeo.com") ||
+    url.includes("instagram.com") ||
+    url.includes("tiktok.com") ||
+    url.includes("facebook.com");
+
+  const isNewsLike = /(news|report|article|press|blog|update|newsletter)/i.test(combinedText);
+
+  if (!isVideoLike && !isNewsLike) return null;
+
+  const platformLabelMap: Record<string, string> = {
+    youtube: "YouTube",
+    instagram: "Instagram",
+    tiktok: "TikTok",
+    facebook: "Facebook",
+    twitter: "X/Twitter",
+    "video-embed": "Video",
+    "website-embed": "Website",
+    website: "Website",
+    other: "Link",
+  };
+
+  return {
+    id: link.id,
+    title: link.title,
+    url,
+    platform,
+    platformLabel: platformLabelMap[platform] || "Link",
+    kind: isNewsLike && !isVideoLike ? "news" : "video",
+    thumbnailUrl: youtubeId ? `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg` : undefined,
+  };
+};
+
+const resolveTabLabel = (
+  primary: string | undefined,
+  fallback: string | undefined,
+  defaultValue: string
+) => {
+  const primaryText = (primary || "").trim();
+  const fallbackText = (fallback || "").trim();
+  if (!primaryText) return fallbackText || defaultValue;
+  if (primaryText === defaultValue && fallbackText && fallbackText !== defaultValue) return fallbackText;
+  return primaryText;
+};
 const PublicProfile = () => {
   const { username } = useParams<{ username?: string }>();
+  const navigate = useNavigate();
   const prefersReducedMotion = useReducedMotion();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [links, setLinks] = useState<LinkData[]>([]);
@@ -85,7 +180,7 @@ const PublicProfile = () => {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [activeTab, setActiveTab] = useState<"links" | "shop">("shop");
-  const [showCheckout, setShowCheckout] = useState(false);
+  const contactFormRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -96,8 +191,47 @@ const PublicProfile = () => {
         setLoading(false);
         return;
       }
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles").select("*").eq("username", lowerUsername).single();
+      let profileData: any = null;
+      let profileError: any = null;
+
+      if (lowerUsername === "user") {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const authUserId = sessionData.session?.user?.id;
+
+        if (authUserId) {
+          const fallback = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("user_id", authUserId)
+            .maybeSingle();
+          profileData = fallback.data;
+          profileError = fallback.error;
+
+          // Keep legacy /p/user working while preserving canonical profile URLs.
+          const canonicalUsername = fallback.data?.username?.toLowerCase();
+          if (canonicalUsername && canonicalUsername !== "user") {
+            navigate(`/p/${fallback.data.username}`, { replace: true });
+          }
+        }
+
+        if (!profileData) {
+          const byUsername = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("username", lowerUsername)
+            .maybeSingle();
+          profileData = byUsername.data;
+          profileError = byUsername.error;
+        }
+      } else {
+        const byUsername = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("username", lowerUsername)
+          .maybeSingle();
+        profileData = byUsername.data;
+        profileError = byUsername.error;
+      }
 
       if (profileError || !profileData) { setNotFound(true); setLoading(false); return; }
       const profileStatus = (profileData as Record<string, unknown>).status as string | null | undefined;
@@ -138,6 +272,8 @@ const PublicProfile = () => {
           background_overlay: (a.background_overlay as string) || undefined,
           animated_gradient: (a.animated_gradient as string) || undefined,
           animation_class: (a.animation_class as string) || undefined,
+          shop_tab_label: (a.shop_tab_label as string) || defaultAppearance.shop_tab_label,
+          links_tab_label: (a.links_tab_label as string) || defaultAppearance.links_tab_label,
         });
       }
       setLoading(false);
@@ -149,9 +285,30 @@ const PublicProfile = () => {
     const subscribeToChanges = async () => {
       if (!isSupabaseConfigured || !username) return;
       const lowerUsername = username.toLowerCase();
-      const { data: profileData } = await supabase
-        .from("profiles").select("user_id").eq("username", lowerUsername).single();
-      
+      let profileData: { user_id: string } | null = null;
+
+      if (lowerUsername === "user") {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const authUserId = sessionData.session?.user?.id;
+        if (authUserId) {
+          const fallback = await supabase
+            .from("profiles")
+            .select("user_id")
+            .eq("user_id", authUserId)
+            .maybeSingle();
+          profileData = fallback.data;
+        }
+      }
+
+      if (!profileData) {
+        const byUsername = await supabase
+          .from("profiles")
+          .select("user_id")
+          .eq("username", lowerUsername)
+          .maybeSingle();
+        profileData = byUsername.data;
+      }
+
       if (!profileData) return;
 
       channel = supabase
@@ -177,6 +334,8 @@ const PublicProfile = () => {
                 background_overlay: a.background_overlay || undefined,
                 animated_gradient: a.animated_gradient || undefined,
                 animation_class: a.animation_class || undefined,
+                shop_tab_label: a.shop_tab_label || defaultAppearance.shop_tab_label,
+                links_tab_label: a.links_tab_label || defaultAppearance.links_tab_label,
               });
             }
           }
@@ -186,14 +345,11 @@ const PublicProfile = () => {
 
     subscribeToChanges();
 
-    // Fallback Polling every 3 seconds to ensure updates across devices
-    const pollInterval = setInterval(fetchData, 3000);
 
     return () => {
       if (channel) supabase.removeChannel(channel);
-      clearInterval(pollInterval);
     };
-  }, [username]);
+  }, [navigate, username]);
 
   // Use SHARED rendering utilities — single source of truth
   const sharedAppearance: ProfileAppearance = useMemo(() => ({
@@ -219,17 +375,78 @@ const PublicProfile = () => {
   const showSocial = (profile?.social_links?.length ?? 0) > 0;
   const showLinksTab = links.length > 0;
   const showCatalog = catalogItems.length > 0;
-  const hasTabs = showCatalog || showLinksTab;
+  const creatorMetricTabLabels = useMemo(() => {
+    const tabLabels = profile?.creator_metrics?.tab_labels;
+    return {
+      shop: typeof tabLabels?.shop === "string" ? tabLabels.shop.trim() : "",
+      links: typeof tabLabels?.links === "string" ? tabLabels.links.trim() : "",
+    };
+  }, [profile?.creator_metrics]);
+  const shopTabLabel = resolveTabLabel(appearance.shop_tab_label, creatorMetricTabLabels.shop, "Shop");
+  const linksTabLabel = resolveTabLabel(appearance.links_tab_label, creatorMetricTabLabels.links, "Links");
+  const hasCreatorMetrics = Boolean(
+    profile?.creator_metrics?.engagement_rate ||
+      profile?.creator_metrics?.avg_views ||
+      profile?.creator_metrics?.reach
+  );
+
+  const mediaFallbackItems = useMemo(
+    () => links.map((link) => toMediaCardItem(link)).filter((item): item is MediaCardItem => Boolean(item)),
+    [links]
+  );
+
+  const showMediaFallback = !showCatalog && mediaFallbackItems.length > 0;
+  const hasTabs = showCatalog || showLinksTab || showMediaFallback;
 
   useEffect(() => {
-    if (!showCatalog && showLinksTab) setActiveTab("links");
-    if (showCatalog && !showLinksTab) setActiveTab("shop");
-  }, [showCatalog, showLinksTab]);
+    if (!showCatalog && !showMediaFallback && showLinksTab) setActiveTab("links");
+    if ((showCatalog || showMediaFallback) && !showLinksTab) setActiveTab("shop");
+  }, [showCatalog, showLinksTab, showMediaFallback]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="animate-spin h-10 w-10 text-primary" /></div>;
   if (notFound || !profile) return <div className="min-h-screen flex items-center justify-center bg-background text-center p-8"><div className="space-y-4"><h1 className="text-3xl font-black">404</h1><p className="text-muted-foreground">Profile not found</p></div></div>;
 
   const bgColor = appearance.background_color;
+
+  const handleShareProfile = async () => {
+    if (!profile?.username) return;
+    const shareUrl = `${window.location.origin}/p/${profile.username}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: profile.name || profile.username,
+          text: profile.bio || `Check out @${profile.username} on LinkVertex`,
+          url: shareUrl,
+        });
+        return;
+      } catch {
+        // Fall back to clipboard when native share is dismissed or unavailable.
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success("Profile link copied");
+    } catch {
+      toast.error("Could not share profile link");
+    }
+  };
+
+  const handleMessageAction = () => {
+    if (!showLinksTab) {
+      toast.error("Message form is not available for this profile");
+      return;
+    }
+
+    if (activeTab !== "links") {
+      setActiveTab("links");
+    }
+
+    window.setTimeout(() => {
+      contactFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, activeTab === "links" ? 0 : 180);
+  };
 
   return (
     <div
@@ -415,20 +632,46 @@ const PublicProfile = () => {
 
             {/* Info Section */}
             <div className="flex-1 flex flex-col items-center md:items-start text-center md:text-left gap-2.5">
-              <div className="space-y-1">
-                <h1 className="text-xl md:text-[2rem] font-extrabold tracking-[0.4px] uppercase">{profile.name || "User"}</h1>
-                {profile.username && (
-                  <p className="text-xs md:text-sm font-bold opacity-60 flex items-center justify-center md:justify-start gap-1.5">
-                    <Link2 className="w-4 h-4" /> link.bio/{profile.username}
-                  </p>
-                )}
+              <div className="w-full max-w-[560px] flex items-start justify-between gap-3">
+                <div className="space-y-1 min-w-0 text-left">
+                  <h1 className="text-xl md:text-[2rem] font-extrabold tracking-[0.4px] uppercase truncate">{profile.name || profile.username}</h1>
+                  {profile.username && (
+                    <p className="text-xs md:text-sm font-bold opacity-60 flex items-center gap-1.5">
+                      @{profile.username}
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 shrink-0 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleMessageAction}
+                    aria-label="Message"
+                    title="Message"
+                    className="w-9 h-9 rounded-full border flex items-center justify-center transition-all hover:scale-[1.05] active:scale-95"
+                    style={{
+                      color: palette.cardText,
+                      borderColor: palette.cardBorder,
+                      backgroundColor: `${palette.cardText}08`,
+                    }}
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleShareProfile}
+                    aria-label="Share profile"
+                    title="Share profile"
+                    className="w-9 h-9 rounded-full border flex items-center justify-center transition-all hover:scale-[1.05] active:scale-95"
+                    style={{
+                      color: palette.cardText,
+                      borderColor: palette.cardBorder,
+                      backgroundColor: `${palette.cardText}08`,
+                    }}
+                  >
+                    <Share2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-
-              {profile.bio && (
-                <p className="text-sm md:text-[15px] font-medium leading-relaxed max-w-[480px]" style={{ color: `${palette.cardText}B3` }}>
-                  {profile.bio}
-                </p>
-              )}
 
               {/* Social Stats Chips */}
               {profile.stats && Object.values(profile.stats).some(v => v) && (
@@ -461,7 +704,7 @@ const PublicProfile = () => {
               )}
 
               {/* Creator Metrics - Engagement */}
-              {profile.creator_metrics && Object.values(profile.creator_metrics).some(v => v) && (
+              {hasCreatorMetrics && (
                 <div className="flex flex-wrap justify-center md:justify-start gap-3 mt-4 w-full">
                   {profile.creator_metrics.engagement_rate && (
                     <div className="flex flex-col border-l-2 border-primary/20 pl-3 py-1">
@@ -505,7 +748,7 @@ const PublicProfile = () => {
               {/* Tabs Section - Integrated into Info Block for Desktop */}
               {hasTabs && (
                 <div className="flex gap-1.5 p-1 rounded-full bg-black/5 dark:bg-white/5 border border-white/10 shadow-inner mt-2 w-fit">
-                  {showCatalog && (
+                  {(showCatalog || showMediaFallback) && (
                     <button
                       onClick={() => setActiveTab("shop")}
                       className={cn(
@@ -517,7 +760,7 @@ const PublicProfile = () => {
                         color: activeTab === "shop" ? palette.btnText : palette.cardSub
                       }}
                     >
-                      <ShoppingBag className="w-4 h-4 md:w-4.5 md:h-4.5" /> Shop
+                      <ShoppingBag className="w-4 h-4 md:w-4.5 md:h-4.5" /> {shopTabLabel}
                     </button>
                   )}
                   {showLinksTab && (
@@ -531,9 +774,7 @@ const PublicProfile = () => {
                         backgroundColor: activeTab === "links" ? palette.btnBg : "transparent",
                         color: activeTab === "links" ? palette.btnText : palette.cardSub
                       }}
-                    >
-                      Links
-                    </button>
+                    >{linksTabLabel}</button>
                   )}
                 </div>
               )}
@@ -543,42 +784,131 @@ const PublicProfile = () => {
 
         {/* Tab Content */}
         <AnimatePresence mode="wait">
-          {activeTab === "shop" && showCatalog ? (
-            <motion.div key="shop" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full">
-              <PublicCatalog items={catalogItems as any} profileUserId={profile.user_id} upiId={profile.upi_id} textColor={palette.cardText} buttonBg={palette.btnBg} buttonText={palette.btnText} buttonStyle={appearance.button_style} catalogCardBg={palette.cardBg} hasPhoto={!!appearance.background_image} />
-            </motion.div>
+          {activeTab === "shop" && (showCatalog || showMediaFallback) ? (
+            showCatalog ? (
+              <motion.div key="shop" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full">
+                <PublicCatalog items={catalogItems as any} profileUserId={profile.user_id} upiId={profile.upi_id} textColor={palette.cardText} buttonBg={palette.btnBg} buttonText={palette.btnText} buttonStyle={appearance.button_style} catalogCardBg={palette.cardBg} hasPhoto={!!appearance.background_image} />
+              </motion.div>
+            ) : (
+              <motion.div key="shop-media" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-5xl space-y-4 mt-2">
+                <div className="w-full rounded-[1.8rem] p-5 md:p-6 border shadow-2xl" style={{ backgroundColor: palette.cardBg, borderColor: palette.cardBorder }}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm md:text-base font-black uppercase tracking-[0.14em]" style={{ color: palette.cardText }}>{shopTabLabel}</h3>
+                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ backgroundColor: `${palette.btnBg}20`, color: palette.cardText }}>
+                      {mediaFallbackItems.length} items
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {mediaFallbackItems.map((item) => (
+                      <a
+                        key={item.id}
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-2xl overflow-hidden border transition-all hover:translate-y-[-2px] hover:shadow-xl group"
+                        style={{ borderColor: palette.cardBorder, backgroundColor: `${palette.cardText}05` }}
+                      >
+                        <div className="aspect-video overflow-hidden" style={{ backgroundColor: `${palette.btnBg}1A` }}>
+                          {item.thumbnailUrl ? (
+                            <img src={item.thumbnailUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300" />
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center gap-2" style={{ color: `${palette.cardText}A0` }}>
+                              {item.kind === "news" ? <Newspaper className="w-8 h-8" /> : <PlayCircle className="w-8 h-8" />}
+                              <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider">
+                                <SocialIcon platform={item.platform} className="w-3.5 h-3.5" />
+                                {item.platformLabel}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="p-4 space-y-2">
+                          <p className="text-sm font-bold leading-snug line-clamp-2" style={{ color: palette.cardText }}>{item.title}</p>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: `${palette.cardText}B0` }}>
+                              {item.platformLabel}
+                            </span>
+                            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-full" style={{ backgroundColor: `${palette.btnBg}20`, color: palette.cardText }}>
+                              {item.kind === "news" ? "Read" : "Watch"}
+                            </span>
+                          </div>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )
           ) : showLinksTab ? (
             <motion.div key="links" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-2xl space-y-4 mt-2">
               <div className="grid grid-cols-1 gap-4 w-full">
-                {links.map(link => (
-                  <motion.a 
-                    whileHover={{ scale: 1.01, translateY: -2 }}
-                    whileTap={{ scale: 0.98 }}
-                    key={link.id} 
-                    href={link.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className={cn(
-                      "flex items-center p-5 w-full transition-all duration-300 group relative overflow-hidden outline-none ring-primary/20",
-                      getLinkButtonClasses(appearance.button_style)
-                    )}
-                    style={getLinkButtonStyle(appearance.button_style, palette.btnBg, palette.btnText)}
-                  >
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center mr-5 shrink-0 shadow-inner" style={getLinkIconBgStyle(appearance.button_style, palette.btnBg)}>
-                      <SocialIcon platform={link.platform as SocialPlatform} className="w-6 h-6" />
-                    </div>
-                    <div className="flex-1 min-w-0 text-left">
-                      <span className="text-[17px] font-bold tracking-tight block truncate uppercase">{link.title}</span>
-                    </div>
-                    <div className="ml-4 opacity-40 group-hover:opacity-100 transition-opacity">
-                      <ExternalLink className="w-5 h-5" />
-                    </div>
-                  </motion.a>
-                ))}
+                {links.map((link) => {
+                  const platform = (link.platform as SocialPlatform) || "website";
+                  const isEmbedLink = isEmbedPlatform(platform);
+
+                  if (isEmbedLink) {
+                    return (
+                      <motion.div 
+                        whileHover={{ scale: 1.01, translateY: -2 }}
+                        key={link.id}
+                        className={cn(
+                          "p-5 w-full transition-all duration-300 group relative overflow-hidden outline-none ring-primary/20",
+                          getLinkButtonClasses(appearance.button_style)
+                        )}
+                        style={getLinkButtonStyle(appearance.button_style, palette.btnBg, palette.btnText)}
+                      >
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-inner" style={getLinkIconBgStyle(appearance.button_style, palette.btnBg)}>
+                            <SocialIcon platform={platform} className="w-6 h-6" />
+                          </div>
+                          <div className="flex-1 min-w-0 text-left">
+                            <span className="text-[17px] font-bold tracking-tight block truncate uppercase">{link.title}</span>
+                          </div>
+                        </div>
+                        <EmbedRenderer url={link.url} platform={platform} title={link.title} />
+                      </motion.div>
+                    );
+                  }
+
+                  return (
+                    <motion.a 
+                      whileHover={{ scale: 1.01, translateY: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                      key={link.id} 
+                      href={link.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className={cn(
+                        "flex items-center p-5 w-full transition-all duration-300 group relative overflow-hidden outline-none ring-primary/20",
+                        getLinkButtonClasses(appearance.button_style)
+                      )}
+                      style={getLinkButtonStyle(appearance.button_style, palette.btnBg, palette.btnText)}
+                    >
+                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center mr-5 shrink-0 shadow-inner" style={getLinkIconBgStyle(appearance.button_style, palette.btnBg)}>
+                        <SocialIcon platform={platform} className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1 min-w-0 text-left">
+                        <span className="text-[17px] font-bold tracking-tight block truncate uppercase">{link.title}</span>
+                      </div>
+                      <div className="ml-4 opacity-40 group-hover:opacity-100 transition-opacity">
+                        <ExternalLink className="w-5 h-5" />
+                      </div>
+                    </motion.a>
+                  );
+                })}
               </div>
 
               {/* Contact Form Integration */}
-              <div className="w-full rounded-[2.5rem] p-8 shadow-2xl" style={{ backgroundColor: palette.cardBg, border: `1px solid ${palette.cardBorder}` }}>
+              <div
+                ref={contactFormRef}
+                className="w-full rounded-[2.5rem] p-8 shadow-2xl"
+                style={{
+                  backgroundColor: palette.cardBg,
+                  border: `1px solid ${palette.cardBorder}`,
+                  scrollMarginTop: "24px",
+                }}
+              >
                 <h4 className="text-sm font-black uppercase tracking-[0.2em] mb-6 text-center" style={{ color: palette.cardText }}>Send a message</h4>
                 <ContactForm profileUserId={profile.user_id} textColor={palette.cardText} buttonBg={palette.btnBg} buttonText={palette.btnText} buttonStyle={appearance.button_style} hasPhoto={false} inputBg="rgba(0,0,0,0.03)" inputBorder="rgba(0,0,0,0.08)" />
               </div>
@@ -604,40 +934,51 @@ const PublicProfile = () => {
           </Link>
         </div>
       </div>
-
-      {/* Persistent Cart Footer */}
-      <AnimatePresence>
-        <PublicCartFooter
-          buttonBg={palette.btnBg}
-          buttonText={palette.btnText}
-          onCheckout={() => setShowCheckout(true)}
-        />
-      </AnimatePresence>
-
-      {/* Checkout Modal */}
-      <AnimatePresence>
-        {showCheckout && (
-          <CheckoutModal
-            isOpen={showCheckout}
-            onClose={() => setShowCheckout(false)}
-            profileUserId={profile.user_id}
-            buttonBg={palette.btnBg}
-            buttonText={palette.btnText}
-            cardBg={palette.cardBg}
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 };
 
 export default PublicProfile;
 
-const Loader2 = ({ className }: { className?: string }) => (
-  <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-  </svg>
-);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

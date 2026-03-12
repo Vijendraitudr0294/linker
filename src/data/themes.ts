@@ -23,12 +23,7 @@ export interface ThemePreset {
   fontFamily?: string;
 }
 
-export type ThemeCategory =
-  | "animated"
-  | "gradient"
-  | "photo"
-  | "dark"
-  | "neon";
+export type ThemeCategory = string;
 
 export const themeCategories: { id: ThemeCategory; label: string; icon: string }[] = [
   { id: "animated", label: "Animated", icon: "✨" },
@@ -911,3 +906,90 @@ export const themePresets: ThemePreset[] = [
     fontFamily: "Space Grotesk",
   },
 ];
+
+const THEME_BUTTON_STYLES = new Set(["rounded", "pill", "square", "outline", "shadow"]);
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const asString = (value: unknown): string | null => {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
+
+const normalizeThemePreset = (value: unknown): ThemePreset | null => {
+  if (!isRecord(value)) return null;
+
+  const id = asString(value.id);
+  const name = asString(value.name);
+  const category = asString(value.category);
+  const backgroundColor = asString(value.backgroundColor);
+  const cardColor = asString(value.cardColor);
+  const textColor = asString(value.textColor);
+  const buttonBg = asString(value.buttonBg);
+  const buttonText = asString(value.buttonText);
+  const buttonStyle = asString(value.buttonStyle);
+
+  if (!id || !name || !category || !backgroundColor || !cardColor || !textColor || !buttonBg || !buttonText || !buttonStyle) {
+    return null;
+  }
+  if (!THEME_BUTTON_STYLES.has(buttonStyle)) return null;
+
+  const preset: ThemePreset = {
+    id,
+    name,
+    category,
+    backgroundColor,
+    cardColor,
+    textColor,
+    buttonStyle: buttonStyle as ThemePreset["buttonStyle"],
+    buttonBg,
+    buttonText,
+  };
+
+  if (typeof value.isPopular === "boolean") preset.isPopular = value.isPopular;
+  if (asString(value.backgroundStyle)) preset.backgroundStyle = asString(value.backgroundStyle) || undefined;
+  if (asString(value.cardStyle)) preset.cardStyle = asString(value.cardStyle) || undefined;
+  if (asString(value.fontPair)) preset.fontPair = asString(value.fontPair) || undefined;
+  if (asString(value.motionEngine)) preset.motionEngine = asString(value.motionEngine) as ThemePreset["motionEngine"];
+  if (asString(value.animationPreset)) preset.animationPreset = asString(value.animationPreset) as ThemePreset["animationPreset"];
+  if (asString(value.gradientFrom)) preset.gradientFrom = asString(value.gradientFrom) || undefined;
+  if (asString(value.gradientTo)) preset.gradientTo = asString(value.gradientTo) || undefined;
+  if (asString(value.backgroundImage)) preset.backgroundImage = asString(value.backgroundImage) || undefined;
+  if (asString(value.backgroundOverlay)) preset.backgroundOverlay = asString(value.backgroundOverlay) || undefined;
+  if (asString(value.animatedGradient)) preset.animatedGradient = asString(value.animatedGradient) || undefined;
+  if (asString(value.animationClass)) preset.animationClass = asString(value.animationClass) || undefined;
+  if (asString(value.fontFamily)) preset.fontFamily = asString(value.fontFamily) || undefined;
+
+  return preset;
+};
+
+export const getThemeCategoriesFromSettings = (settings: unknown): { id: ThemeCategory; label: string; icon: string }[] => {
+  const raw = (settings as Record<string, unknown> | null)?.theme_categories;
+  if (!Array.isArray(raw)) return themeCategories;
+
+  const parsed = raw
+    .map((value, index) => {
+      if (!isRecord(value)) return null;
+      const id = asString(value.id) || `category-${index + 1}`;
+      const label = asString(value.label);
+      if (!label) return null;
+      const icon = asString(value.icon) || "*";
+      return { id, label, icon };
+    })
+    .filter((category): category is { id: ThemeCategory; label: string; icon: string } => category !== null);
+
+  return parsed.length > 0 ? parsed : themeCategories;
+};
+
+export const getThemePresetsFromSettings = (settings: unknown): ThemePreset[] => {
+  const raw = (settings as Record<string, unknown> | null)?.theme_presets;
+  if (!Array.isArray(raw)) return themePresets;
+
+  const parsed = raw
+    .map((value) => normalizeThemePreset(value))
+    .filter((preset): preset is ThemePreset => preset !== null);
+
+  return parsed.length > 0 ? parsed : themePresets;
+};

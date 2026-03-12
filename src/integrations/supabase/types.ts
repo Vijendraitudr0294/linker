@@ -31,6 +31,8 @@ export type Database = {
           gradient_to: string | null
           hero_image: string | null
           id: string
+          links_tab_label: string | null
+          shop_tab_label: string | null
           show_avatar: boolean
           text_color: string
           theme_id: string
@@ -53,6 +55,8 @@ export type Database = {
           gradient_to?: string | null
           hero_image?: string | null
           id?: string
+          links_tab_label?: string | null
+          shop_tab_label?: string | null
           show_avatar?: boolean
           text_color?: string
           theme_id?: string
@@ -75,6 +79,8 @@ export type Database = {
           gradient_to?: string | null
           hero_image?: string | null
           id?: string
+          links_tab_label?: string | null
+          shop_tab_label?: string | null
           show_avatar?: boolean
           text_color?: string
           theme_id?: string
@@ -360,6 +366,11 @@ export type Database = {
           feature_social_links: boolean
           id: string
           item_type_label_overrides: Json | null
+          link_template_categories: Json | null
+          theme_categories: Json | null
+          theme_presets: Json | null
+          niche_templates: Json | null
+          demo_catalog_packs: Json | null
           notify_contact_email: string | null
           notify_low_stock_email: string | null
           notify_order_email: string | null
@@ -384,6 +395,11 @@ export type Database = {
           feature_social_links?: boolean
           id?: string
           item_type_label_overrides?: Json | null
+          link_template_categories?: Json | null
+          theme_categories?: Json | null
+          theme_presets?: Json | null
+          niche_templates?: Json | null
+          demo_catalog_packs?: Json | null
           notify_contact_email?: string | null
           notify_low_stock_email?: string | null
           notify_order_email?: string | null
@@ -408,6 +424,11 @@ export type Database = {
           feature_social_links?: boolean
           id?: string
           item_type_label_overrides?: Json | null
+          link_template_categories?: Json | null
+          theme_categories?: Json | null
+          theme_presets?: Json | null
+          niche_templates?: Json | null
+          demo_catalog_packs?: Json | null
           notify_contact_email?: string | null
           notify_low_stock_email?: string | null
           notify_order_email?: string | null
@@ -453,6 +474,8 @@ export type Database = {
           notification_prefs: Json
           role: string
           social_links: Json | null
+          social_stats: Json | null
+          creator_metrics: Json | null
           status: string
           updated_at: string
           upi_id: string | null
@@ -470,6 +493,8 @@ export type Database = {
           notification_prefs?: Json
           role?: string
           social_links?: Json | null
+          social_stats?: Json | null
+          creator_metrics?: Json | null
           status?: string
           updated_at?: string
           upi_id?: string | null
@@ -487,6 +512,8 @@ export type Database = {
           notification_prefs?: Json
           role?: string
           social_links?: Json | null
+          social_stats?: Json | null
+          creator_metrics?: Json | null
           status?: string
           updated_at?: string
           upi_id?: string | null
@@ -662,3 +689,7 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
+
+
+

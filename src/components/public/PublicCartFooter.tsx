@@ -66,7 +66,7 @@ const PublicCartFooter = ({ buttonBg, buttonText, onCheckout }: PublicCartFooter
           className="h-11 px-5 sm:px-6 rounded-xl font-black uppercase tracking-[0.14em] text-xs sm:text-sm group transition-all hover:scale-[1.02] active:scale-95"
           style={{ backgroundColor: "#ffffff", color: "#111111" }}
         >
-          Check out
+          Review & Pay
           <ArrowRight className="ml-1.5 w-4 h-4 transition-transform group-hover:translate-x-1" />
         </Button>
       </div>
@@ -75,3 +75,4 @@ const PublicCartFooter = ({ buttonBg, buttonText, onCheckout }: PublicCartFooter
 };
 
 export default PublicCartFooter;
+

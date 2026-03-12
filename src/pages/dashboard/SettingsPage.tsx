@@ -17,26 +17,6 @@ import SocialLinksEditor, { type SocialLinkConfig } from "@/components/dashboard
 import ProfilePreview from "@/components/dashboard/ProfilePreview";
 
 const BIO_MAX = 160;
-const SETTINGS_DRAFT_PREFIX = "linkvertex_settings_draft_";
-
-type SettingsDraft = {
-  name: string;
-  username: string;
-  bio: string;
-  upiId: string;
-  socialLinks: SocialLinkConfig[];
-  socialStats: {
-    ig_followers: string;
-    fb_likes: string;
-    tiktok_followers: string;
-    youtube_subs: string;
-  };
-  creatorMetrics: {
-    engagement_rate: string;
-    avg_views: string;
-    reach: string;
-  };
-};
 
 const SettingsPage = () => {
   const { user, updateProfile } = useAuthStore();
@@ -66,33 +46,6 @@ const SettingsPage = () => {
 
   useEffect(() => {
     if (user) {
-      const draftKey = `${SETTINGS_DRAFT_PREFIX}${user.user_id}`;
-      const raw = localStorage.getItem(draftKey);
-
-      if (raw) {
-        try {
-          const draft = JSON.parse(raw) as SettingsDraft;
-          setName(draft.name ?? user.name);
-          setUsername(draft.username ?? user.username);
-          setBio(draft.bio ?? user.bio);
-          setUpiId(draft.upiId ?? (user.upi_id || ""));
-          setSocialLinks(draft.socialLinks ?? (user.social_links || []));
-          setSocialStats(draft.socialStats ?? {
-            ig_followers: user.social_stats?.ig_followers || "",
-            fb_likes: user.social_stats?.fb_likes || "",
-            tiktok_followers: user.social_stats?.tiktok_followers || "",
-            youtube_subs: user.social_stats?.youtube_subs || "",
-          });
-          setCreatorMetrics(draft.creatorMetrics ?? {
-            engagement_rate: user.creator_metrics?.engagement_rate || "",
-            avg_views: user.creator_metrics?.avg_views || "",
-            reach: user.creator_metrics?.reach || "",
-          });
-          return;
-        } catch {
-          localStorage.removeItem(draftKey);
-        }
-      }
 
       setName(user.name);
       setUsername(user.username);
@@ -113,20 +66,6 @@ const SettingsPage = () => {
     }
   }, [user]);
 
-  useEffect(() => {
-    if (!user) return;
-    const draftKey = `${SETTINGS_DRAFT_PREFIX}${user.user_id}`;
-    const draft: SettingsDraft = {
-      name,
-      username,
-      bio,
-      upiId,
-      socialLinks,
-      socialStats,
-      creatorMetrics,
-    };
-    localStorage.setItem(draftKey, JSON.stringify(draft));
-  }, [user, name, username, bio, upiId, socialLinks, socialStats, creatorMetrics]);
 
   const insertEmoji = (emoji: string) => {
     const textarea = bioRef.current;
@@ -157,21 +96,42 @@ const SettingsPage = () => {
       setErrors(fieldErrors);
       return;
     }
+
     setErrors({});
+    const normalizedUsername = username.trim().toLowerCase();
+
     try {
       await updateProfile({
         name: name.trim(),
-        username: username.trim().toLowerCase(),
         bio: bio.trim(),
         upi_id: upiId.trim(),
         social_links: socialLinks,
         social_stats: socialStats,
         creator_metrics: creatorMetrics,
       });
-      localStorage.removeItem(`${SETTINGS_DRAFT_PREFIX}${user.user_id}`);
-      toast.success("Profile updated successfully!");
+
+      if (normalizedUsername !== user.username) {
+        try {
+          await updateProfile({ username: normalizedUsername });
+          toast.success("Profile updated successfully!");
+        } catch (err) {
+          const message = err instanceof Error ? err.message : "Failed to update username";
+          if (message.toLowerCase().includes("username") && message.toLowerCase().includes("taken")) {
+            setErrors((prev) => ({
+              ...prev,
+              username: "Username already taken. Profile updated, but username was not changed.",
+            }));
+            toast.error("Profile updated, but this username is already taken.");
+            return;
+          }
+          throw err;
+        }
+      } else {
+        toast.success("Profile updated successfully!");
+      }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to update profile");
+      const message = err instanceof Error ? err.message : "Failed to update profile";
+      toast.error(message);
     }
   };
 
@@ -180,13 +140,12 @@ const SettingsPage = () => {
   const bioLength = bio.length;
   const bioPercentage = (bioLength / BIO_MAX) * 100;
 
-  const previewLinks = activeLinks.length > 0
-    ? activeLinks.map((l) => ({ id: l.id, title: l.title, platform: l.platform }))
-    : [{ id: "1", title: "My Website", platform: "website" as const }, { id: "2", title: "Social Media", platform: "website" as const }];
+  const previewLinks = activeLinks.map((l) => ({ id: l.id, title: l.title, platform: l.platform }));
 
   const previewUser = { 
     name, 
-    username, 
+    username,
+    bio,
     avatar_url: user.avatar_url, 
     social_links: socialLinks,
     social_stats: socialStats 
@@ -279,7 +238,7 @@ const SettingsPage = () => {
                     setErrors((prev) => ({ ...prev, bio: undefined }));
                   }
                 }}
-                placeholder="Tell visitors about yourself... ✨"
+                placeholder="Tell visitors about yourself... âœ¨"
                 rows={3}
                 maxLength={BIO_MAX}
                 className={errors.bio ? "border-destructive" : ""}

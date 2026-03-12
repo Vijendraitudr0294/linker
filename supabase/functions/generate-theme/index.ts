@@ -42,7 +42,7 @@ Rules:
 - Ensure good contrast between text and backgrounds
 - buttonStyle must be "rounded", "pill", or "square"
 - gradientFrom and gradientTo are optional - use them for gradient backgrounds
-- Make the theme visually cohesive and modern`,
+- Make the theme visually cohesive and modern`;
         let text: string | undefined;
 
         if (LOVABLE_API_KEY) {
@@ -116,3 +116,4 @@ Rules:
         );
     }
 });
+

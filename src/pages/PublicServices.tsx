@@ -1,13 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Zap, User, Clock, MapPin, Calendar, ArrowLeft, Phone, Mail, MessageCircle, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CatalogItemDetail from "@/components/public/CatalogItemDetail";
 import ContactForm from "@/components/public/ContactForm";
-import PublicCartFooter from "@/components/public/PublicCartFooter";
-import CheckoutModal from "@/components/public/CheckoutModal";
 import { usePlatformStore } from "@/stores/platformStore";
 import { resolveCategoryLabel, resolveItemCtaLabel, resolveItemTypeLabel } from "@/lib/commerceConfig";
 
@@ -67,6 +65,7 @@ const defaultAppearance: AppearanceData = {
 
 const PublicServices = () => {
   const { username } = useParams<{ username?: string }>();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [appearance, setAppearance] = useState<AppearanceData>(defaultAppearance);
   const [items, setItems] = useState<ServiceItem[]>([]);
@@ -76,7 +75,6 @@ const PublicServices = () => {
   const [activeItemType, setActiveItemType] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<ServiceItem | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [showCheckout, setShowCheckout] = useState(false);
   const settings = usePlatformStore((s) => s.settings);
   const initialized = usePlatformStore((s) => s.initialized);
   const fetchSettings = usePlatformStore((s) => s.fetchSettings);
@@ -85,11 +83,46 @@ const PublicServices = () => {
     const fetchData = async () => {
       if (!username) { setNotFound(true); setLoading(false); return; }
 
-      const { data: profileData, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("username", username.toLowerCase())
-        .single();
+      let profileData: any = null;
+      let error: any = null;
+
+      if (username.toLowerCase() === "user") {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const authUserId = sessionData.session?.user?.id;
+
+        if (authUserId) {
+          const fallback = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("user_id", authUserId)
+            .maybeSingle();
+          profileData = fallback.data;
+          error = fallback.error;
+
+          const canonicalUsername = fallback.data?.username?.toLowerCase();
+          if (canonicalUsername && canonicalUsername !== "user") {
+            navigate(`/p/${fallback.data.username}/services`, { replace: true });
+          }
+        }
+
+        if (!profileData) {
+          const byUsername = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("username", username.toLowerCase())
+            .maybeSingle();
+          profileData = byUsername.data;
+          error = byUsername.error;
+        }
+      } else {
+        const byUsername = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("username", username.toLowerCase())
+          .maybeSingle();
+        profileData = byUsername.data;
+        error = byUsername.error;
+      }
 
       if (error || !profileData) { setNotFound(true); setLoading(false); return; }
       const profileStatus = (profileData as Record<string, unknown>).status as string | null | undefined;
@@ -105,7 +138,7 @@ const PublicServices = () => {
       });
 
       const [appearanceRes, catalogRes] = await Promise.all([
-        supabase.from("appearance_settings").select("*").eq("user_id", profileData.user_id).single(),
+        supabase.from("appearance_settings").select("*").eq("user_id", profileData.user_id).maybeSingle(),
         supabase.from("catalog_items").select("*").eq("user_id", profileData.user_id).eq("enabled", true).order("sort_order", { ascending: true }),
       ]);
 
@@ -151,7 +184,7 @@ const PublicServices = () => {
       setLoading(false);
     };
     fetchData();
-  }, [username]);
+  }, [navigate, username]);
 
   useEffect(() => {
     if (!initialized) {
@@ -169,6 +202,17 @@ const PublicServices = () => {
     return () => { document.title = "LinkVertex"; };
   }, [profile, items]);
 
+  const categories = useMemo(() => [...new Set(items.map((i) => i.category))], [items]);
+  const itemTypes = useMemo(() => {
+    const scoped = activeCategory ? items.filter((i) => i.category === activeCategory) : items;
+    return [...new Set(scoped.map((i) => i.item_type).filter(Boolean))];
+  }, [activeCategory, items]);
+
+  useEffect(() => {
+    if (activeItemType && !itemTypes.includes(activeItemType)) {
+      setActiveItemType(null);
+    }
+  }, [activeItemType, itemTypes]);
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -182,19 +226,11 @@ const PublicServices = () => {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
           <h1 className="text-2xl font-heading font-bold text-foreground">Profile not found</h1>
-          <Link to="/" className="text-primary hover:underline">Go to homepage →</Link>
+          <Link to="/" className="text-primary hover:underline">Go to homepage -&gt;</Link>
         </div>
       </div>
     );
   }
-
-  const categories = [...new Set(items.map((i) => i.category))];
-  const itemTypes = [...new Set((activeCategory ? items.filter((i) => i.category === activeCategory) : items).map((i) => i.item_type).filter(Boolean))];
-  useEffect(() => {
-    if (activeItemType && !itemTypes.includes(activeItemType)) {
-      setActiveItemType(null);
-    }
-  }, [activeItemType, itemTypes]);
 
   const filteredItems = items.filter((item) => {
     const matchesCategory = !activeCategory || item.category === activeCategory;
@@ -553,14 +589,7 @@ const PublicServices = () => {
         </div>
       </div>
 
-      {/* Persistent Cart Footer */}
-      <AnimatePresence>
-        <PublicCartFooter
-          buttonBg={appearance.button_bg}
-          buttonText={appearance.button_text}
-          onCheckout={() => setShowCheckout(true)}
-        />
-      </AnimatePresence>
+      
 
       {/* Detail drawer */}
       <AnimatePresence>
@@ -580,21 +609,18 @@ const PublicServices = () => {
         )}
       </AnimatePresence>
 
-      {/* Checkout Modal */}
-      <AnimatePresence>
-        {showCheckout && (
-          <CheckoutModal
-            isOpen={showCheckout}
-            onClose={() => setShowCheckout(false)}
-            profileUserId={profile.user_id}
-            buttonBg={appearance.button_bg}
-            buttonText={appearance.button_text}
-            cardBg={appearance.background_color}
-          />
-        )}
-      </AnimatePresence>
+      
     </div>
   );
 };
 
 export default PublicServices;
+
+
+
+
+
+
+
+
+

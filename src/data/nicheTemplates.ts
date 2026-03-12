@@ -308,8 +308,8 @@ export const nicheTemplates: NicheTemplate[] = [
   },
 ];
 
-export const getTemplatesByCategory = () => {
-  return nicheTemplates.reduce((acc, template) => {
+export const getTemplatesByCategoryFromTemplates = (templates: NicheTemplate[]) => {
+  return templates.reduce((acc, template) => {
     if (!acc[template.category]) {
       acc[template.category] = [];
     }
@@ -318,6 +318,94 @@ export const getTemplatesByCategory = () => {
   }, {} as Record<string, NicheTemplate[]>);
 };
 
+export const getTemplatesByCategory = () => getTemplatesByCategoryFromTemplates(nicheTemplates);
+
 export const getTemplateById = (id: string) => {
   return nicheTemplates.find((t) => t.id === id);
 };
+
+const TEMPLATE_BUTTON_STYLES = new Set(["rounded", "pill", "square", "outline", "shadow"]);
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const asString = (value: unknown): string | null => {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
+
+const normalizeNicheTemplate = (value: unknown): NicheTemplate | null => {
+  if (!isRecord(value)) return null;
+  if (!isRecord(value.theme)) return null;
+
+  const id = asString(value.id);
+  const name = asString(value.name);
+  const category = asString(value.category);
+  const description = asString(value.description);
+  const icon = asString(value.icon);
+  const suggestedBio = asString(value.suggestedBio);
+
+  const theme = value.theme;
+  const backgroundColor = asString(theme.backgroundColor);
+  const cardColor = asString(theme.cardColor);
+  const textColor = asString(theme.textColor);
+  const buttonStyle = asString(theme.buttonStyle);
+  const buttonBg = asString(theme.buttonBg);
+  const buttonText = asString(theme.buttonText);
+
+  if (!id || !name || !category || !description || !icon || !suggestedBio || !backgroundColor || !cardColor || !textColor || !buttonStyle || !buttonBg || !buttonText) {
+    return null;
+  }
+  if (!TEMPLATE_BUTTON_STYLES.has(buttonStyle)) return null;
+
+  const defaultLinks = Array.isArray(value.defaultLinks)
+    ? value.defaultLinks
+        .map((link) => {
+          if (!isRecord(link)) return null;
+          const title = asString(link.title);
+          const url = asString(link.url);
+          return title && url ? { title, url } : null;
+        })
+        .filter((link): link is { title: string; url: string } => link !== null)
+    : [];
+
+  if (defaultLinks.length === 0) return null;
+
+  return {
+    id,
+    name,
+    category,
+    description,
+    icon,
+    suggestedBio,
+    defaultLinks,
+    theme: {
+      backgroundColor,
+      cardColor,
+      textColor,
+      buttonStyle: buttonStyle as NicheTemplate["theme"]["buttonStyle"],
+      buttonBg,
+      buttonText,
+      gradientFrom: asString(theme.gradientFrom) || undefined,
+      gradientTo: asString(theme.gradientTo) || undefined,
+      backgroundImage: asString(theme.backgroundImage) || undefined,
+      backgroundOverlay: asString(theme.backgroundOverlay) || undefined,
+      animationClass: asString(theme.animationClass) || undefined,
+      fontFamily: asString(theme.fontFamily) || undefined,
+      animatedGradient: asString(theme.animatedGradient) || undefined,
+    },
+  };
+};
+
+export const getNicheTemplatesFromSettings = (settings: unknown): NicheTemplate[] => {
+  const raw = (settings as Record<string, unknown> | null)?.niche_templates;
+  if (!Array.isArray(raw)) return nicheTemplates;
+
+  const parsed = raw
+    .map((value) => normalizeNicheTemplate(value))
+    .filter((template): template is NicheTemplate => template !== null);
+
+  return parsed.length > 0 ? parsed : nicheTemplates;
+};
+

@@ -3,19 +3,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, GripVertical, Trash2, ExternalLink, Pencil, Check, X, Copy, AlertCircle, Sparkles, Link2, MousePointerClick, Eye, Rocket, ChevronRight, Zap } from "lucide-react";
+import { Plus, Trash2, ExternalLink, Pencil, Check, X, Copy, AlertCircle, Sparkles, Link2, MousePointerClick, Eye, Rocket, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useLinksStore, type LinkItem, type SocialPlatform } from "@/stores/linksStore";
 import { SocialIcon, platformOptions } from "@/components/SocialIcon";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { linkSchema, normalizeUrl } from "@/lib/validation";
 import ShareProfile from "@/components/dashboard/ShareProfile";
 import ProfilePreview from "@/components/dashboard/ProfilePreview";
-import { Smartphone } from "lucide-react";
+
 import { useAuthStore } from "@/stores/authStore";
 import { useAppearanceStore } from "@/stores/appearanceStore";
+import { usePlatformStore } from "@/stores/platformStore";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Smartphone } from "lucide-react";
+import LinksToolbar from "@/components/dashboard/links/LinksToolbar";
+import TemplatePicker from "@/components/dashboard/links/TemplatePicker";
+import { buildTemplateUrl, getLinkTemplateCategories, inferPlatformFromTag } from "@/lib/linkTemplates";
 
 const tutorialSteps = [
   {
@@ -40,6 +45,7 @@ const tutorialSteps = [
   },
 ];
 
+
 const LinkEditor = () => {
   const { links, addLink, updateLink, deleteLink: removeLink, toggleLink, reorderLinks } = useLinksStore();
   
@@ -52,6 +58,9 @@ const LinkEditor = () => {
   };
   const user = useAuthStore((s) => s.user);
   const { settings } = useAppearanceStore();
+  const platformSettings = usePlatformStore((s) => s.settings);
+  const platformInitialized = usePlatformStore((s) => s.initialized);
+  const fetchPlatformSettings = usePlatformStore((s) => s.fetchSettings);
   const isMobile = useIsMobile();
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -63,15 +72,141 @@ const LinkEditor = () => {
   const [newUrl, setNewUrl] = useState("");
   const [newPlatform, setNewPlatform] = useState<SocialPlatform>("website");
   const [errors, setErrors] = useState<{ title?: string; url?: string }>({});
+  const [editErrors, setEditErrors] = useState<{ title?: string; url?: string }>({});
   const [showTutorial, setShowTutorial] = useState(true);
   const [showMobilePreview, setShowMobilePreview] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [platformFilter, setPlatformFilter] = useState<SocialPlatform | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "disabled">("all");
+  const [visibleCount, setVisibleCount] = useState(40);
+  const [templateCategoryId, setTemplateCategoryId] = useState<string>("none");
+  const [templateId, setTemplateId] = useState<string>("none");
+  const [addMode, setAddMode] = useState<"template" | "custom">("template");
+  const [templateSearch, setTemplateSearch] = useState("");
 
   const profileUrl = user ? `${window.location.origin}/p/${user.username}` : "";
+
+  const platformCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    links.forEach((link) => {
+      const key = link.platform || "website";
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    return counts;
+  }, [links]);
+
+  const filteredLinks = useMemo(() => {
+    return links
+      .map((link, index) => ({ link, index }))
+      .filter(({ link }) => {
+        const matchesSearch =
+          searchQuery.trim().length === 0 ||
+          link.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          link.url.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesPlatform = platformFilter === "all" || (link.platform || "website") === platformFilter;
+        const matchesStatus =
+          statusFilter === "all" ||
+          (statusFilter === "active" && link.enabled) ||
+          (statusFilter === "disabled" && !link.enabled);
+        return matchesSearch && matchesPlatform && matchesStatus;
+      });
+  }, [links, searchQuery, platformFilter, statusFilter]);
+
+  useEffect(() => {
+    if (!platformInitialized) {
+      void fetchPlatformSettings();
+    }
+  }, [fetchPlatformSettings, platformInitialized]);
+
+  useEffect(() => {
+    setVisibleCount(40);
+  }, [searchQuery, platformFilter, statusFilter]);
+
+  const visibleLinks = filteredLinks.slice(0, visibleCount);
+  const hasMoreFiltered = filteredLinks.length > visibleCount;
+  const isFilteredView = searchQuery.trim().length > 0 || platformFilter !== "all" || statusFilter !== "all";
+
+  const templateCategories = useMemo(() => getLinkTemplateCategories(platformSettings), [platformSettings]);
+
+  const selectedTemplateCategory = useMemo(
+    () => templateCategories.find((category) => category.id === templateCategoryId),
+    [templateCategories, templateCategoryId]
+  );
+
+  const selectedTemplate = useMemo(
+    () => selectedTemplateCategory?.templates.find((template) => template.id === templateId),
+    [selectedTemplateCategory, templateId]
+  );
+
+  const isEmbedInputPlatform = (platform: SocialPlatform) =>
+    platform === "video-embed" || platform === "website-embed";
+
+  const getUrlFieldLabel = (platform: SocialPlatform) =>
+    isEmbedInputPlatform(platform) ? "URL / Embed Code" : "URL";
+
+  const getUrlPlaceholder = (platform: SocialPlatform) => {
+    if (platform === "video-embed") return "YouTube/Vimeo URL or <iframe ...></iframe>";
+    if (platform === "website-embed") return "Website URL or <iframe ...></iframe>";
+    if (platform === "google-maps") return "Google Maps share URL or embed URL";
+    if (platform === "email") return "mailto:you@example.com";
+    return "https://example.com";
+  };
+
+  const getUrlHint = (platform: SocialPlatform) => {
+    if (platform === "video-embed") return "Supports YouTube, Vimeo, and iframe embed code.";
+    if (platform === "website-embed") return "Paste a website URL or an iframe embed snippet.";
+    if (platform === "google-maps") return "Use a Google Maps share link or embed URL.";
+    return "";
+  };
+  const handleTemplateCategoryChange = (value: string) => {
+    setTemplateCategoryId(value);
+    setTemplateId("none");
+    setTemplateSearch("");
+  };
+
+  const handleTemplateSelect = (value: string) => {
+    setTemplateId(value);
+    if (value === "none") return;
+    const template = selectedTemplateCategory?.templates.find((item) => item.id === value);
+    if (!template) return;
+
+    const templatePlatform = template.platform || inferPlatformFromTag(template.tag);
+    setNewPlatform(templatePlatform);
+    setNewTitle(template.title);
+    setNewUrl(buildTemplateUrl(template.tag, templatePlatform));
+    setErrors((prev) => ({ ...prev, title: undefined, url: undefined }));
+  };
+
+  const clearTemplateSelection = () => {
+    setTemplateId("none");
+    setTemplateSearch("");
+  };
+
+  const resetAddForm = () => {
+    setNewTitle("");
+    setNewUrl("");
+    setNewPlatform("website");
+    setTemplateCategoryId("none");
+    setTemplateId("none");
+    setAddMode("template");
+    setTemplateSearch("");
+    setErrors({});
+  };
+
+  const openAddForm = () => {
+    resetAddForm();
+    setShowAdd(true);
+  };
+
+  const closeAddForm = () => {
+    resetAddForm();
+    setShowAdd(false);
+  };
 
   const copyProfileLink = async () => {
     try {
       await navigator.clipboard.writeText(profileUrl);
-      toast.success("Profile link copied! 🚀");
+      toast.success("Profile link copied!");
     } catch {
       toast.error("Failed to copy link");
     }
@@ -88,13 +223,17 @@ const LinkEditor = () => {
       setErrors(fieldErrors);
       return;
     }
+
+    const normalizedUrl = normalizeUrl(newUrl);
+    const normalizedResult = linkSchema.safeParse({ title: newTitle, url: normalizedUrl });
+    if (!normalizedResult.success) {
+      setErrors({ url: "Please enter a valid URL or iframe embed code" });
+      return;
+    }
+
     setErrors({});
-    const normalizedUrl = normalizeUrl(newUrl.trim());
     addLink(newTitle.trim(), normalizedUrl, newPlatform);
-    setNewTitle("");
-    setNewUrl("");
-    setNewPlatform("website");
-    setShowAdd(false);
+    closeAddForm();
     toast.success("Link added!");
   };
 
@@ -117,11 +256,27 @@ const LinkEditor = () => {
     setEditTitle(link.title);
     setEditUrl(link.url);
     setEditPlatform(link.platform || "website");
+    setEditErrors({});
   };
 
   const saveEdit = () => {
     if (!editingId) return;
-    updateLink(editingId, { title: editTitle, url: editUrl, platform: editPlatform });
+
+    const result = linkSchema.safeParse({ title: editTitle, url: editUrl });
+    if (!result.success) {
+      const fieldErrors: { title?: string; url?: string } = {};
+      result.error.issues.forEach((issue) => {
+        if (issue.path[0] === "title") fieldErrors.title = issue.message;
+        if (issue.path[0] === "url") fieldErrors.url = issue.message;
+      });
+      setEditErrors(fieldErrors);
+      toast.error(fieldErrors.url || fieldErrors.title || "Please fix validation errors");
+      return;
+    }
+
+    const normalizedUrl = normalizeUrl(editUrl);
+    updateLink(editingId, { title: editTitle.trim(), url: normalizedUrl, platform: editPlatform });
+    setEditErrors({});
     setEditingId(null);
     toast.success("Link updated");
   };
@@ -227,12 +382,33 @@ const LinkEditor = () => {
               </p>
             </div>
             <Button
-              onClick={() => setShowAdd(true)}
+              onClick={openAddForm}
               className="rounded-xl shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 font-bold px-6"
             >
               <Plus className="w-4 h-4 mr-1.5" /> Add Link
             </Button>
           </motion.div>
+
+          {/* Link Filters */}
+          {links.length > 0 && (
+            <LinksToolbar
+              linksCount={links.length}
+              visibleCount={visibleLinks.length}
+              filteredCount={filteredLinks.length}
+              searchQuery={searchQuery}
+              statusFilter={statusFilter}
+              platformFilter={platformFilter}
+              platformCounts={platformCounts}
+              onSearchQueryChange={setSearchQuery}
+              onStatusFilterChange={setStatusFilter}
+              onPlatformFilterChange={setPlatformFilter}
+              onClearFilters={() => {
+                setSearchQuery("");
+                setPlatformFilter("all");
+                setStatusFilter("all");
+              }}
+            />
+          )}
 
           {/* Add Link Form */}
           <AnimatePresence>
@@ -243,87 +419,150 @@ const LinkEditor = () => {
                     <Zap className="w-4 h-4 text-primary" />
                     <p className="font-heading font-bold text-foreground text-sm uppercase tracking-wider">New Connection</p>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase tracking-tight opacity-70">Platform</Label>
-                    <Select value={newPlatform} onValueChange={(v) => setNewPlatform(v as SocialPlatform)}>
-                      <SelectTrigger className="rounded-xl h-11 border-border/50">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {platformOptions.map((p) => (
-                          <SelectItem key={p.value} value={p.value} className="rounded-lg">
-                            <div className="flex items-center gap-2">
-                              <SocialIcon platform={p.value} className="w-4 h-4" />
-                              {p.label}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+
+                  <div className="inline-flex rounded-xl border border-border/60 bg-background/40 p-1 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => setAddMode("template")}
+                      className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                        addMode === "template" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+                      }`}
+                    >
+                      Use Template
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAddMode("custom")}
+                      className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                        addMode === "custom" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+                      }`}
+                    >
+                      Custom Link
+                    </button>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase tracking-tight opacity-70">Title</Label>
-                    <Input
-                      placeholder="e.g. Follow my journey"
-                      value={newTitle}
-                      onChange={(e) => { setNewTitle(e.target.value); setErrors((prev) => ({ ...prev, title: undefined })); }}
-                      className={`rounded-xl h-11 border-border/50 ${errors.title ? "border-destructive/50 bg-destructive/5" : ""}`}
+
+                  {addMode === "template" ? (
+                    <TemplatePicker
+                      categories={templateCategories}
+                      templateCategoryId={templateCategoryId}
+                      templateId={templateId}
+                      templateSearch={templateSearch}
+                      selectedTemplateCategory={selectedTemplateCategory}
+                      selectedTemplate={selectedTemplate}
+                      onCategoryChange={handleTemplateCategoryChange}
+                      onTemplateSelect={handleTemplateSelect}
+                      onTemplateSearchChange={setTemplateSearch}
+                      onTemplateClear={clearTemplateSelection}
                     />
-                    {errors.title && (
-                      <p className="text-xs text-destructive flex items-center gap-1 font-medium">
-                        <AlertCircle className="w-3 h-3" /> {errors.title}
-                      </p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase tracking-tight opacity-70">URL</Label>
-                    <Input
-                      placeholder="https://social.me/profile"
-                      value={newUrl}
-                      onChange={(e) => { setNewUrl(e.target.value); setErrors((prev) => ({ ...prev, url: undefined })); }}
-                      className={`rounded-xl h-11 border-border/50 ${errors.url ? "border-destructive/50 bg-destructive/5" : ""}`}
-                    />
-                    {errors.url && (
-                      <p className="text-xs text-destructive flex items-center gap-1 font-medium">
-                        <AlertCircle className="w-3 h-3" /> {errors.url}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex gap-2 pt-2">
-                    <Button onClick={validateAndAdd} className="rounded-xl flex-1 bg-primary hover:bg-primary/90 font-bold h-11">
-                      <Check className="w-4 h-4 mr-1.5" /> Save Link
-                    </Button>
-                    <Button variant="ghost" className="rounded-xl px-6 h-11 font-bold" onClick={() => { setShowAdd(false); setNewTitle(""); setNewUrl(""); setNewPlatform("website"); setErrors({}); }}>
-                      Cancel
-                    </Button>
-                  </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground rounded-xl border border-border/50 bg-background/40 p-3">
+                      Custom mode lets you add any title and URL directly.
+                    </p>
+                  )}
+
+                  {(addMode === "custom" || selectedTemplate || !isMobile) ? (
+                    <>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold uppercase tracking-tight opacity-70">Platform</Label>
+                        <Select value={newPlatform} onValueChange={(v) => setNewPlatform(v as SocialPlatform)}>
+                          <SelectTrigger className="rounded-xl h-11 border-border/50">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {platformOptions.map((p) => (
+                              <SelectItem key={p.value} value={p.value} className="rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <SocialIcon platform={p.value} className="w-4 h-4" />
+                                  {p.label}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold uppercase tracking-tight opacity-70">Title</Label>
+                        <Input
+                          placeholder="e.g. Follow my journey"
+                          value={newTitle}
+                          onChange={(e) => {
+                            setNewTitle(e.target.value);
+                            setErrors((prev) => ({ ...prev, title: undefined }));
+                          }}
+                          className={`rounded-xl h-11 border-border/50 ${errors.title ? "border-destructive/50 bg-destructive/5" : ""}`}
+                        />
+                        {errors.title && (
+                          <p className="text-xs text-destructive flex items-center gap-1 font-medium">
+                            <AlertCircle className="w-3 h-3" /> {errors.title}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold uppercase tracking-tight opacity-70">{getUrlFieldLabel(newPlatform)}</Label>
+                        <Input
+                          placeholder={getUrlPlaceholder(newPlatform)}
+                          value={newUrl}
+                          onChange={(e) => {
+                            setNewUrl(e.target.value);
+                            setErrors((prev) => ({ ...prev, url: undefined }));
+                          }}
+                          className={`rounded-xl h-11 border-border/50 ${errors.url ? "border-destructive/50 bg-destructive/5" : ""}`}
+                        />
+                        {errors.url ? (
+                          <p className="text-xs text-destructive flex items-center gap-1 font-medium">
+                            <AlertCircle className="w-3 h-3" /> {errors.url}
+                          </p>
+                        ) : (
+                          getUrlHint(newPlatform) && <p className="text-[11px] text-muted-foreground">{getUrlHint(newPlatform)}</p>
+                        )}
+                      </div>
+
+                      <div className="flex gap-2 pt-2">
+                        <Button onClick={validateAndAdd} className="rounded-xl flex-1 bg-primary hover:bg-primary/90 font-bold h-11">
+                          <Check className="w-4 h-4 mr-1.5" /> Save Link
+                        </Button>
+                        <Button variant="ghost" className="rounded-xl px-6 h-11 font-bold" onClick={closeAddForm}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="rounded-xl border border-border/50 bg-background/40 p-3 text-xs text-muted-foreground">
+                      Select a feature template to continue.
+                    </div>
+                  )}
                 </Card>
               </motion.div>
             )}
           </AnimatePresence>
 
           {/* Links List */}
+          {isFilteredView && (
+            <p className="text-xs text-muted-foreground px-1">Reordering is disabled while filters are active. Clear filters to reorder your full list.</p>
+          )}
           <div className="space-y-3">
-            {links.map((link, index) => (
+            {visibleLinks.map(({ link, index }, renderIndex) => (
               <motion.div
                 key={link.id}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
+                transition={{ delay: renderIndex * 0.03 }}
               >
                 <Card className={`p-4 flex items-center gap-4 transition-all hover:shadow-xl hover:border-primary/20 rounded-2xl ${!link.enabled ? "opacity-40 grayscale" : ""}`}>
                   <div className="flex flex-col gap-1 shrink-0">
                     <Button 
                       size="icon" variant="ghost" className="h-6 w-6 rounded-md hover:bg-primary/10"
                       onClick={() => moveLink(index, 'up')}
-                      disabled={index === 0}
+                      disabled={isFilteredView || index === 0}
                     >
                       <Rocket className="w-3 h-3 -rotate-45" />
                     </Button>
                     <Button 
                       size="icon" variant="ghost" className="h-6 w-6 rounded-md hover:bg-primary/10"
                       onClick={() => moveLink(index, 'down')}
-                      disabled={index === links.length - 1}
+                      disabled={isFilteredView || index === links.length - 1}
                     >
                       <Rocket className="w-3 h-3 rotate-135" />
                     </Button>
@@ -348,8 +587,28 @@ const LinkEditor = () => {
                           ))}
                         </SelectContent>
                       </Select>
-                      <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="h-9 text-sm rounded-xl border-border/50" />
-                      <Input value={editUrl} onChange={(e) => setEditUrl(e.target.value)} className="h-9 text-sm rounded-xl border-border/50" />
+                      <Input
+                        value={editTitle}
+                        onChange={(e) => {
+                          setEditTitle(e.target.value);
+                          setEditErrors((prev) => ({ ...prev, title: undefined }));
+                        }}
+                        className={`h-9 text-sm rounded-xl border-border/50 ${editErrors.title ? "border-destructive/50 bg-destructive/5" : ""}`}
+                      />
+                      <Input
+                        value={editUrl}
+                        onChange={(e) => {
+                          setEditUrl(e.target.value);
+                          setEditErrors((prev) => ({ ...prev, url: undefined }));
+                        }}
+                        placeholder={getUrlPlaceholder(editPlatform)}
+                        className={`h-9 text-sm rounded-xl border-border/50 ${editErrors.url ? "border-destructive/50 bg-destructive/5" : ""}`}
+                      />
+                      {editErrors.url && (
+                        <p className="text-xs text-destructive flex items-center gap-1 font-medium">
+                          <AlertCircle className="w-3 h-3" /> {editErrors.url}
+                        </p>
+                      )}
                       <div className="flex gap-2">
                         <Button size="sm" onClick={saveEdit} className="rounded-lg h-9 flex-1 font-bold">
                           <Check className="w-3 h-3 mr-1.5" /> Save
@@ -395,6 +654,25 @@ const LinkEditor = () => {
             ))}
           </div>
 
+          {links.length > 0 && filteredLinks.length === 0 && (
+            <Card className="p-10 text-center rounded-2xl border-dashed border-border/60">
+              <p className="text-sm font-semibold text-foreground">No links match this filter</p>
+              <p className="text-xs text-muted-foreground mt-1">Try another search, status, or platform category.</p>
+            </Card>
+          )}
+
+          {hasMoreFiltered && (
+            <div className="flex justify-center pt-1">
+              <Button
+                variant="outline"
+                className="rounded-xl px-6"
+                onClick={() => setVisibleCount((prev) => prev + 40)}
+              >
+                Load More ({filteredLinks.length - visibleCount} remaining)
+              </Button>
+            </div>
+          )}
+
           {/* Empty State */}
           {links.length === 0 && !showAdd && (
             <motion.div
@@ -406,11 +684,14 @@ const LinkEditor = () => {
                 <div className="w-20 h-20 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-primary/20 via-primary/5 to-transparent flex items-center justify-center">
                   <Link2 className="w-10 h-10 text-primary" />
                 </div>
-                <h3 className="font-heading font-black text-foreground text-xl mb-2 tracking-tight">Your stage is empty 🎭</h3>
+                <h3 className="font-heading font-black text-foreground text-xl mb-2 tracking-tight">Your stage is empty</h3>
                 <p className="text-muted-foreground text-sm mb-8 max-w-[280px] mx-auto font-medium leading-relaxed">
                   Every big creator started with a single link. Time to add yours!
                 </p>
-                <Button onClick={() => setShowAdd(true)} className="rounded-xl shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90 font-black px-8 h-12">
+                <Button
+                  onClick={openAddForm}
+                  className="rounded-xl bg-primary hover:bg-primary/90 font-bold px-6 h-11"
+                >
                   <Plus className="w-4 h-4 mr-2" /> Add Your First Link
                 </Button>
               </Card>
@@ -443,7 +724,7 @@ const LinkEditor = () => {
           )}
         </div>
 
-        {/* Right Column: Sticky Preview — always visible on desktop */}
+        {/* Right Column: Sticky Preview - always visible on desktop */}
         <div className="hidden lg:block w-[400px] shrink-0 self-start sticky top-6 z-30">
           <div className="bg-card border border-border/40 rounded-[32px] p-6 shadow-2xl relative overflow-hidden group/sidebar">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
@@ -552,3 +833,9 @@ const LinkEditor = () => {
 };
 
 export default LinkEditor;
+
+
+
+
+
+

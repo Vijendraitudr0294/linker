@@ -22,6 +22,11 @@ export interface PlatformSettings {
   cta_label_overrides?: Record<string, string> | null;
   category_label_overrides?: Record<string, string> | null;
   item_type_label_overrides?: Record<string, string> | null;
+  link_template_categories?: unknown[] | null;
+  theme_categories?: unknown[] | null;
+  theme_presets?: unknown[] | null;
+  niche_templates?: unknown[] | null;
+  demo_catalog_packs?: Record<string, unknown> | null;
 }
 
 interface PlatformState {
@@ -71,3 +76,5 @@ export const usePlatformStore = create<PlatformState>()((set, get) => ({
     return true;
   },
 }));
+
+

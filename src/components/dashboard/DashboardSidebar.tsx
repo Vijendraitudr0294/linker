@@ -42,7 +42,7 @@ export function DashboardSidebar() {
   const { settings: platformSettings, fetchSettings: fetchPlatformSettings } = usePlatformStore();
   const navigate = useNavigate();
 
-  useEffect(() => { fetchPlatformSettings(); }, []);
+  useEffect(() => { fetchPlatformSettings(); }, [fetchPlatformSettings]);
 
   const isActive = (path: string) =>
     path === "/dashboard"
@@ -146,11 +146,18 @@ export function DashboardSidebar() {
       <SidebarFooter className="p-4 space-y-2 border-t border-white/5">
         {!collapsed && user?.username && (
           <div className="px-3 py-4 mb-2 rounded-2xl bg-primary/5 border border-primary/10">
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">My Brand</p>
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Brand Profile</p>
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-accent" />
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-accent overflow-hidden flex items-center justify-center text-[11px] font-black text-white">
+                {user.avatar_url ? (
+                  <img src={user.avatar_url} alt={user.name || user.username} className="w-full h-full object-cover" />
+                ) : (
+                  <span>{(user.name || user.username).charAt(0).toUpperCase()}</span>
+                )}
+              </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-black text-foreground truncate">@{user.username}</p>
+                <p className="text-xs font-black text-foreground truncate">{user.name || `@${user.username}`}</p>
+                <p className="text-[11px] font-semibold text-muted-foreground truncate">@{user.username}</p>
               </div>
             </div>
             <Button
@@ -178,3 +185,6 @@ export function DashboardSidebar() {
     </Sidebar>
   );
 }
+
+
+

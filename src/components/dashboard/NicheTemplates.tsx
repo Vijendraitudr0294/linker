@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -6,8 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
-  nicheTemplates,
-  getTemplatesByCategory,
+  getNicheTemplatesFromSettings,
+  getTemplatesByCategoryFromTemplates,
   type NicheTemplate,
 } from "@/data/nicheTemplates";
 import {
@@ -21,6 +21,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useAppearanceStore, type AppearanceSettings } from "@/stores/appearanceStore";
 import { useLinksStore } from "@/stores/linksStore";
 import { useAuthStore } from "@/stores/authStore";
+import { usePlatformStore } from "@/stores/platformStore";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -174,6 +175,9 @@ const NicheTemplates = () => {
   const { settings, updateSettings } = useAppearanceStore();
   const { addLink } = useLinksStore();
   const { updateProfile, user } = useAuthStore();
+  const platformSettings = usePlatformStore((s) => s.settings);
+  const platformInitialized = usePlatformStore((s) => s.initialized);
+  const fetchPlatformSettings = usePlatformStore((s) => s.fetchSettings);
   const links = useLinksStore((s) => s.links);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showFavorites, setShowFavorites] = useState(false);
@@ -194,14 +198,21 @@ const NicheTemplates = () => {
   const { favorites, toggle: toggleFavorite } = useFavorites();
   const [applying, setApplying] = useState<string | null>(null);
 
-  const categories = getTemplatesByCategory();
+  const resolvedTemplates = useMemo(() => getNicheTemplatesFromSettings(platformSettings), [platformSettings]);
+  const categories = useMemo(() => getTemplatesByCategoryFromTemplates(resolvedTemplates), [resolvedTemplates]);
   const categoryNames = Object.keys(categories);
 
+  useEffect(() => {
+    if (!platformInitialized) {
+      void fetchPlatformSettings();
+    }
+  }, [fetchPlatformSettings, platformInitialized]);
+
   const baseTemplates = showFavorites
-    ? nicheTemplates.filter((t) => favorites.has(t.id))
+    ? resolvedTemplates.filter((t) => favorites.has(t.id))
     : activeCategory
       ? categories[activeCategory] || []
-      : nicheTemplates;
+      : resolvedTemplates;
 
   const displayTemplates = searchQuery
     ? baseTemplates.filter(
@@ -375,9 +386,7 @@ const NicheTemplates = () => {
     showAvatar: true,
   });
 
-  const previewLinks = links.filter((l) => l.enabled).length > 0
-    ? links.filter((l) => l.enabled).slice(0, 4).map((l) => ({ id: l.id, title: l.title, platform: l.platform }))
-    : [{ id: "1", title: "My Website", platform: "website" }, { id: "2", title: "Instagram", platform: "instagram" }];
+  const previewLinks = links.filter((l) => l.enabled).slice(0, 4).map((l) => ({ id: l.id, title: l.title, platform: l.platform }));
 
   return (
     <div className="space-y-6">
@@ -528,7 +537,7 @@ const NicheTemplates = () => {
                     <div className="w-full h-[680px] opacity-95 transition-transform duration-1000 group-hover:scale-105 origin-top">
                       <ProfilePreview
                         settings={getPreviewSettings(template)}
-                        user={user || { name: "Demo User", bio: template.suggestedBio, avatar_url: "", username: "username" }}
+                        user={user}
                         links={template.defaultLinks.map((l, i) => ({ id: `demo-${i}`, title: l.title, platform: 'website' }))}
                         showSocialIcons={false}
                         compact={false}
@@ -657,4 +666,6 @@ const NicheTemplates = () => {
 };
 
 export default NicheTemplates;
+
+
 

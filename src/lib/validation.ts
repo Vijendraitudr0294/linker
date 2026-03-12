@@ -1,19 +1,56 @@
 import { z } from "zod";
 
+const EMBED_SRC_PATTERN = /<iframe[^>]+src=(?:"([^"]+)"|'([^']+)')[^>]*>/i;
+const SPECIAL_SCHEME_PATTERN = /^(mailto:|tel:)/i;
+
+const toUrlCandidate = (value: string): string => {
+  const trimmed = value.trim();
+  if (!trimmed) return trimmed;
+
+  const embedMatch = trimmed.match(EMBED_SRC_PATTERN);
+  const embedSrc = embedMatch?.[1] || embedMatch?.[2];
+  if (embedSrc) {
+    return embedSrc.startsWith("//") ? `https:${embedSrc}` : embedSrc.trim();
+  }
+
+  if (SPECIAL_SCHEME_PATTERN.test(trimmed)) {
+    return trimmed;
+  }
+
+  if (trimmed.startsWith("//")) {
+    return `https:${trimmed}`;
+  }
+
+  if (!/^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//.test(trimmed)) {
+    return `https://${trimmed}`;
+  }
+
+  return trimmed;
+};
+
+const isValidUrlInput = (value: string): boolean => {
+  const candidate = toUrlCandidate(value);
+  if (!candidate) return false;
+
+  if (SPECIAL_SCHEME_PATTERN.test(candidate)) {
+    return true;
+  }
+
+  try {
+    const parsed = new URL(candidate);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+
 export const urlSchema = z
   .string()
   .trim()
   .min(1, "URL is required")
-  .refine(
-    (url) => {
-      // Allow URLs with or without protocol
-      const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/i;
-      // Also allow mailto: and tel: links
-      const specialPattern = /^(mailto:|tel:).+/i;
-      return urlPattern.test(url) || specialPattern.test(url);
-    },
-    { message: "Please enter a valid URL (e.g., https://example.com)" }
-  );
+  .refine((value) => isValidUrlInput(value), {
+    message: "Please enter a valid URL or iframe embed code",
+  });
 
 export const titleSchema = z
   .string()
@@ -38,18 +75,5 @@ export const profileSchema = z.object({
 });
 
 export const normalizeUrl = (url: string): string => {
-  const trimmed = url.trim();
-  if (!trimmed) return trimmed;
-  
-  // Don't modify mailto: or tel: links
-  if (trimmed.match(/^(mailto:|tel:)/i)) {
-    return trimmed;
-  }
-  
-  // Add https:// if no protocol specified
-  if (!trimmed.match(/^https?:\/\//i)) {
-    return `https://${trimmed}`;
-  }
-  
-  return trimmed;
+  return toUrlCandidate(url);
 };

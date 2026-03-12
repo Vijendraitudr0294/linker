@@ -14,6 +14,7 @@ import {
   Users, BarChart3, Eye, EyeOff, Save, Sparkles, Mail, Bell,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DEFAULT_CTA_LABELS,
   DEFAULT_CHECKOUT_STEP_LABELS,
@@ -52,7 +53,7 @@ const PlatformSettingsPage = () => {
 
   useEffect(() => {
     fetchSettings(true); // force refresh
-  }, []);
+  }, [fetchSettings]);
 
   useEffect(() => {
     if (settings) {
@@ -503,3 +504,6 @@ const PlatformSettingsPage = () => {
 };
 
 export default PlatformSettingsPage;
+
+
+

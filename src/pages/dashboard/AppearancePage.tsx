@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -16,7 +16,8 @@ import { useAppearanceStore } from "@/stores/appearanceStore";
 import { useAuthStore } from "@/stores/authStore";
 import { useLinksStore } from "@/stores/linksStore";
 import { useCatalogStore } from "@/stores/catalogStore";
-import { themePresets, themeCategories, type ThemePreset, type ThemeCategory } from "@/data/themes";
+import { usePlatformStore } from "@/stores/platformStore";
+import { getThemeCategoriesFromSettings, getThemePresetsFromSettings, type ThemePreset, type ThemeCategory } from "@/data/themes";
 import { Check, Search, ChevronDown, ChevronUp, Palette, Sparkles, Layout, Smartphone, X, ExternalLink, Share2, Copy, Bell, Type, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -46,8 +47,7 @@ const fonts = [
   { value: "monospace", label: "Mono" },
 ];
 
-const getPopularThemes = () => themePresets.filter((t) => t.isPopular);
-const getThemesByCategory = (category: ThemeCategory) => themePresets.filter((t) => t.category === category);
+const getThemesByCategory = (presets: ThemePreset[], category: ThemeCategory) => presets.filter((t) => t.category === category);
 
 const AppearancePage = () => {
   const { settings, applyTheme, updateSettings, fetchSettings } = useAppearanceStore();
@@ -55,8 +55,10 @@ const AppearancePage = () => {
   const { links, fetchLinks } = useLinksStore();
   const { items: catalogItems, fetchItems } = useCatalogStore();
   const activeLinks = links.filter((l) => l.enabled);
-  const isAdmin = user?.role === "admin";
   const isMobile = useIsMobile();
+  const platformSettings = usePlatformStore((s) => s.settings);
+  const platformInitialized = usePlatformStore((s) => s.initialized);
+  const fetchPlatformSettings = usePlatformStore((s) => s.fetchSettings);
   const [showMobilePreview, setShowMobilePreview] = useState(false);
 
   useEffect(() => {
@@ -65,13 +67,22 @@ const AppearancePage = () => {
       fetchSettings(user.user_id);
       fetchLinks(user.user_id);
     }
-  }, [user]);
+  }, [fetchItems, fetchLinks, fetchSettings, user]);
+
+  useEffect(() => {
+    if (!platformInitialized) {
+      void fetchPlatformSettings();
+    }
+  }, [fetchPlatformSettings, platformInitialized]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<ThemeCategory | null>(null);
 
+  const resolvedThemePresets = useMemo(() => getThemePresetsFromSettings(platformSettings), [platformSettings]);
+  const resolvedThemeCategories = useMemo(() => getThemeCategoriesFromSettings(platformSettings), [platformSettings]);
+
   const filteredThemes = searchQuery
-    ? themePresets.filter((t) =>
+    ? resolvedThemePresets.filter((t) =>
       [
         t.name,
         t.category,
@@ -91,9 +102,7 @@ const AppearancePage = () => {
     toast.success(`Theme set to ${theme.name}`);
   };
 
-  const previewLinks = activeLinks.length > 0
-    ? activeLinks.map((l) => ({ id: l.id, title: l.title, platform: l.platform }))
-    : [{ id: "1", title: "My Website", platform: "website" }, { id: "2", title: "Twitter", platform: "twitter" }];
+  const previewLinks = activeLinks.map((l) => ({ id: l.id, title: l.title, platform: l.platform }));
 
   const ThemeCard = ({ theme }: { theme: ThemePreset }) => {
     const isSelected = settings.themeId === theme.id;
@@ -295,7 +304,7 @@ const AppearancePage = () => {
                     <div className="space-y-4">
                       <div className="flex items-center justify-between px-1">
                         <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">Browse Categories</Label>
-                        <span className="text-[10px] font-bold text-primary/60 uppercase tracking-widest">{themePresets.length} Themes available</span>
+                        <span className="text-[10px] font-bold text-primary/60 uppercase tracking-widest">{resolvedThemePresets.length} Themes available</span>
                       </div>
                       <div className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar items-center -mx-1 px-1">
                         <button
@@ -310,7 +319,7 @@ const AppearancePage = () => {
                           <span className="text-lg">🔥</span>
                           All Layouts
                         </button>
-                        {themeCategories.map((cat) => (
+                        {resolvedThemeCategories.map((cat) => (
                           <button
                             key={cat.id}
                             onClick={() => setActiveCategory(cat.id)}
@@ -359,7 +368,7 @@ const AppearancePage = () => {
                     className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                   >
                     <AnimatePresence mode="popLayout">
-                      {(!activeCategory ? themePresets : getThemesByCategory(activeCategory)).map((theme) => (
+                      {(!activeCategory ? resolvedThemePresets : getThemesByCategory(resolvedThemePresets, activeCategory)).map((theme) => (
                         <motion.div
                           key={theme.id}
                           initial={{ opacity: 0, scale: 0.95 }}
@@ -395,7 +404,7 @@ const AppearancePage = () => {
                     size="sm" 
                     className="h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border-border/40 hover:bg-muted"
                     onClick={() => {
-                      const currentTheme = themePresets.find(t => t.id === settings.themeId);
+                      const currentTheme = resolvedThemePresets.find(t => t.id === settings.themeId);
                       if (currentTheme) {
                         applyTheme(currentTheme);
                         toast.success("Reset to theme defaults");
@@ -478,7 +487,35 @@ const AppearancePage = () => {
                           </div>
                           <BackgroundImageUpload />
                         </section>
-                        
+
+                        <section className="space-y-4">
+                          <div className="flex items-center gap-2">
+                            <Layout className="w-4 h-4 text-primary" />
+                            <h3 className="text-sm font-black uppercase tracking-widest text-foreground">Tab Labels</h3>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                              <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Shop Tab</Label>
+                              <Input
+                                value={settings.shopTabLabel || "Shop"}
+                                onChange={(e) => updateSettings({ shopTabLabel: e.target.value.slice(0, 20) })}
+                                placeholder="Shop"
+                                className="h-10 rounded-xl border-border/40"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Links Tab</Label>
+                              <Input
+                                value={settings.linksTabLabel || "Links"}
+                                onChange={(e) => updateSettings({ linksTabLabel: e.target.value.slice(0, 20) })}
+                                placeholder="Links"
+                                className="h-10 rounded-xl border-border/40"
+                              />
+                            </div>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground">You can rename top tabs like Shop, News, Videos, Reports, etc.</p>
+                        </section>
+
                       </div>
                     </div>
                   </Card>
@@ -627,3 +664,8 @@ const AppearancePage = () => {
 };
 
 export default AppearancePage;
+
+
+
+
+

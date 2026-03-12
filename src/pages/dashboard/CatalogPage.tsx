@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuthStore } from "@/stores/authStore";
 import { useCatalogStore, type CatalogItem, type ItemType, type ItemVariant } from "@/stores/catalogStore";
+import { usePlatformStore } from "@/stores/platformStore";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Plus, Trash2, Pencil, Check, X, ShoppingBag, UtensilsCrossed,
@@ -19,7 +20,7 @@ import {
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
-import { MOCK_CATEGORIES, MOCK_SERVICES } from "@/data/mockCatalogServices";
+import { MOCK_SERVICES } from "@/data/mockCatalogServices";
 
 const TYPE_OPTIONS: { value: ItemType; label: string; icon: typeof ShoppingBag }[] = [
   { value: "physical", label: "Physical Product", icon: ShoppingBag },
@@ -44,6 +45,9 @@ const TYPE_ICONS: Record<ItemType, typeof ShoppingBag> = {
 const CatalogPage = () => {
   const user = useAuthStore((s) => s.user);
   const { items, loading, fetchItems, addItem, updateItem, deleteItem, toggleItem, bulkAddItems } = useCatalogStore();
+  const platformSettings = usePlatformStore((s) => s.settings);
+  const platformInitialized = usePlatformStore((s) => s.initialized);
+  const fetchPlatformSettings = usePlatformStore((s) => s.fetchSettings);
   const [showAdd, setShowAdd] = useState(false);
   const [showDemoDialog, setShowDemoDialog] = useState(false);
   const [importingDemo, setImportingDemo] = useState(false);
@@ -74,7 +78,33 @@ const CatalogPage = () => {
 
   useEffect(() => {
     if (user) fetchItems(user.user_id);
-  }, [user]);
+  }, [fetchItems, user]);
+
+  useEffect(() => {
+    if (!platformInitialized) {
+      void fetchPlatformSettings();
+    }
+  }, [fetchPlatformSettings, platformInitialized]);
+  const demoCatalogPacks = useMemo(() => {
+    const rawPacks = platformSettings?.demo_catalog_packs;
+    if (!rawPacks || typeof rawPacks !== "object" || Array.isArray(rawPacks)) {
+      return MOCK_SERVICES;
+    }
+
+    const parsed = Object.entries(rawPacks).reduce<Record<string, Record<string, unknown>[]>>((acc, [key, value]) => {
+      if (Array.isArray(value)) {
+        const items = value.filter((item): item is Record<string, unknown> => typeof item === "object" && item !== null);
+        if (items.length > 0) {
+          acc[key] = items;
+        }
+      }
+      return acc;
+    }, {});
+
+    return Object.keys(parsed).length > 0 ? parsed : MOCK_SERVICES;
+  }, [platformSettings?.demo_catalog_packs]);
+
+  const demoCategories = useMemo(() => Object.keys(demoCatalogPacks), [demoCatalogPacks]);
 
   const resetForm = () => {
     setForm({
@@ -175,7 +205,7 @@ const CatalogPage = () => {
     if (!user) return;
     setImportingDemo(true);
     try {
-      const mockItems = MOCK_SERVICES[category];
+      const mockItems = demoCatalogPacks[category];
       if (!mockItems) throw new Error("Category not found");
       
       await bulkAddItems(mockItems.map(item => ({
@@ -333,7 +363,7 @@ const CatalogPage = () => {
                   Choose a niche to pre-populate your catalog with 15 high-quality sample items including images, descriptions, and prices.
                 </p>
                 <div className="grid grid-cols-1 gap-2">
-                  {MOCK_CATEGORIES.map((cat) => (
+                  {demoCategories.map((cat) => (
                     <Button
                       key={cat}
                       variant="outline"
@@ -344,7 +374,7 @@ const CatalogPage = () => {
                       <div className="flex items-center justify-between w-full">
                         <span className="font-medium">{cat}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">15 Items</span>
+                          <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{demoCatalogPacks[cat]?.length || 0} Items</span>
                           <Plus className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                       </div>
@@ -709,3 +739,5 @@ const CatalogPage = () => {
 };
 
 export default CatalogPage;
+
+
