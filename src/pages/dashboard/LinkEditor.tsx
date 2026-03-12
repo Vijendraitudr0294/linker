@@ -275,6 +275,13 @@ const LinkEditor = () => {
     }
 
     const normalizedUrl = normalizeUrl(editUrl);
+    const normalizedResult = linkSchema.safeParse({ title: editTitle, url: normalizedUrl });
+    if (!normalizedResult.success) {
+      setEditErrors({ url: "Please enter a valid URL or iframe embed code" });
+      toast.error("Please enter a valid URL or iframe embed code");
+      return;
+    }
+
     updateLink(editingId, { title: editTitle.trim(), url: normalizedUrl, platform: editPlatform });
     setEditErrors({});
     setEditingId(null);
@@ -833,9 +840,4 @@ const LinkEditor = () => {
 };
 
 export default LinkEditor;
-
-
-
-
-
 

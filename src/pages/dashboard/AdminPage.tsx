@@ -154,7 +154,7 @@ const AdminPage = () => {
   const handleDeleteUser = async (userId: string, email: string) => {
     if (!confirm(`Delete user ${email}? This cannot be undone.`)) return;
     const { error } = await supabase.from("profiles").delete().eq("user_id", userId);
-    if (error) { toast.error("Failed to delete — profile may have dependencies"); return; }
+    if (error) { toast.error("Failed to delete - profile may have dependencies"); return; }
     setUsers((prev) => prev.filter((u) => u.user_id !== userId));
     setSelectedUsers((prev) => { const n = new Set(prev); n.delete(userId); return n; });
     toast.success("User profile deleted");
@@ -218,6 +218,17 @@ const AdminPage = () => {
 
   const selectableCount = filteredUsers.filter((u) => u.user_id !== user.user_id).length;
   const allSelected = selectableCount > 0 && selectedUsers.size === selectableCount;
+
+  const resolveOrderAmount = (order: any) => {
+    const quantity = Number(order?.quantity ?? 1);
+    const directAmount = Number(order?.total_amount ?? order?.amount ?? order?.price ?? 0);
+    if (Number.isFinite(directAmount) && directAmount > 0) return directAmount;
+
+    const catalogPrice = Number(order?.catalog_items?.price ?? 0);
+    if (Number.isFinite(catalogPrice) && catalogPrice > 0) return quantity * catalogPrice;
+
+    return 0;
+  };
 
   const getUserName = (userId: string) => {
     const u = users.find((u) => u.user_id === userId);
@@ -493,7 +504,7 @@ const AdminPage = () => {
                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">{order.customer_name?.[0] || "?"}</div>
                    <span className="text-xs font-medium opacity-60">{order.customer_name}</span>
                 </div>
-                <span className="text-lg font-black text-primary">${order.quantity * (order.price || 0)}</span>
+                <span className="text-lg font-black text-primary">${resolveOrderAmount(order)}</span>
               </div>
             </motion.div>
           ))}
@@ -505,3 +516,4 @@ const AdminPage = () => {
 };
 
 export default AdminPage;
+

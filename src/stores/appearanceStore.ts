@@ -67,6 +67,9 @@ let hasShownTabLabelCompatibilityNotice = false;
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
+const isMissingColumnError = (error: { message?: string } | null | undefined, columnName: string): boolean =>
+  Boolean(error?.message && new RegExp(`Could not find the '${columnName}' column`, "i").test(error.message));
+
 const resolveTabLabel = (
   primary: string | undefined,
   fallback: string | undefined,
@@ -81,10 +84,10 @@ const resolveTabLabel = (
   return primaryText;
 };
 
-const getTabLabelsFromCreatorMetrics = (creatorMetrics: unknown): Partial<TabLabelSettings> => {
-  if (!isRecord(creatorMetrics)) return {};
+const getTabLabelsFromMetricObject = (metricObject: unknown): Partial<TabLabelSettings> => {
+  if (!isRecord(metricObject)) return {};
 
-  const tabLabels = creatorMetrics.tab_labels;
+  const tabLabels = metricObject.tab_labels;
   if (!isRecord(tabLabels)) return {};
 
   const next: Partial<TabLabelSettings> = {};
@@ -100,11 +103,11 @@ const getTabLabelsFromCreatorMetrics = (creatorMetrics: unknown): Partial<TabLab
   return next;
 };
 
-const mergeTabLabelsIntoCreatorMetrics = (
-  creatorMetrics: unknown,
+const mergeTabLabelsIntoMetricObject = (
+  metricObject: unknown,
   labels: Partial<TabLabelSettings>
 ): Record<string, unknown> => {
-  const base = isRecord(creatorMetrics) ? { ...creatorMetrics } : {};
+  const base = isRecord(metricObject) ? { ...metricObject } : {};
   const existingTabLabels = isRecord(base.tab_labels) ? { ...base.tab_labels } : {};
 
   if (labels.shopTabLabel !== undefined) {
@@ -121,31 +124,68 @@ const mergeTabLabelsIntoCreatorMetrics = (
   return base;
 };
 
-const persistTabLabelFallback = async (userId: string, data: Partial<AppearanceSettings>) => {
+const combineFallbackTabLabels = (
+  creatorMetricLabels: Partial<TabLabelSettings>,
+  socialMetricLabels: Partial<TabLabelSettings>
+): Partial<TabLabelSettings> => ({
+  shopTabLabel: creatorMetricLabels.shopTabLabel || socialMetricLabels.shopTabLabel,
+  linksTabLabel: creatorMetricLabels.linksTabLabel || socialMetricLabels.linksTabLabel,
+});
+
+const persistTabLabelFallback = async (userId: string, data: Partial<AppearanceSettings>): Promise<boolean> => {
   const tabLabelPatch: Partial<TabLabelSettings> = {};
   if (data.shopTabLabel !== undefined) tabLabelPatch.shopTabLabel = data.shopTabLabel;
   if (data.linksTabLabel !== undefined) tabLabelPatch.linksTabLabel = data.linksTabLabel;
-  if (Object.keys(tabLabelPatch).length === 0) return;
+  if (Object.keys(tabLabelPatch).length === 0) return true;
 
-  const { data: profileData, error: readError } = await supabase
+  const creatorRead = await supabase
     .from("profiles")
     .select("creator_metrics")
     .eq("user_id", userId)
     .maybeSingle();
 
-  if (readError) throw readError;
+  if (!creatorRead.error) {
+    const nextCreatorMetrics = mergeTabLabelsIntoMetricObject(creatorRead.data?.creator_metrics, tabLabelPatch);
+    const creatorUpdate = await supabase
+      .from("profiles")
+      .update({
+        creator_metrics: nextCreatorMetrics,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("user_id", userId);
 
-  const nextCreatorMetrics = mergeTabLabelsIntoCreatorMetrics(profileData?.creator_metrics, tabLabelPatch);
+    if (!creatorUpdate.error) return true;
+    if (!isMissingColumnError(creatorUpdate.error, "creator_metrics")) throw creatorUpdate.error;
+  } else if (!isMissingColumnError(creatorRead.error, "creator_metrics")) {
+    throw creatorRead.error;
+  }
 
-  const { error: updateError } = await supabase
+  const socialRead = await supabase
+    .from("profiles")
+    .select("social_stats")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (socialRead.error) {
+    if (isMissingColumnError(socialRead.error, "social_stats")) return false;
+    throw socialRead.error;
+  }
+
+  const nextSocialStats = mergeTabLabelsIntoMetricObject(socialRead.data?.social_stats, tabLabelPatch);
+  const socialUpdate = await supabase
     .from("profiles")
     .update({
-      creator_metrics: nextCreatorMetrics,
+      social_stats: nextSocialStats,
       updated_at: new Date().toISOString(),
     })
     .eq("user_id", userId);
 
-  if (updateError) throw updateError;
+  if (socialUpdate.error) {
+    if (isMissingColumnError(socialUpdate.error, "social_stats")) return false;
+    throw socialUpdate.error;
+  }
+
+  return true;
 };
 
 const dbToSettings = (row: Record<string, unknown>): AppearanceSettings => ({
@@ -237,12 +277,20 @@ export const useAppearanceStore = create<AppearanceState>()((set, get) => ({
   fetchSettings: async (userId: string) => {
     set({ loading: true });
 
-    const [appearanceRes, profileRes] = await Promise.all([
+    const [appearanceRes, creatorMetricsRes, socialStatsRes] = await Promise.all([
       supabase.from("appearance_settings").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("profiles").select("creator_metrics").eq("user_id", userId).maybeSingle(),
+      supabase.from("profiles").select("social_stats").eq("user_id", userId).maybeSingle(),
     ]);
 
-    const fallbackTabLabels = getTabLabelsFromCreatorMetrics(profileRes.data?.creator_metrics);
+    const creatorMetricLabels = creatorMetricsRes.error
+      ? {}
+      : getTabLabelsFromMetricObject(creatorMetricsRes.data?.creator_metrics);
+    const socialMetricLabels = socialStatsRes.error
+      ? {}
+      : getTabLabelsFromMetricObject(socialStatsRes.data?.social_stats);
+
+    const fallbackTabLabels = combineFallbackTabLabels(creatorMetricLabels, socialMetricLabels);
 
     if (appearanceRes.data) {
       const appearanceRow = appearanceRes.data as Record<string, unknown>;
@@ -303,13 +351,21 @@ export const useAppearanceStore = create<AppearanceState>()((set, get) => ({
 
     if (skippedTabLabelColumns) {
       try {
-        await persistTabLabelFallback(user.id, data);
+        const saved = await persistTabLabelFallback(user.id, data);
+
         if (!hasShownTabLabelCompatibilityNotice) {
-          toast.warning("Tab labels were saved in compatibility mode. Run latest DB migration for full support.");
+          toast.warning(
+            saved
+              ? "Tab labels were saved in compatibility mode. Run latest DB migration for full support."
+              : "Tab labels need the latest DB migration to persist globally."
+          );
           hasShownTabLabelCompatibilityNotice = true;
         }
       } catch {
-        toast.error("Could not save tab labels. Please run latest database migration.");
+        if (!hasShownTabLabelCompatibilityNotice) {
+          toast.warning("Tab labels need the latest DB migration to persist globally.");
+          hasShownTabLabelCompatibilityNotice = true;
+        }
       }
     }
 

@@ -1,14 +1,29 @@
 import { z } from "zod";
 
-const EMBED_SRC_PATTERN = /<iframe[^>]+src=(?:"([^"]+)"|'([^']+)')[^>]*>/i;
+const EMBED_SRC_PATTERN = /<iframe[^>]*\bsrc\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))/i;
 const SPECIAL_SCHEME_PATTERN = /^(mailto:|tel:)/i;
+const ZERO_WIDTH_PATTERN = /[\u200B-\u200D\uFEFF]/g;
+
+const decodeHtmlEntities = (value: string): string =>
+  value
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">");
+
+const sanitizeRawInput = (value: string): string =>
+  decodeHtmlEntities(value)
+    .replace(ZERO_WIDTH_PATTERN, "")
+    .replace(/\s+/g, " ")
+    .trim();
 
 const toUrlCandidate = (value: string): string => {
-  const trimmed = value.trim();
+  const trimmed = sanitizeRawInput(value);
   if (!trimmed) return trimmed;
 
   const embedMatch = trimmed.match(EMBED_SRC_PATTERN);
-  const embedSrc = embedMatch?.[1] || embedMatch?.[2];
+  const embedSrc = embedMatch?.[1] || embedMatch?.[2] || embedMatch?.[3];
   if (embedSrc) {
     return embedSrc.startsWith("//") ? `https:${embedSrc}` : embedSrc.trim();
   }

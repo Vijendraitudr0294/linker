@@ -26,11 +26,19 @@ export interface UserProfile {
     fb_likes?: string;
     tiktok_followers?: string;
     youtube_subs?: string;
+    tab_labels?: {
+      shop?: string;
+      links?: string;
+    };
   };
   creator_metrics?: {
     engagement_rate?: string;
     avg_views?: string;
     reach?: string;
+    tab_labels?: {
+      shop?: string;
+      links?: string;
+    };
   };
 }
 
@@ -47,6 +55,16 @@ interface AuthState {
   fetchProfile: (userId: string) => Promise<UserProfile | null>;
 }
 
+const rememberLastProfileUsername = (username: string | undefined) => {
+  if (typeof window === "undefined" || !username) return;
+  window.localStorage.setItem("lv:lastProfileUsername", username);
+};
+
+const isDuplicateUsernameError = (message?: string, details?: string) =>
+  Boolean(message && message.includes("profiles_username_key")) ||
+  Boolean(details && details.includes("(username)")) ||
+  Boolean(message && /username/i.test(message) && /duplicate|already/i.test(message));
+
 export const useAuthStore = create<AuthState>()((set, get) => ({
   user: null,
   supabaseUser: null,
@@ -54,10 +72,9 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   loading: true,
 
   initialize: async () => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         set({ supabaseUser: session.user, isAuthenticated: true });
-        // Defer profile fetch to avoid deadlock
         setTimeout(async () => {
           const profile = await get().fetchProfile(session.user.id);
           set({ user: profile, loading: false });
@@ -75,6 +92,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     } else {
       set({ loading: false });
     }
+
+    void subscription;
   },
 
   fetchProfile: async (userId: string) => {
@@ -84,7 +103,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       .eq("user_id", userId)
       .single();
     if (error || !data) return null;
-    return {
+
+    const profile: UserProfile = {
       id: data.id,
       user_id: data.user_id,
       name: data.name,
@@ -104,26 +124,40 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         engagement_rate: "", avg_views: "", reach: ""
       },
     };
+
+    rememberLastProfileUsername(profile.username);
+    return profile;
   },
 
   register: async (name, email, password) => {
-    const username = email.split("@")[0].toLowerCase().replace(/[^a-z0-9_]/g, "");
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { name, username },
-      },
-    });
+    const baseUsername = email.split("@")[0].toLowerCase().replace(/[^a-z0-9_]/g, "") || "creator";
+
+    const signUpWithUsername = async (username: string) =>
+      supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name, username },
+        },
+      });
+
+    let { data, error } = await signUpWithUsername(baseUsername);
+
+    if (error && isDuplicateUsernameError(error.message, (error as any).details)) {
+      const fallbackUsername = `${baseUsername}${Math.floor(1000 + Math.random() * 9000)}`;
+      ({ data, error } = await signUpWithUsername(fallbackUsername));
+    }
+
     if (error) return { success: false, error: error.message };
+
     if (data.user) {
-      // Profile is auto-created by trigger, but update name
       await supabase
         .from("profiles")
         .update({ name })
         .eq("user_id", data.user.id);
       const profile = await get().fetchProfile(data.user.id);
       set({ user: profile, supabaseUser: data.user, isAuthenticated: true });
+      rememberLastProfileUsername(profile?.username);
     }
     return { success: true };
   },
@@ -138,7 +172,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         return { success: false, error: "Your account has been blocked" };
       }
       set({ user: profile, supabaseUser: data.user, isAuthenticated: true });
-      // Track last login and log activity
+      rememberLastProfileUsername(profile?.username);
       (supabase.from("profiles") as any).update({ last_login_at: new Date().toISOString() }).eq("user_id", data.user.id).then(() => {});
       (supabase.from("user_activity_logs") as any).insert({ user_id: data.user.id, action: "login", details: "User logged in" }).then(() => {});
     }
@@ -179,7 +213,9 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           Object.entries(data).filter(([key]) => Object.prototype.hasOwnProperty.call(pendingData, key))
         ) as Partial<UserProfile>;
 
-        set({ user: { ...user, ...appliedData } });
+        const nextUser = { ...user, ...appliedData };
+        set({ user: nextUser });
+        rememberLastProfileUsername(nextUser.username);
 
         const changed = Object.keys(pendingData).join(", ");
         logActivity("profile_edit", `Updated: ${changed}`);

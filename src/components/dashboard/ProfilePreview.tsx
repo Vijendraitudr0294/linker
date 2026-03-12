@@ -94,7 +94,6 @@ const ProfilePreview = ({ settings, user, links, catalogItems = [], showSocialIc
   const bgStyle = computeBgStyle(sharedAppearance);
 
   const categories = [...new Set(catalogItems.map((i) => i.category || "General"))];
-  const publicProfileBase = typeof window !== "undefined" ? `${window.location.host}/p` : "link.bio";
   const isAiMusicTheme = settings.themeId?.startsWith("ai-image-");
 
   const screenContent = (() => {
@@ -296,7 +295,7 @@ const ProfilePreview = ({ settings, user, links, catalogItems = [], showSocialIc
             {user?.username && (
               <p className="text-[10px] font-bold opacity-60 flex items-center justify-center gap-1" style={{ color: cardSub }}>
                  <Link2 className="w-3 h-3" />
-                 {publicProfileBase}/{user.username}
+                 @{user.username}
               </p>
             )}
             {user?.bio && (
@@ -566,7 +565,6 @@ const ProfilePreview = ({ settings, user, links, catalogItems = [], showSocialIc
 };
 
 export default ProfilePreview;
-
 
 
 

@@ -27,6 +27,10 @@ interface ProfileData {
     fb_likes?: string;
     tiktok_followers?: string;
     youtube_subs?: string;
+    tab_labels?: {
+      shop?: string;
+      links?: string;
+    };
   };
   creator_metrics?: {
     engagement_rate?: string;
@@ -196,7 +200,12 @@ const PublicProfile = () => {
 
       if (lowerUsername === "user") {
         const { data: sessionData } = await supabase.auth.getSession();
-        const authUserId = sessionData.session?.user?.id;
+        let authUserId = sessionData.session?.user?.id;
+
+        if (!authUserId) {
+          const { data: authUserData } = await supabase.auth.getUser();
+          authUserId = authUserData.user?.id;
+        }
 
         if (authUserId) {
           const fallback = await supabase
@@ -207,10 +216,29 @@ const PublicProfile = () => {
           profileData = fallback.data;
           profileError = fallback.error;
 
-          // Keep legacy /p/user working while preserving canonical profile URLs.
           const canonicalUsername = fallback.data?.username?.toLowerCase();
           if (canonicalUsername && canonicalUsername !== "user") {
+            if (typeof window !== "undefined") {
+              window.localStorage.setItem("lv:lastProfileUsername", fallback.data.username);
+            }
             navigate(`/p/${fallback.data.username}`, { replace: true });
+          }
+        }
+
+        if (!profileData && typeof window !== "undefined") {
+          const storedUsername = window.localStorage.getItem("lv:lastProfileUsername")?.trim().toLowerCase();
+          if (storedUsername && storedUsername !== "user") {
+            const byStoredUsername = await supabase
+              .from("profiles")
+              .select("*")
+              .eq("username", storedUsername)
+              .maybeSingle();
+            profileData = byStoredUsername.data;
+            profileError = byStoredUsername.error;
+
+            if (byStoredUsername.data?.username) {
+              navigate(`/p/${byStoredUsername.data.username}`, { replace: true });
+            }
           }
         }
 
@@ -236,6 +264,10 @@ const PublicProfile = () => {
       if (profileError || !profileData) { setNotFound(true); setLoading(false); return; }
       const profileStatus = (profileData as Record<string, unknown>).status as string | null | undefined;
       if (profileStatus && profileStatus !== "active") { setNotFound(true); setLoading(false); return; }
+
+      if (typeof window !== "undefined" && profileData?.username) {
+        window.localStorage.setItem("lv:lastProfileUsername", profileData.username);
+      }
 
       setProfile({
         name: profileData.name, username: profileData.username, bio: profileData.bio || "",
@@ -289,7 +321,13 @@ const PublicProfile = () => {
 
       if (lowerUsername === "user") {
         const { data: sessionData } = await supabase.auth.getSession();
-        const authUserId = sessionData.session?.user?.id;
+        let authUserId = sessionData.session?.user?.id;
+
+        if (!authUserId) {
+          const { data: authUserData } = await supabase.auth.getUser();
+          authUserId = authUserData.user?.id;
+        }
+
         if (authUserId) {
           const fallback = await supabase
             .from("profiles")
@@ -297,6 +335,18 @@ const PublicProfile = () => {
             .eq("user_id", authUserId)
             .maybeSingle();
           profileData = fallback.data;
+        }
+
+        if (!profileData && typeof window !== "undefined") {
+          const storedUsername = window.localStorage.getItem("lv:lastProfileUsername")?.trim().toLowerCase();
+          if (storedUsername && storedUsername !== "user") {
+            const byStoredUsername = await supabase
+              .from("profiles")
+              .select("user_id")
+              .eq("username", storedUsername)
+              .maybeSingle();
+            profileData = byStoredUsername.data;
+          }
         }
       }
 
@@ -382,8 +432,26 @@ const PublicProfile = () => {
       links: typeof tabLabels?.links === "string" ? tabLabels.links.trim() : "",
     };
   }, [profile?.creator_metrics]);
-  const shopTabLabel = resolveTabLabel(appearance.shop_tab_label, creatorMetricTabLabels.shop, "Shop");
-  const linksTabLabel = resolveTabLabel(appearance.links_tab_label, creatorMetricTabLabels.links, "Links");
+
+  const socialMetricTabLabels = useMemo(() => {
+    const socialStats = profile?.stats as Record<string, unknown> | undefined;
+    const tabLabels = socialStats?.tab_labels as Record<string, unknown> | undefined;
+    return {
+      shop: typeof tabLabels?.shop === "string" ? tabLabels.shop.trim() : "",
+      links: typeof tabLabels?.links === "string" ? tabLabels.links.trim() : "",
+    };
+  }, [profile?.stats]);
+
+  const shopTabLabel = resolveTabLabel(
+    appearance.shop_tab_label,
+    creatorMetricTabLabels.shop || socialMetricTabLabels.shop,
+    "Shop"
+  );
+  const linksTabLabel = resolveTabLabel(
+    appearance.links_tab_label,
+    creatorMetricTabLabels.links || socialMetricTabLabels.links,
+    "Links"
+  );
   const hasCreatorMetrics = Boolean(
     profile?.creator_metrics?.engagement_rate ||
       profile?.creator_metrics?.avg_views ||
@@ -939,49 +1007,4 @@ const PublicProfile = () => {
 };
 
 export default PublicProfile;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

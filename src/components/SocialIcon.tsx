@@ -65,9 +65,9 @@ export const isEmbedPlatform = (platform: SocialPlatform) => EMBED_PLATFORMS.inc
 
 export const platformOptions: { value: SocialPlatform; label: string }[] = [
   { value: "website", label: "Website" },
-  { value: "video-embed", label: "📹 Video Embed" },
-  { value: "website-embed", label: "🌐 Website Embed" },
-  { value: "google-maps", label: "📍 Google Maps" },
+  { value: "video-embed", label: "Video Embed" },
+  { value: "website-embed", label: "Website Embed" },
+  { value: "google-maps", label: "Google Maps" },
   { value: "googlemeet", label: "Google Meet" },
   { value: "zoom", label: "Zoom" },
   { value: "calendly", label: "Calendly" },

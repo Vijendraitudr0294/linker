@@ -27,6 +27,7 @@ import CatalogPage from "./pages/dashboard/CatalogPage";
 import OrdersPage from "./pages/dashboard/OrdersPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRouteErrorBoundary from "./components/PublicRouteErrorBoundary";
+import DashboardRouteErrorBoundary from "./components/DashboardRouteErrorBoundary";
 import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -62,7 +63,7 @@ const App = () => (
               <Route path="/p" element={<PublicRouteErrorBoundary><PublicProfile /></PublicRouteErrorBoundary>} />
               <Route path="/p/:username" element={<PublicRouteErrorBoundary><PublicProfile /></PublicRouteErrorBoundary>} />
               <Route path="/p/:username/services" element={<PublicRouteErrorBoundary><PublicServices /></PublicRouteErrorBoundary>} />
-              <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+              <Route path="/dashboard" element={<ProtectedRoute><DashboardRouteErrorBoundary><DashboardLayout /></DashboardRouteErrorBoundary></ProtectedRoute>}>
                 <Route index element={<DashboardOverview />} />
                 <Route path="links" element={<LinkEditor />} />
                 <Route path="appearance" element={<AppearancePage />} />
@@ -93,3 +94,4 @@ const App = () => (
 );
 
 export default App;
+

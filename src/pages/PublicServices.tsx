@@ -88,7 +88,12 @@ const PublicServices = () => {
 
       if (username.toLowerCase() === "user") {
         const { data: sessionData } = await supabase.auth.getSession();
-        const authUserId = sessionData.session?.user?.id;
+        let authUserId = sessionData.session?.user?.id;
+
+        if (!authUserId) {
+          const { data: authUserData } = await supabase.auth.getUser();
+          authUserId = authUserData.user?.id;
+        }
 
         if (authUserId) {
           const fallback = await supabase
@@ -101,7 +106,27 @@ const PublicServices = () => {
 
           const canonicalUsername = fallback.data?.username?.toLowerCase();
           if (canonicalUsername && canonicalUsername !== "user") {
+            if (typeof window !== "undefined") {
+              window.localStorage.setItem("lv:lastProfileUsername", fallback.data.username);
+            }
             navigate(`/p/${fallback.data.username}/services`, { replace: true });
+          }
+        }
+
+        if (!profileData && typeof window !== "undefined") {
+          const storedUsername = window.localStorage.getItem("lv:lastProfileUsername")?.trim().toLowerCase();
+          if (storedUsername && storedUsername !== "user") {
+            const byStoredUsername = await supabase
+              .from("profiles")
+              .select("*")
+              .eq("username", storedUsername)
+              .maybeSingle();
+            profileData = byStoredUsername.data;
+            error = byStoredUsername.error;
+
+            if (byStoredUsername.data?.username) {
+              navigate(`/p/${byStoredUsername.data.username}/services`, { replace: true });
+            }
           }
         }
 
@@ -127,6 +152,10 @@ const PublicServices = () => {
       if (error || !profileData) { setNotFound(true); setLoading(false); return; }
       const profileStatus = (profileData as Record<string, unknown>).status as string | null | undefined;
       if (profileStatus && profileStatus !== "active") { setNotFound(true); setLoading(false); return; }
+
+      if (typeof window !== "undefined" && profileData?.username) {
+        window.localStorage.setItem("lv:lastProfileUsername", profileData.username);
+      }
 
       setProfile({
         name: profileData.name,
@@ -615,12 +644,4 @@ const PublicServices = () => {
 };
 
 export default PublicServices;
-
-
-
-
-
-
-
-
 
