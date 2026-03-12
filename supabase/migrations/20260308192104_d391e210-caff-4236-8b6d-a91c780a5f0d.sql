@@ -1,0 +1,5 @@
+ALTER TABLE public.appearance_settings
+  ADD COLUMN IF NOT EXISTS background_image TEXT DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS background_overlay TEXT DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS animated_gradient TEXT DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS animation_class TEXT DEFAULT NULL;
