@@ -120,42 +120,42 @@ const DashboardOverview = () => {
         .dashboard-title { font-family: 'Outfit', sans-serif; }
       `}</style>
       
-      {/* Hospitality Column */}
+      {/* Studio Command Column */}
       <div className="flex-1 min-w-0 space-y-8">
         <header className="px-1 space-y-2">
             <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50">Studio active • Global Sync</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50">Studio active • Neural Sync</span>
             </div>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight dashboard-title text-foreground selection:bg-primary selection:text-white">
-              Hello, <span className="text-primary italic font-medium">{user?.name?.split(" ")[0] || user?.username}.</span>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight dashboard-title text-foreground">
+              Portal <span className="text-primary italic font-medium">Overview.</span>
             </h1>
-            <p className="text-base md:text-lg text-muted-foreground/70 font-medium tracking-tight max-w-[500px]">
-              Your vision is live with <span className="text-foreground">{links.length} active links</span> and <span className="text-foreground">{profileViews || 0} visits</span> today.
+            <p className="text-base text-muted-foreground/60 font-medium tracking-tight max-w-[500px]">
+              Managing <span className="text-foreground">{links.length} identity nodes</span> with <span className="text-foreground">{profileViews || 0} engagements</span> detected today.
             </p>
         </header>
 
-        {/* Refined Insights Grid */}
+        {/* Refined Neural Insights */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {stats.map((stat, i) => (
             <motion.div
               key={stat.label}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: i * 0.05, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             >
-              <Card className="p-6 bg-card border-white/5 rounded-2xl airbnb-card transition-all duration-300 hover:ring-4 hover:ring-primary/5 cursor-default group">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:scale-105 transition-transform">
-                    <stat.icon className="w-4.5 h-4.5 text-primary" />
+              <Card className="p-5 bg-card/40 backdrop-blur-3xl border-white/5 rounded-2xl shadow-xl transition-all duration-500 hover:ring-1 hover:ring-primary/20 cursor-default group">
+                <div className="flex items-center justify-between mb-5">
+                  <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <stat.icon className="w-4 h-4 text-primary" />
                   </div>
-                  <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/30 border-white/5">
+                  <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/20 border-white/5">
                     {stat.trend}
                   </Badge>
                 </div>
-                <div className="space-y-0.5">
-                  <h4 className="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground">{stat.value}</h4>
-                  <span className="text-[11px] font-bold text-muted-foreground/30 uppercase tracking-widest">{stat.label}</span>
+                <div className="space-y-0">
+                  <h4 className="text-2xl md:text-3xl font-extrabold tracking-tighter text-foreground leading-none">{stat.value}</h4>
+                  <span className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-[0.2em]">{stat.label}</span>
                 </div>
               </Card>
             </motion.div>
