@@ -215,7 +215,20 @@ const QRForgePage = () => {
   };
 
   const handleListShare = async (qr: QRCodeItem) => {
-     const link = qr.mode === "dynamic" ? `${window.location.origin}/r/${qr.short_code}` : qr.content;
+     const link = qr.mode === "dynamic" && qr.short_code ? `${window.location.origin}/r/${qr.short_code}` : qr.content;
+     
+     if (navigator.share) {
+         try {
+             await navigator.share({
+                 title: `QR Code: ${qr.name}`,
+                 url: link
+             });
+             return;
+         } catch(e) {
+             console.log("Native share cancelled or failed");
+         }
+     }
+     
      try {
        await navigator.clipboard.writeText(link);
        toast.success("Link copied to clipboard!");
@@ -320,8 +333,10 @@ const QRForgePage = () => {
                           <Badge className="bg-green-500/10 text-green-400 border-0 text-[10px] px-2 h-5 font-bold">Static</Badge>
                         )}
                       </h4>
-                      <p className="text-xs text-muted-foreground truncate max-w-[200px]">
-                          {qr.type === "apps" 
+                      <p className="text-[11px] font-medium text-muted-foreground truncate max-w-[250px] mt-0.5">
+                          {qr.mode === "dynamic" && qr.short_code ? (
+                              <span className="text-primary tracking-wide">{`${window.location.origin}/r/${qr.short_code}`}</span>
+                          ) : qr.type === "apps" 
                             ? (() => { try { return `Apps: ${JSON.parse(qr.content).appName}`; } catch (e) { return "Apps Landing"; } })() 
                             : qr.type === "vcard_plus"
                             ? (() => { try { const data = JSON.parse(qr.content); return `vCard: ${data.vCardFirstName || ""} ${data.vCardLastName || ""}`; } catch (e) { return "vCard Plus"; } })() 
