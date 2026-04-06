@@ -215,7 +215,7 @@ const Login = () => {
           </form>
 
           <p className="text-center text-[13px] font-bold text-muted-foreground pt-4">
-            New to the vertex?{" "}
+            New to Biotra?{" "}
             <Link to="/register" className="text-primary hover:text-primary/80 underline underline-offset-4 decoration-2 decoration-primary/20">
               Apply for access
             </Link>

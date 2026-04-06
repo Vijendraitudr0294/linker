@@ -388,6 +388,7 @@ const AppearancePage = () => {
                       user={user} 
                       links={activeLinks.map(l => ({ id: l.id, title: l.title, platform: l.platform || 'website' }))}
                       catalogItems={catalogItems.filter(i => i.enabled)}
+                      noFrame={true}
                    />
                 </div>
                 <div className="p-6 border-t border-white/5 bg-background flex gap-3">
