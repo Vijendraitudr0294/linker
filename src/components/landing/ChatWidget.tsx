@@ -10,7 +10,7 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/landing-chat
 const quickReplies = [
   { label: "What features are free?", message: "What features are free?" },
   { label: "How do I get started?", message: "How do I get started?" },
-  { label: "Can I sell products?", message: "Can I sell products on LinkVertex?" },
+  { label: "Can I sell products?", message: "Can I sell products on BIOTRA?" },
   { label: "How many themes exist?", message: "How many themes exist?" },
 ];
 
@@ -30,7 +30,7 @@ const ChatWidget = () => {
     {
       role: "assistant",
       content:
-        "Hi — I'm LinkVertex AI.\nI can help you set up your creator page, sell products, or explore features.",
+        "Hi — I'm BIOTRA AI.\nI can help you set up your creator page, sell products, or explore features.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -144,7 +144,10 @@ const ChatWidget = () => {
           if (!line.startsWith("data: ")) continue;
 
           const jsonStr = line.slice(6).trim();
-          if (jsonStr === "[DONE]") break;
+          if (jsonStr === "[DONE]") {
+            reader.cancel();
+            return;
+          }
 
           try {
             const parsed = JSON.parse(jsonStr);
@@ -242,7 +245,7 @@ const ChatWidget = () => {
                   <span className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 ${isLight ? "border-[#f4eee6]" : "border-[#141414]"} bg-emerald-400`} />
                 </div>
                 <div>
-                  <div className={`text-sm font-semibold ${isLight ? "text-[#33251a]" : "text-white"}`}>LinkVertex AI</div>
+                  <div className={`text-sm font-semibold ${isLight ? "text-[#33251a]" : "text-white"}`}>BIOTRA AI</div>
                   <div className={`text-[10px] uppercase tracking-[0.18em] ${isLight ? "text-[#6e5946]" : "text-white/45"}`}>
                     Online
                   </div>
@@ -393,7 +396,7 @@ const ChatWidget = () => {
                     }
                   }}
                   rows={1}
-                  placeholder="Ask anything about LinkVertex..."
+                  placeholder="Ask anything about BIOTRA..."
                   className={`max-h-[120px] min-h-[44px] flex-1 resize-none rounded-[16px] px-4 py-3 text-sm shadow-[0_10px_28px_-22px_rgba(0,0,0,0.8)] outline-none transition-colors ${
                     isLight
                       ? "border border-[#ccb8a2] bg-white/85 text-[#3b2a1f] placeholder:text-[#8f7865] focus:border-primary/45"

@@ -12,6 +12,14 @@ import {
   Phone,
   StickyNote,
   Loader2,
+  Play,
+  ExternalLink,
+  Video,
+  Newspaper,
+  Music,
+  MessageSquare,
+  Clapperboard,
+  ArrowUpRight
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -21,6 +29,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { usePlatformStore } from "@/stores/platformStore";
 import { getCheckoutStepLabels, resolveItemCtaLabel, type CheckoutStepKey } from "@/lib/commerceConfig";
+import { parseCatalogCategory } from "@/lib/catalogCategory";
 
 interface ItemVariant {
   label: string;
@@ -62,23 +71,18 @@ interface CatalogItemDetailProps {
   cardBg?: string;
 }
 
-type StepKey = CheckoutStepKey;
-
-const SERVICE_TYPES = new Set(["service", "car", "boat"]);
-
-const customerSchema = z.object({
-  name: z.string().trim().min(1, "Name is required").max(100),
-  email: z.string().trim().email("Invalid email").max(255),
-  phone: z.string().trim().min(6, "Phone number is required").max(20),
-  notes: z.string().trim().max(500, "Note is too long").optional(),
-});
-
-const stepHeadings: Record<StepKey, { title: string; subtitle: string }> = {
-  review: { title: "Review Item", subtitle: "Confirm quantity and pricing" },
-  details: { title: "Customer Details", subtitle: "Tell us where to send confirmation" },
-  payment: { title: "Secure Payment", subtitle: "Verify summary and place your order" },
-  success: { title: "Confirmed", subtitle: "Your request has been submitted" },
-};
+import { 
+  StepKey, 
+  SERVICE_TYPES, 
+  CONTENT_TYPES, 
+  customerSchema, 
+  stepHeadings, 
+  toEmbedVideoUrl, 
+  isEmbedCode, 
+  getYouTubeThumbnail, 
+  isDirectVideoFile 
+} from "./catalog/CatalogDetailUtils";
+import { useCatalogDetail } from "@/hooks/useCatalogDetail";
 
 const CatalogItemDetail = ({
   item,
@@ -89,28 +93,41 @@ const CatalogItemDetail = ({
   onClose,
   cardBg,
 }: CatalogItemDetailProps) => {
-  const settings = usePlatformStore((s) => s.settings);
   const initialized = usePlatformStore((s) => s.initialized);
   const fetchSettings = usePlatformStore((s) => s.fetchSettings);
-  const [quantity, setQuantity] = useState(1);
-  const [activeMediaIndex, setActiveMediaIndex] = useState(0);
-  const [step, setStep] = useState<StepKey>("review");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [notes, setNotes] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const settings = usePlatformStore((s) => s.settings);
 
-  const media = item.media && item.media.length > 0 ? item.media : item.image_url ? [{ type: "image" as const, url: item.image_url }] : [];
-
-  useEffect(() => {
-    if (media.length > 1) {
-      const interval = setInterval(() => {
-        setActiveMediaIndex((i) => (i + 1) % media.length);
-      }, 3200);
-      return () => clearInterval(interval);
-    }
-  }, [media.length]);
+  const {
+    quantity, setQuantity,
+    activeMediaIndex, setActiveMediaIndex,
+    step, setStep,
+    name, setName,
+    email, setEmail,
+    phone, setPhone,
+    notes, setNotes,
+    isSubmitting,
+    categoryLabel,
+    media,
+    activeMedia,
+    activeEmbedUrl,
+    activeVideoMode,
+    activeIsVideo,
+    isContent,
+    isReel,
+    isMusic,
+    isService,
+    flowLabel,
+    itemLabel,
+    primaryCtaLabel,
+    steps,
+    unitPrice,
+    subtotal,
+    stepIndex,
+    orderRef,
+    activeHeading,
+    goToPayment,
+    placeOrder
+  } = useCatalogDetail({ item, profileUserId, settings });
 
   useEffect(() => {
     if (!initialized) {
@@ -128,80 +145,90 @@ const CatalogItemDetail = ({
     };
   }, []);
 
-  const isService = SERVICE_TYPES.has(item.item_type);
-  const flowLabel = isService ? "Booking" : "Order";
-  const itemLabel = isService ? "Service" : "Product";
-  const checkoutStepLabels = getCheckoutStepLabels(settings);
-  const primaryCtaLabel = resolveItemCtaLabel(item.item_type, settings, isService ? "Book Now" : "Buy Now");
-  const steps: { key: StepKey; label: string }[] = [
-    { key: "review", label: checkoutStepLabels.review },
-    { key: "details", label: checkoutStepLabels.details },
-    { key: "payment", label: checkoutStepLabels.payment },
-    { key: "success", label: checkoutStepLabels.success },
-  ];
-  const unitPrice = item.price ?? 0;
-  const subtotal = unitPrice * quantity;
-  const stepIndex = steps.findIndex((s) => s.key === step);
-  const orderRef = useMemo(() => `#LV-${item.id.slice(0, 5).toUpperCase()}-${Date.now().toString().slice(-4)}`, [item.id]);
-  const activeHeading = {
-    title: steps[stepIndex]?.label || stepHeadings[step].title,
-    subtitle: stepHeadings[step].subtitle,
-  };
-
-  const goToPayment = () => {
-    const result = customerSchema.safeParse({ name, email, phone, notes });
-    if (!result.success) {
-      toast.error(result.error.errors[0].message);
-      return;
-    }
-    setStep("payment");
-  };
-
-  const placeOrder = async () => {
-    setIsSubmitting(true);
-    try {
-      const { data: orderData, error } = await supabase
-        .from("catalog_orders")
-        .insert({
-          item_id: item.id,
-          profile_user_id: profileUserId,
-          customer_name: name,
-          customer_email: email,
-          customer_phone: phone,
-          notes: notes.trim() || null,
-          quantity,
-          status: "pending",
-        })
-        .select("id")
-        .single();
-
-      if (error) throw error;
-
-      await supabase.from("notifications").insert({
-        user_id: profileUserId,
-        type: "order",
-        title: `New ${flowLabel}`,
-        message: `${name} placed a ${flowLabel.toLowerCase()} for ${item.title}.`,
-        read: false,
-      });
-
-      const notify = await supabase.functions.invoke("order-notify", {
-        body: { order_id: orderData.id },
-      });
-      if (notify.error) {
-        toast.warning(`${flowLabel} placed, but email notification failed.`);
-      }
-
-      setStep("success");
-    } catch (err) {
-      console.error(err);
-      toast.error(`Failed to place ${flowLabel.toLowerCase()}. Please try again.`);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const renderStepContent = () => {
+    if (isContent) {
+      const typeMeta =
+        item.item_type === "video" || item.item_type === "reel"
+          ? { label: "Watch Now", icon: Play }
+          : item.item_type === "article" || item.item_type === "blog"
+          ? { label: "Read Article", icon: Newspaper }
+          : item.item_type === "music"
+          ? { label: "Listen Now", icon: Music }
+          : { label: "View Post", icon: ExternalLink };
+      const TypeIcon = typeMeta.icon;
+
+      return (
+        <div className="space-y-5">
+          <div className="space-y-2">
+            <div
+              className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em]"
+              style={{ backgroundColor: `${buttonBg}12`, color: buttonBg }}
+            >
+              <TypeIcon className="w-3 h-3" />
+              {item.item_type}
+            </div>
+            <h2 className="text-2xl md:text-3xl font-black leading-tight tracking-tight" style={{ color: textColor }}>
+              {item.title}
+            </h2>
+            <p className="text-[11px] uppercase tracking-[0.14em] font-bold opacity-50" style={{ color: textColor }}>
+              {categoryLabel}
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {item.description && (
+              <p className="text-sm md:text-base leading-relaxed opacity-80 whitespace-pre-wrap" style={{ color: textColor }}>
+                {item.description}
+              </p>
+            )}
+
+            {item.tags && item.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {item.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-2 py-0.5 rounded-md text-[10px] font-bold border opacity-60"
+                    style={{ borderColor: `${textColor}20`, color: textColor }}
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="pt-4 space-y-4">
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-primary/5 border border-primary/10">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center animate-pulse">
+                <Play className="w-5 h-5 text-primary fill-primary" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Content Mode Active</p>
+                <p className="text-sm font-bold" style={{ color: textColor }}>{isReel ? "Watching" : isMusic ? "Listening" : "Viewing"} Mode</p>
+              </div>
+            </div>
+
+            {item.external_url && (
+              <Button
+                className="w-full h-12 rounded-xl font-black uppercase tracking-[0.12em] shadow-xl group"
+                style={{ backgroundColor: buttonBg, color: buttonText }}
+                onClick={() => window.open(item.external_url, "_blank")}
+              >
+                {typeMeta.label}
+                <ArrowUpRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </Button>
+            )}
+            
+            <div className="flex items-center justify-center gap-4 opacity-40">
+               <div className="h-[1px] flex-1 bg-current" />
+               <span className="text-[10px] font-black uppercase tracking-widest">Share this {item.item_type}</span>
+               <div className="h-[1px] flex-1 bg-current" />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     if (step === "review") {
       return (
         <div className="space-y-3">
@@ -213,7 +240,7 @@ const CatalogItemDetail = ({
               {item.title}
             </h2>
             <p className="text-[11px] uppercase tracking-[0.14em] opacity-55" style={{ color: textColor }}>
-              {item.category}
+              {categoryLabel}
             </p>
             {item.description && (
               <p className="text-sm leading-relaxed opacity-80" style={{ color: textColor }}>
@@ -264,45 +291,45 @@ const CatalogItemDetail = ({
 
     if (step === "details") {
       return (
-        <div className="space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-50" />
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="relative group">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 opacity-40 group-focus-within:opacity-80 transition-opacity" />
               <input
                 type="text"
-                placeholder="Full name"
+                placeholder="Full Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full h-11 pl-10 pr-3 rounded-xl border text-sm outline-none focus:ring-2 focus:ring-white/20"
-                style={{ borderColor: `${textColor}22`, backgroundColor: `${textColor}05`, color: textColor }}
+                className="w-full h-12 pl-11 pr-4 rounded-2xl border backdrop-blur-xl text-sm outline-none focus:ring-1 focus:ring-current/20 font-bold transition-all shadow-sm"
+                style={{ borderColor: `${textColor}1A`, backgroundColor: `${textColor}04`, color: textColor }}
               />
             </div>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-50" />
+            <div className="relative group">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 opacity-40 group-focus-within:opacity-80 transition-opacity" />
               <input
                 type="email"
-                placeholder="Email address"
+                placeholder="Email Address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full h-11 pl-10 pr-3 rounded-xl border text-sm outline-none focus:ring-2 focus:ring-white/20"
-                style={{ borderColor: `${textColor}22`, backgroundColor: `${textColor}05`, color: textColor }}
+                className="w-full h-12 pl-11 pr-4 rounded-2xl border backdrop-blur-xl text-sm outline-none focus:ring-1 focus:ring-current/20 font-bold transition-all shadow-sm"
+                style={{ borderColor: `${textColor}1A`, backgroundColor: `${textColor}04`, color: textColor }}
               />
             </div>
           </div>
-          <div className="space-y-2.5">
-            <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-50" />
+          <div className="space-y-3">
+            <div className="relative group">
+              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 opacity-40 group-focus-within:opacity-80 transition-opacity" />
               <input
                 type="tel"
-                placeholder="Phone number"
+                placeholder="Phone Number"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full h-11 pl-10 pr-3 rounded-xl border text-sm outline-none focus:ring-2 focus:ring-white/20"
-                style={{ borderColor: `${textColor}22`, backgroundColor: `${textColor}05`, color: textColor }}
+                className="w-full h-12 pl-11 pr-4 rounded-2xl border backdrop-blur-xl text-sm outline-none focus:ring-1 focus:ring-current/20 font-bold transition-all shadow-sm"
+                style={{ borderColor: `${textColor}1A`, backgroundColor: `${textColor}04`, color: textColor }}
               />
             </div>
-            <div className="relative">
-              <StickyNote className="absolute left-3 top-3 w-4 h-4 opacity-50" />
+            <div className="relative group">
+              <StickyNote className="absolute left-4 top-3 w-4 h-4 opacity-40 group-focus-within:opacity-80 transition-opacity" />
               <textarea
                 placeholder="Note (optional)"
                 value={notes}
@@ -444,37 +471,41 @@ const CatalogItemDetail = ({
 
         <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:h-full">
           <div className="order-2 md:order-1 p-4 sm:p-5 md:p-6 border-t md:border-t-0 md:border-r border-border/10 min-w-0 md:h-full md:flex md:flex-col">
-            <div className="mb-4">
-              <div className="flex items-center gap-1.5 rounded-xl p-1 border" style={{ borderColor: `${textColor}1A`, backgroundColor: `${textColor}06` }}>
-                {steps.map((s, i) => {
-                  const active = i <= stepIndex;
-                  return (
-                    <div
-                      key={s.key}
-                      className={cn(
-                        "h-7 flex-1 min-w-0 rounded-lg text-[10px] font-black uppercase tracking-[0.1em] flex items-center justify-center transition-all",
-                        active ? "opacity-100" : "opacity-45"
-                      )}
-                      style={{
-                        backgroundColor: active ? `${buttonBg}16` : `${textColor}10`,
-                        color: active ? buttonBg : textColor,
-                      }}
-                    >
-                      {s.label}
-                    </div>
-                  );
-                })}
+            {!isContent && (
+              <div className="mb-4">
+                <div className="flex items-center gap-1.5 rounded-xl p-1 border" style={{ borderColor: `${textColor}1A`, backgroundColor: `${textColor}06` }}>
+                  {steps.map((s, i) => {
+                    const active = i <= stepIndex;
+                    return (
+                      <div
+                        key={s.key}
+                        className={cn(
+                          "h-7 flex-1 min-w-0 rounded-lg text-[10px] font-black uppercase tracking-[0.1em] flex items-center justify-center transition-all",
+                          active ? "opacity-100" : "opacity-45"
+                        )}
+                        style={{
+                          backgroundColor: active ? `${buttonBg}16` : `${textColor}10`,
+                          color: active ? buttonBg : textColor,
+                        }}
+                      >
+                        {s.label}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
-            <div className="mb-3.5">
-              <p className="text-[11px] uppercase tracking-[0.14em] font-bold opacity-60" style={{ color: textColor }}>
-                {activeHeading.title}
-              </p>
-              <p className="text-xs opacity-70 mt-1" style={{ color: textColor }}>
-                {activeHeading.subtitle}
-              </p>
-            </div>
+            {!isContent && (
+              <div className="mb-3.5">
+                <p className="text-[11px] uppercase tracking-[0.14em] font-bold opacity-60" style={{ color: textColor }}>
+                  {activeHeading.title}
+                </p>
+                <p className="text-xs opacity-70 mt-1" style={{ color: textColor }}>
+                  {activeHeading.subtitle}
+                </p>
+              </div>
+            )}
 
             <AnimatePresence mode="wait">
               <motion.div key={step} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="md:flex-1">
@@ -483,28 +514,41 @@ const CatalogItemDetail = ({
             </AnimatePresence>
           </div>
 
-          <div className="order-1 md:order-2 p-3 sm:p-4 md:p-5 bg-muted/20 border-b md:border-b-0 md:border-l border-border/10 min-w-0 md:h-full md:flex md:flex-col">
-            <div className="relative w-full h-[220px] sm:h-[270px] md:h-[360px] rounded-2xl bg-muted overflow-hidden group/media shrink-0 border" style={{ borderColor: `${textColor}1A` }}>
+          <div className="order-1 md:order-2 p-3 sm:p-4 md:p-5 bg-muted/20 border-b md:border-b-0 md:border-l border-border/10 min-w-0 md:h-full md:flex md:flex-col overflow-y-auto">
+            <div className={cn("relative w-full rounded-2xl bg-muted overflow-hidden group/media shrink-0 border shadow-2xl transition-all duration-500", 
+              isReel ? "aspect-[9/16] h-[min(65vh,520px)] mx-auto" : "h-[220px] sm:h-[270px] md:h-[360px]")} 
+              style={{ borderColor: `${textColor}1A` }}>
               <AnimatePresence mode="wait">
                 {media.length > 0 ? (
                   <motion.div key={activeMediaIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="absolute inset-0">
-                    {media[activeMediaIndex].type === "video" ||
-                    media[activeMediaIndex].url.includes("youtube.com") ||
-                    media[activeMediaIndex].url.includes("vimeo.com") ? (
+                                        {activeIsVideo ? (
                       <div className="w-full h-full">
-                        {media[activeMediaIndex].url.includes("youtube.com") || media[activeMediaIndex].url.includes("vimeo.com") ? (
+                        {activeVideoMode === "embed" ? (
                           <iframe
-                            src={media[activeMediaIndex].url.includes("youtube.com") ? media[activeMediaIndex].url.replace("watch?v=", "embed/") : media[activeMediaIndex].url}
+                            src={activeEmbedUrl || undefined}
                             className="w-full h-full border-none"
-                            allow="autoplay; encrypted-media"
+                            allow="autoplay; encrypted-media; picture-in-picture"
                             allowFullScreen
                           />
+                        ) : activeVideoMode === "file" ? (
+                          <video src={activeMedia?.url} autoPlay muted loop playsInline className="w-full h-full object-cover" />
                         ) : (
-                          <video src={media[activeMediaIndex].url} autoPlay muted loop playsInline className="w-full h-full object-cover" />
+                          <div className="w-full h-full flex flex-col items-center justify-center gap-2 px-4 text-center" style={{ color: textColor }}>
+                            <p className="text-xs opacity-80">Preview not supported for this video URL.</p>
+                            <a
+                              href={activeMedia?.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center justify-center px-3 py-1.5 rounded-full text-[11px] font-bold"
+                              style={{ backgroundColor: buttonBg, color: buttonText }}
+                            >
+                              Open Video
+                            </a>
+                          </div>
                         )}
                       </div>
                     ) : (
-                      <img src={media[activeMediaIndex].url} className="w-full h-full object-cover" alt="" />
+                      <img src={activeMedia?.url} className="w-full h-full object-cover" alt="" />
                     )}
                   </motion.div>
                 ) : (
@@ -543,22 +587,24 @@ const CatalogItemDetail = ({
 
             <div className="mt-3.5 space-y-1.5 md:flex-1">
               <p className="text-xs uppercase tracking-[0.12em] opacity-60" style={{ color: textColor }}>
-                {item.category}
+                {categoryLabel}
               </p>
               <h4 className="text-lg sm:text-xl font-extrabold leading-snug" style={{ color: textColor }}>
                 {item.title}
               </h4>
               <p className="text-sm opacity-75 line-clamp-2" style={{ color: textColor }}>
-                {item.description || `Complete ${flowLabel.toLowerCase()} details and confirm securely in the next steps.`}
+                {item.description || (isContent ? `Explore this ${item.item_type} content.` : `Complete ${flowLabel.toLowerCase()} details and confirm securely in the next steps.`)}
               </p>
-              <div className="flex items-center justify-between">
-                <span className="text-xs opacity-65" style={{ color: textColor }}>
-                  {activeMediaIndex + 1} / {Math.max(media.length, 1)} media
-                </span>
-                <span className="text-2xl font-extrabold" style={{ color: buttonBg }}>
-                  ${subtotal.toFixed(2)}
-                </span>
-              </div>
+              {!isContent && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs opacity-65" style={{ color: textColor }}>
+                    {activeMediaIndex + 1} / {Math.max(media.length, 1)} media
+                  </span>
+                  <span className="text-2xl font-extrabold" style={{ color: buttonBg }}>
+                    ${subtotal.toFixed(2)}
+                  </span>
+                </div>
+              )}
             </div>
 
             {media.length > 1 && (

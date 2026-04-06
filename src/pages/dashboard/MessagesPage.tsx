@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -64,17 +65,19 @@ const MessagesPage = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-heading font-bold text-foreground flex items-center gap-2">
-          <Mail className="w-6 h-6" /> Messages
-          {unreadCount > 0 && (
-            <Badge variant="destructive" className="text-xs">{unreadCount} new</Badge>
-          )}
-        </h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Contact form submissions from your public profile
-        </p>
-      </div>
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 mt-4">
+        <div>
+          <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-600 mb-2">Communication Center</h4>
+          <h1 className="text-3xl md:text-5xl font-black tracking-tight flex items-baseline gap-3">
+            Interaction <span className="font-script text-primary text-2xl lowercase opacity-80">hub</span>
+          </h1>
+        </div>
+        {unreadCount > 0 && (
+          <Badge className="bg-emerald-500 text-white border-0 text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg shadow-emerald-500/20">
+            {unreadCount} New Requests
+          </Badge>
+        )}
+      </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Message list */}
@@ -89,11 +92,15 @@ const MessagesPage = () => {
             messages.map((msg) => (
               <Card
                 key={msg.id}
-                className={`p-4 cursor-pointer transition-all hover:shadow-md ${
-                  selectedMessage?.id === msg.id ? "border-primary" : ""
-                } ${!msg.read ? "border-l-4 border-l-primary bg-primary/5" : ""}`}
+                className={cn(
+                  "p-5 cursor-pointer transition-all duration-300 border-black/5 rounded-[24px] overflow-hidden relative group",
+                  selectedMessage?.id === msg.id ? "border-emerald-500/30 shadow-xl shadow-black/5" : "hover:border-black/10 hover:bg-black/[0.01]",
+                  !msg.read && "bg-emerald-500/[0.02]"
+                )}
                 onClick={() => markAsRead(msg)}
               >
+                {!msg.read && <div className="absolute top-0 left-0 bottom-0 w-1 bg-emerald-500" />}
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/[0.01] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">

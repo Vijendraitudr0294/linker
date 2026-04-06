@@ -4,10 +4,14 @@ import { User, ShoppingBag, Music, Zap, Store, ExternalLink, Smartphone, Copy, L
 import { SocialIcon } from "@/components/SocialIcon";
 import { useCurrency } from "@/hooks/useCurrency";
 import type { AppearanceSettings } from "@/stores/appearanceStore";
-import type { SocialPlatform } from "@/stores/linksStore";
-import StarryBackground from "@/components/animations/StarryBackground";
-import { motion, useReducedMotion } from "framer-motion";
-import { computePalette, computeBgStyle, getLinkButtonClasses, getLinkButtonStyle, getLinkIconBgStyle, getFooterColor, type ProfileAppearance } from "@/lib/profileRenderer";
+import { type SocialPlatform } from "@/types/links";
+import ThemeEffects from "@/components/theme/ThemeEffects";
+import { computePalette, computeBgStyle, getLinkButtonClasses, getLinkButtonStyle, getLinkIconBgStyle, getFooterColor, getCardClasses, getContrastColor, type ProfileAppearance } from "@/lib/profileRenderer";
+import PublicCatalog from "../public/PublicCatalog";
+import StudioContentGrid from "../public/StudioContentGrid";
+import ContactForm from "../public/ContactForm";
+import TipJar from "../public/TipJar";
+import { type StudioCardItem } from "@/lib/publicStudio";
 
 interface SocialLinkConfig {
   platform: string;
@@ -27,8 +31,8 @@ interface CatalogPreviewItem {
 
 interface ProfilePreviewProps {
   settings: AppearanceSettings;
-  user?: { name?: string; username?: string; avatar_url?: string; bio?: string; social_links?: SocialLinkConfig[] } | null;
-  links: { id: string; title: string; platform?: string }[];
+  user?: { user_id?: string; name?: string; username?: string; avatar_url?: string; bio?: string; social_links?: SocialLinkConfig[] } | null;
+  links: { id: string; title: string; platform?: string; url?: string }[];
   catalogItems?: CatalogPreviewItem[];
   showSocialIcons?: boolean;
   creatorMetrics?: {
@@ -55,22 +59,55 @@ const platformColors: Record<string, string> = {
   behance: "#1769FF", medium: "#000000", website: "#6366f1",
 };
 
+const getVideoThumbnail = (url?: string) => {
+  if (!url) return `https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=400&q=80`;
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes("youtube.com") || u.hostname.includes("youtu.be")) {
+      const v = u.searchParams.get("v") || u.pathname.split("/").pop();
+      if (v) return `https://img.youtube.com/vi/${v}/hqdefault.jpg`;
+    }
+  } catch {}
+  return `https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=400&q=80`;
+};
+
+const getDomainIcon = (url?: string) => {
+  if (!url) return ``;
+  try {
+    const u = new URL(url);
+    return `https://unavatar.io/${u.hostname}?fallback=false`;
+  } catch {}
+  return ``;
+};
+
 const ProfilePreview = ({ settings, user, links, catalogItems = [], showSocialIcons = true, creatorMetrics, compact = false, noFrame = false }: ProfilePreviewProps) => {
-  const hasAnimated = !!settings.animatedGradient || !!settings.animationClass;
-  const prefersReducedMotion = useReducedMotion();
   const { formatPrice } = useCurrency();
   const socialLinks = user?.social_links || [];
-  const hasPhoto = !!settings.backgroundImage;
   const hasLinks = links.length > 0;
-  const hasTabs = catalogItems.length > 0 || hasLinks;
+  
+  // Dynamic content checks
+  const mediaFallbackCards = links
+    .filter(l => (l.platform || "website").includes("|article") || (l.platform || "website").includes("|video"))
+    .map(l => ({
+      id: l.id,
+      title: l.title,
+      url: l.url || "",
+      type: (l.platform || "website").includes("|article") ? "news" : "video",
+      thumbnail: getVideoThumbnail(l.url)
+    })) as StudioCardItem[];
+
+  const showMediaFallback = catalogItems.length === 0 && mediaFallbackCards.length > 0;
+  const hasShopContent = catalogItems.length > 0 || showMediaFallback;
+  const hasTabs = hasShopContent || hasLinks;
+
   const shopTabLabel = settings.shopTabLabel?.trim() || "Shop";
   const linksTabLabel = settings.linksTabLabel?.trim() || "Links";
   const [activeTab, setActiveTab] = useState<"links" | "shop">("shop");
 
   useEffect(() => {
-    if (catalogItems.length === 0 && hasLinks) setActiveTab("links");
-    if (catalogItems.length > 0) setActiveTab((prev) => (prev === "links" || prev === "shop" ? prev : "shop"));
-  }, [catalogItems.length, hasLinks]);
+    if (!hasShopContent && hasLinks) setActiveTab("links");
+    if (hasShopContent) setActiveTab((prev) => (prev === "links" || prev === "shop" ? prev : "shop"));
+  }, [hasShopContent, hasLinks]);
 
   // Use SHARED rendering utilities — single source of truth (locked logic)
   const sharedAppearance: ProfileAppearance = {
@@ -96,166 +133,136 @@ const ProfilePreview = ({ settings, user, links, catalogItems = [], showSocialIc
   const categories = [...new Set(catalogItems.map((i) => i.category || "General"))];
   const isAiMusicTheme = settings.themeId?.startsWith("ai-image-");
 
-  const screenContent = (() => {
-    const bgColor = settings.backgroundColor;
 
+
+  const groupedLinks = links.reduce((acc, link) => {
+    const parts = (link.platform || "website").split("|");
+    const basePlatform = parts[0];
+    const layout = parts[1] || "default";
+    const parsedLink = { ...link, basePlatform, layout };
+
+    if (acc.length > 0 && acc[acc.length - 1].layout === "video" && layout === "video") {
+      acc[acc.length - 1].items.push(parsedLink);
+    } else {
+      acc.push({ layout, items: [parsedLink] });
+    }
+    return acc;
+  }, [] as { layout: string; items: any[] }[]);
+
+
+  const screenContent = (() => {
     return (
     <div
-      className="h-full w-full relative overflow-hidden flex flex-col"
+      className="flex-1 w-full relative overflow-hidden flex flex-col"
       style={bgStyle}
     >
-      {settings.backgroundImage && (
-        <>
-          <img src={settings.backgroundImage} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" />
-          {settings.backgroundOverlay && (
-            <div className="absolute inset-0" style={{ backgroundColor: settings.backgroundOverlay }} />
-          )}
-        </>
-      )}
-
       {/* Special Animation Overlays — Isolated modules */}
-      {(settings.animationClass === "animate-stars" || settings.animationClass === "animate-nordic-stars") && (
-        <div className="absolute inset-0 z-0" style={{ backgroundColor: !settings.backgroundImage ? bgColor : 'transparent' }}>
-          <StarryBackground
-            starCount={settings.animationClass === "animate-nordic-stars" ? 60 : 80}
-            starColor="rgba(255,255,255,0.6)"
-            shootingStarInterval={settings.animationClass === "animate-nordic-stars" ? 6000 : 4000}
-          />
-        </div>
-      )}
+      <ThemeEffects appearance={sharedAppearance} variant={compact ? "preview" : "public"} />
 
-      {settings.animationClass === "animate-mesh" && (
-        <div className="absolute inset-0 z-0 animate-mesh opacity-80" />
-      )}
+      <style dangerouslySetInnerHTML={{ __html: `
+        /* PREVIEW FIX: Force 2-column Grid inside phone mock-up */
+        .product-grid, .shop-grid, .items-grid, .cards-grid {
+          display: grid !important;
+          grid-template-columns: repeat(2, 1fr) !important;
+          grid-auto-rows: auto !important;
+          gap: 10px 8px !important;
+          padding: 12px 10px 30px !important;
+          align-items: stretch !important;
+          width: 100% !important;
+          box-sizing: border-box !important;
+        }
 
-      {settings.animationClass === "animate-holo" && (
-        <div className="absolute inset-0 z-0 animate-holo opacity-60" />
-      )}
+        /* Card Geometry within preview */
+        .product-card, [class*="product-card"], [class*="shop-card"], [class*="item-card"] {
+          width: 100% !important;
+          min-width: 0 !important;
+          max-width: 100% !important;
+          height: 100% !important;
+          display: flex !important;
+          flex-direction: column !important;
+          border-radius: 16px !important;
+          overflow: hidden !important;
+          box-sizing: border-box !important;
+        }
 
-      {settings.animationClass === "animate-blob-slow" && (
-        <div className="absolute inset-0 z-0 overflow-hidden opacity-30 shadow-inner" style={{ backgroundColor: bgColor }}>
-          <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary/40 blur-[50px] animate-blob-slow" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-purple-500/40 blur-[60px] animate-blob-slow [animation-delay:-5s]" />
-          <div className="absolute top-[30%] left-[20%] w-[40%] h-[40%] rounded-full bg-blue-500/30 blur-[55px] animate-blob-slow [animation-delay:-10s]" />
-          <div className="absolute bottom-[20%] right-[30%] w-[45%] h-[45%] rounded-full bg-pink-500/35 blur-[55px] animate-blob-slow [animation-delay:-15s]" />
-        </div>
-      )}
-      {settings.animationClass === "animate-aurora" && (
-        <div className={cn("absolute inset-0 z-0 overflow-hidden", !settings.backgroundImage && "opacity-100")} style={{ backgroundColor: !settings.backgroundImage ? bgColor : 'transparent' }}>
-          <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] aurora-blur bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.3)_0,transparent_50%)] animate-[aurora-1_20s_linear_infinite]" />
-          <div className="absolute top-[-50%] right-[-50%] w-[200%] h-[200%] aurora-blur bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.3)_0,transparent_50%)] animate-[aurora-2_25s_linear_infinite]" />
-          <div className="absolute bottom-[-50%] left-[-50%] w-[200%] h-[200%] aurora-blur bg-[radial-gradient(circle_at_center,rgba(236,72,153,0.3)_0,transparent_50%)] animate-[aurora-3_30s_linear_infinite]" />
-        </div>
-      )}
-      {settings.animationClass === "animate-particles" && (
-        <div className={cn("absolute inset-0 z-0 overflow-hidden", !settings.backgroundImage && "opacity-100")} style={{ backgroundColor: !settings.backgroundImage ? bgColor : 'transparent' }}>
-          <div className="absolute inset-0 animate-particles opacity-30" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0,rgba(0,0,0,0.8)_95%)]" />
-        </div>
-      )}
-      {settings.animationClass === "animate-galaxy" && (
-        <div className="absolute inset-0 z-0 overflow-hidden">
-          <div className="absolute inset-0 animate-galaxy opacity-80" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0,rgba(0,0,0,0.2)_100%)]" />
-        </div>
-      )}
-      {settings.animationClass === "animate-star-shower" && (
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-          {[...Array(6)].map((_, i) => (
-            <div 
-              key={i} 
-              className="star-streak" 
-              style={{ 
-                left: `${Math.random() * 100}%`, 
-                top: `${Math.random() * 100}%`, 
-                animationDelay: `${Math.random() * 5}s`,
-                animationDuration: `${2 + Math.random() * 3}s`
-              }} 
-            />
-          ))}
-        </div>
-      )}
-      {settings.animationClass === "animate-cyber-grid" && (
-        <div className={cn("absolute inset-0 z-0 overflow-hidden flex items-center justify-center", !settings.backgroundImage && "opacity-100")} style={{ backgroundColor: !settings.backgroundImage ? bgColor : 'transparent' }}>
-          <div className="absolute bottom-[-10%] w-[200%] h-[100%] animate-cyber-grid opacity-40" />
-          <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-transparent" style={{ backgroundImage: `linear-gradient(to top, ${bgColor}, transparent, ${bgColor})` }} />
-        </div>
-      )}
+        .product-card .image-wrapper {
+          width: 100% !important;
+          aspect-ratio: 1 / 1 !important;
+          overflow: hidden !important;
+          position: relative !important;
+          flex-shrink: 0 !important;
+          height: 0 !important;
+          padding-top: 100% !important;
+        }
 
-      {settings.animationClass === "animate-energy" && (
-        <div className="absolute inset-0 z-0 animate-energy opacity-80 pointer-events-none" />
-      )}
+        .product-card img {
+          width: 100% !important;
+          height: 100% !important;
+          object-fit: cover !important;
+          position: absolute !important;
+          top: 0 !important; left: 0 !important;
+        }
 
-      {settings.animationClass === "animate-liquid" && (
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-          <div className="absolute -left-12 -top-12 w-64 h-64 rounded-full animate-liquid opacity-35" />
-          <div className="absolute right-0 bottom-0 w-72 h-72 rounded-full animate-liquid opacity-25 [animation-delay:-3s]" />
-        </div>
-      )}
+        /* Typography sizing for small preview */
+        [class*="product-name"], [class*="item-name"], [class*="card-title"] {
+          font-family: 'Outfit', sans-serif !important;
+          font-size: 11px !important;
+          font-weight: 700 !important;
+          line-height: 1.1 !important;
+          letter-spacing: -0.02em !important;
+          margin-bottom: 2px !important;
+          display: block !important;
+        }
 
-      {!prefersReducedMotion && settings.animationClass === "fm-fade" && (
-        <motion.div
-          className="absolute inset-0 z-0 pointer-events-none"
-          animate={{ opacity: [0.2, 0.35, 0.2] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          style={{ background: "radial-gradient(circle at 30% 20%, rgba(255,255,255,0.12), transparent 60%)" }}
-        />
-      )}
+        [class*="price"] {
+          font-family: 'Inter', sans-serif !important;
+          font-size: 12px !important;
+          font-weight: 800 !important;
+          letter-spacing: -0.03em !important;
+          margin: 2px 0 4px !important;
+          display: block !important;
+        }
 
-      {!prefersReducedMotion && settings.animationClass === "fm-slide-up" && (
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-          {[0, 1, 2].map((i) => (
-            <motion.div
-              key={i}
-              className="absolute left-0 w-full h-24 opacity-20"
-              style={{ top: `${20 + i * 26}%`, background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)" }}
-              animate={{ y: [30, -30, 30] }}
-              transition={{ duration: 7 + i, repeat: Infinity, ease: "easeInOut", delay: i * 0.4 }}
-            />
-          ))}
-        </div>
-      )}
+        [class*="add-to-cart"], [class*="btn-cart"], [class*="cart-btn"], [class*="buy-btn"] {
+          padding: 8px 6px !important;
+          font-size: 9px !important;
+          font-weight: 800 !important;
+          letter-spacing: 0.05em !important;
+          text-transform: uppercase !important;
+          border-radius: 12px !important;
+          width: 100% !important;
+          display: flex !important;
+          justify-content: center !important;
+        }
 
-      {!prefersReducedMotion && settings.animationClass === "fm-pulse-glow" && (
-        <motion.div
-          className="absolute inset-0 z-0 pointer-events-none"
-          style={{ background: "radial-gradient(circle at 50% 30%, rgba(56,189,248,0.28), transparent 55%)" }}
-          animate={{ opacity: [0.25, 0.5, 0.25], scale: [1, 1.04, 1] }}
-          transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
-        />
-      )}
+        .category-badge, [class*="image-wrapper"] [class*="badge"] {
+          opacity: 1 !important;
+          position: absolute !important;
+          z-index: 5 !important;
+          background: rgba(0,0,0,0.6) !important;
+          backdrop-filter: blur(8px) !important;
+          color: white !important;
+          padding: 3px 8px !important;
+          font-size: 7px !important;
+          font-weight: 800 !important;
+          border-radius: 99px !important;
+          top: 8px !important; left: 8px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.05em !important;
+        }
 
-      {!prefersReducedMotion && settings.animationClass === "fm-float" && (
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-          <motion.div
-            className="absolute -left-8 top-10 w-40 h-40 rounded-full bg-cyan-400/25 blur-3xl"
-            animate={{ y: [0, -14, 0], x: [0, 10, 0] }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div
-            className="absolute right-0 bottom-0 w-44 h-44 rounded-full bg-purple-400/20 blur-3xl"
-            animate={{ y: [0, 16, 0], x: [0, -8, 0] }}
-            transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-          />
-        </div>
-      )}
-
-      {!prefersReducedMotion && settings.animationClass === "fm-parallax" && (
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-          <motion.div
-            className="absolute inset-0 opacity-20"
-            style={{ background: "linear-gradient(120deg, rgba(59,130,246,0.45), transparent 45%, rgba(168,85,247,0.35))" }}
-            animate={{ x: [-12, 12, -12], y: [-8, 8, -8] }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div
-            className="absolute inset-0 opacity-15"
-            style={{ background: "radial-gradient(circle at 75% 20%, rgba(34,211,238,0.45), transparent 40%)" }}
-            animate={{ x: [10, -10, 10], y: [6, -6, 6] }}
-            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-          />
-        </div>
-      )}
+        /* Profile Text Overrides */
+        .profile-name {
+          font-family: 'Outfit', sans-serif !important;
+          letter-spacing: -0.04em !important;
+          font-weight: 900 !important;
+        }
+        .profile-username {
+          font-family: 'Space Mono', monospace !important;
+          letter-spacing: 0.2em !important;
+          opacity: 0.4 !important;
+        }
+      `}} />
 
       {isAiMusicTheme && (
         <div className="absolute top-4 right-4 z-20 bg-black/60 shadow-lg p-1.5 rounded-full flex items-center justify-center animate-pulse">
@@ -265,237 +272,358 @@ const ProfilePreview = ({ settings, user, links, catalogItems = [], showSocialIc
         </div>
       )}
 
-      <div className="flex flex-col items-center relative z-10 w-full mb-6">
-        {/* Profile card */}
+      <div className="flex flex-col items-center relative z-10 w-full flex-1 pb-10 px-3 pt-4 space-y-3">
+        {/* Profile card — Synchronized with PublicProfile.tsx */}
         <div
-          className="w-full rounded-b-[2rem] p-5 pt-8 flex flex-col items-center gap-3 shadow-xl relative overflow-hidden"
+          className="w-full rounded-[20px] border shadow-xl relative overflow-hidden"
           style={{
             backgroundColor: cardBg,
-            borderBottom: `1px solid ${cardBorder}`,
-            fontFamily: settings.fontFamily
+            borderColor: cardBorder,
+            fontFamily: settings.fontFamily,
+            padding: compact ? "16px 16px 12px" : "20px 20px 16px"
           }}
         >
-          {settings.showAvatar && (
-            <div
-              className="w-20 h-20 rounded-full flex items-center justify-center overflow-hidden shadow-2xl z-10"
-            >
-              {user?.avatar_url ? (
-                <img src={user.avatar_url} alt={user?.name} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: btnBg }}>
-                  <User className="w-9 h-9" style={{ color: btnText }} />
+          <div className="flex items-start gap-4">
+            {settings.showAvatar && (
+              <div
+                className={cn(
+                  "rounded-full flex items-center justify-center overflow-hidden ring-2 shadow-xl z-10 shrink-0",
+                  compact ? "w-14 h-14" : "w-[72px] h-[72px]"
+                )}
+                style={{ boxShadow: `0 0 0 2px ${btnBg}50` }}
+              >
+                {user?.avatar_url ? (
+                  <img src={user.avatar_url} alt={user?.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: btnBg }}>
+                    <User className={compact ? "w-6 h-6" : "w-9 h-9"} style={{ color: btnText }} />
+                  </div>
+                )}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 pr-1">
+                  <h3 
+                    className={cn(
+                      "font-black tracking-tight truncate leading-tight profile-name",
+                      compact ? "text-[18px]" : "text-[22px] md:text-[24px]"
+                    )} 
+                    style={{ color: cardText }}
+                  >
+                    {user?.name || user?.username || ""}
+                  </h3>
+                  {user?.username && (
+                    <p className="profile-username text-[8px] font-bold uppercase tracking-widest mt-1" style={{ color: cardText }}>
+                      @{user.username}
+                    </p>
+                  )}
+                </div>
+              </div>
+              
+               {user?.bio && (
+                  <p 
+                    className={cn(
+                      "mt-2 mb-1.5 leading-[1.6] opacity-70 line-clamp-3",
+                      compact ? "text-[10px]" : "text-[11px]"
+                    )} 
+                    style={{ color: cardText }}
+                  >
+                    {user.bio}
+                  </p>
+                )}
+
+              {showSocialIcons && socialLinks.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3.5 relative z-10">
+                  {socialLinks.map((link) => (
+                    <div
+                      key={link.platform}
+                      className={cn(
+                        "rounded-full flex items-center justify-center border transition-all hover:scale-110",
+                        compact ? "w-7 h-7" : "w-8 h-8"
+                      )}
+                      style={{ 
+                        borderColor: `${cardText}15`, 
+                        color: cardText, 
+                        backgroundColor: `${cardText}08`
+                      }}
+                    >
+                      <SocialIcon platform={link.platform as SocialPlatform} className={compact ? "w-3 h-3" : "w-4 h-4"} />
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
-          )}
-          <div className="text-center space-y-1 relative z-10">
-            <h3 className="text-xl font-black tracking-tight" style={{ color: cardText }}>
-              {user?.name || user?.username || ""}
-            </h3>
-            {user?.username && (
-              <p className="text-[10px] font-bold opacity-60 flex items-center justify-center gap-1" style={{ color: cardSub }}>
-                 <Link2 className="w-3 h-3" />
-                 @{user.username}
-              </p>
-            )}
-            {user?.bio && (
-              <p className="text-[11px] mt-2 max-w-[220px] mx-auto leading-relaxed font-semibold opacity-80" style={{ color: cardSub }}>
-                {user.bio}
-              </p>
-            )}
           </div>
 
-          {/* Creator Metrics Chips - CLEAN DESIGN */}
+          {/* Creator Metrics Chips */}
           {creatorMetrics && (creatorMetrics.engagement_rate || creatorMetrics.avg_views || creatorMetrics.reach) && (
-            <div className="flex flex-wrap justify-center gap-1.5 mt-1 relative z-10 w-full px-2">
+            <div className={cn("flex flex-wrap mt-4 pt-4 whitespace-nowrap", compact ? "gap-2" : "gap-3")} style={{ borderTop: `1px solid ${cardBorder}` }}>
               {creatorMetrics.engagement_rate && (
-                <div className="flex flex-col items-center px-3 py-1.5 rounded-xl border" style={{ backgroundColor: `${cardText}03`, borderColor: `${cardText}10` }}>
-                  <span className="text-[8px] font-bold uppercase opacity-40" style={{ color: cardText }}>Engage</span>
-                  <span className="text-[10px] font-black" style={{ color: btnBg }}>{creatorMetrics.engagement_rate}</span>
+                <div className={cn("flex flex-col pl-3", compact && "pl-2")} style={{ borderLeft: `2px solid ${btnBg}40` }}>
+                  <span className={cn("font-bold uppercase opacity-40 leading-none", compact ? "text-[6px]" : "text-[8px]")} style={{ color: cardText }}>Engage</span>
+                  <span className={cn("font-black mt-0.5", compact ? "text-[8px]" : "text-[10px]")} style={{ color: cardText }}>{creatorMetrics.engagement_rate}</span>
                 </div>
               )}
               {creatorMetrics.avg_views && (
-                <div className="flex flex-col items-center px-3 py-1.5 rounded-xl border" style={{ backgroundColor: `${cardText}03`, borderColor: `${cardText}10` }}>
-                  <span className="text-[8px] font-bold uppercase opacity-40" style={{ color: cardText }}>Views</span>
-                  <span className="text-[10px] font-black" style={{ color: btnBg }}>{creatorMetrics.avg_views}</span>
+                <div className={cn("flex flex-col pl-3", compact && "pl-2")} style={{ borderLeft: `2px solid ${btnBg}40` }}>
+                  <span className={cn("font-bold uppercase opacity-40 leading-none", compact ? "text-[6px]" : "text-[8px]")} style={{ color: cardText }}>Views</span>
+                  <span className={cn("font-black mt-0.5", compact ? "text-[8px]" : "text-[10px]")} style={{ color: cardText }}>{creatorMetrics.avg_views}</span>
                 </div>
               )}
               {creatorMetrics.reach && (
-                <div className="flex flex-col items-center px-3 py-1.5 rounded-xl border" style={{ backgroundColor: `${cardText}03`, borderColor: `${cardText}10` }}>
-                  <span className="text-[8px] font-bold uppercase opacity-40" style={{ color: cardText }}>Reach</span>
-                  <span className="text-[10px] font-black" style={{ color: btnBg }}>{creatorMetrics.reach}</span>
+                <div className={cn("flex flex-col pl-3", compact && "pl-2")} style={{ borderLeft: `2px solid ${btnBg}40` }}>
+                  <span className={cn("font-bold uppercase opacity-40 leading-none", compact ? "text-[6px]" : "text-[8px]")} style={{ color: cardText }}>Reach</span>
+                  <span className={cn("font-black mt-0.5", compact ? "text-[8px]" : "text-[10px]")} style={{ color: cardText }}>{creatorMetrics.reach}</span>
                 </div>
               )}
-            </div>
-          )}
-
-          {showSocialIcons && socialLinks.length > 0 && (
-            <div className="flex items-center gap-2 relative z-10">
-              {socialLinks.map((link) => (
-                <div
-                  key={link.platform}
-                  className="w-8 h-8 rounded-full flex items-center justify-center border shadow-sm transition-transform hover:scale-110"
-                  style={{ borderColor: `${cardText}15`, color: cardText, backgroundColor: `${cardText}05` }}
-                >
-                  <SocialIcon platform={link.platform as SocialPlatform} className="w-3.5 h-3.5" />
-                </div>
-              ))}
             </div>
           )}
 
           {hasTabs && (
-            <div
-              className="flex items-center rounded-full p-1 gap-1 relative z-10 mt-2 shadow-inner bg-black/5 dark:bg-white/5 border border-white/10"
-            >
-              {catalogItems.length > 0 && (
+            <div className={cn("flex p-1 bg-black/5 rounded-[14px] mt-4 border border-black/5", compact && "mt-3")} style={{ backgroundColor: `${cardText}05` }}>
+              {hasShopContent && (
                 <button
                   onClick={() => setActiveTab("shop")}
                   className={cn(
-                    "px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5 cursor-pointer",
-                    activeTab === "shop" ? "shadow-lg scale-[1.02]" : "hover:opacity-70"
+                    "flex-1 rounded-[10px] font-black uppercase tracking-[0.14em] flex items-center justify-center gap-1.5 transition-all duration-300",
+                    compact ? "px-2 py-1.5 text-[8px]" : "px-3 py-2 text-[9px]",
+                    activeTab === "shop" ? "shadow-lg scale-[1.02]" : "opacity-40 hover:opacity-100"
                   )}
                   style={{
                     backgroundColor: activeTab === "shop" ? btnBg : "transparent",
-                    color: activeTab === "shop" ? btnText : cardSub
+                    color: activeTab === "shop" ? getContrastColor(btnBg) : cardText,
                   }}
                 >
-                  <ShoppingBag className="w-3 h-3" /> {shopTabLabel}
+                  <ShoppingBag className={cn("shrink-0", compact ? "w-2.5 h-2.5" : "w-3 h-3")} /> 
+                  <span className="truncate">{shopTabLabel}</span>
                 </button>
               )}
               {hasLinks && (
                 <button
                   onClick={() => setActiveTab("links")}
                   className={cn(
-                    "px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer",
-                    activeTab === "links" ? "shadow-lg scale-[1.02]" : "hover:opacity-70"
+                    "flex-1 rounded-[10px] font-black uppercase tracking-[0.14em] flex items-center justify-center gap-1.5 transition-all duration-300",
+                    compact ? "px-2 py-1.5 text-[8px]" : "px-3 py-2 text-[9px]",
+                    activeTab === "links" ? "shadow-lg scale-[1.02]" : "opacity-40 hover:opacity-100"
                   )}
                   style={{
                     backgroundColor: activeTab === "links" ? btnBg : "transparent",
-                    color: activeTab === "links" ? btnText : cardSub
+                    color: activeTab === "links" ? getContrastColor(btnBg) : cardText,
                   }}
-                >{linksTabLabel}</button>
+                >
+                  <Link2 className={cn("shrink-0", compact ? "w-2.5 h-2.5" : "w-3 h-3")} /> 
+                  <span className="truncate">{linksTabLabel}</span>
+                </button>
               )}
             </div>
           )}
         </div>
 
-        {/* Shop tab — shown first */}
-        {activeTab === "shop" && catalogItems.length > 0 && (
-          <div className="w-full px-3 py-3 space-y-2">
-            <div className="flex items-center gap-1.5">
-              {catalogItems[0]?.item_type === "food" ? (
-                <UtensilsCrossed className="w-3 h-3" style={{ color: cardText, opacity: 0.6 }} />
-              ) : catalogItems[0]?.item_type === "service" ? (
-                <Dumbbell className="w-3 h-3" style={{ color: cardText, opacity: 0.6 }} />
-              ) : (
-                <Store className="w-3 h-3" style={{ color: cardText, opacity: 0.6 }} />
-              )}
-              <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: cardText, opacity: 0.6 }}>
-                {categories.length === 1 && catalogItems[0]?.item_type === "food" ? "Menu" :
-                 categories.length === 1 && catalogItems[0]?.item_type === "service" ? "Services" : "Shop"}
-              </span>
-              <span className="text-[8px] px-1.5 py-0.5 rounded-full font-medium" style={{ backgroundColor: `${btnBg}20`, color: cardText }}>
-                {catalogItems.length} items
-              </span>
-            </div>
-
-            {categories.length > 1 && (
-              <div className="flex gap-1.5 overflow-x-auto pb-2 scrollbar-hide pt-1 px-1">
-                {categories.map((cat) => (
-                  <span key={cat} className="px-2 py-0.5 text-[8px] font-medium rounded-full shrink-0" style={{ backgroundColor: `${btnBg}15`, color: cardText }}>
-                    {cat}
-                  </span>
-                ))}
-              </div>
+        {/* Shop tab — Synchronized with PublicCatalog.tsx */}
+        {activeTab === "shop" && hasShopContent && (
+          <div className="w-full space-y-3">
+            {catalogItems.length > 0 && (
+              <PublicCatalog 
+                items={catalogItems.map(item => ({
+                  ...item,
+                  description: item.description || "",
+                  price: item.price ?? null,
+                  price_label: item.price_label || "",
+                  image_url: item.image_url || "",
+                  category: item.category || "",
+                  item_type: item.item_type || "physical",
+                  tags: [],
+                  external_url: "",
+                  allow_order_form: false
+                }))} 
+                profileUserId={user?.user_id || "preview"} 
+                textColor={cardText} 
+                buttonBg={btnBg} 
+                buttonText={btnText} 
+                buttonStyle={settings.buttonStyle} 
+                catalogCardBg={cardBg} 
+                hasPhoto={!!settings.backgroundImage} 
+                compact={compact}
+              />
             )}
-
-            <div className="grid grid-cols-2 gap-1">
-              {catalogItems.map((item) => {
-                const Icon = TYPE_ICONS[item.item_type || "physical"] || ShoppingBag;
-                return (
-                  <div
-                    key={item.id}
-                    className="rounded-lg overflow-hidden border"
-                    style={{ backgroundColor: cardBg, borderColor: cardBorder }}
-                  >
-                    {item.image_url ? (
-                      <div className="w-full aspect-square overflow-hidden bg-card/50 flex items-center justify-center">
-                        <img
-                          src={item.image_url}
-                          alt={item.title}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                            (e.target as HTMLImageElement).parentElement!.innerHTML = `<div class="w-full h-full flex flex-col items-center justify-center text-muted-foreground opacity-50"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mb-1"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg><span class="text-[8px] font-bold">No Image</span></div>`;
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-full aspect-square flex items-center justify-center" style={{ backgroundColor: `${btnBg}12` }}>
-                        <Icon className="w-6 h-6" style={{ color: cardText, opacity: 0.2 }} />
-                      </div>
-                    )}
-                    <div className="p-1.5 space-y-0.5">
-                      <p className="text-[9px] font-bold leading-tight line-clamp-2" style={{ color: cardText }}>{item.title}</p>
-                      {item.price != null && (
-                        <p className="text-[10px] font-black" style={{ color: btnBg }}>{formatPrice(item.price)}</p>
-                      )}
-                      {item.price_label && !item.price && (
-                        <p className="text-[8px] font-medium" style={{ color: cardText, opacity: 0.6 }}>{item.price_label}</p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            {showMediaFallback && (
+              <StudioContentGrid
+                items={mediaFallbackCards}
+                title={shopTabLabel}
+                surfaceColor={cardBg}
+                borderColor={cardBorder}
+                textColor={cardText}
+                subTextColor={cardText}
+                accentColor={btnBg}
+                compact={compact}
+              />
+            )}
           </div>
         )}
 
         {/* Links tab */}
         {activeTab === "links" && hasLinks && (
           <div className="w-full px-3 py-2 space-y-2 relative z-10">
-            {links.length > 0 && (
-              <div className="grid grid-cols-1 gap-1.5 w-full">
-              {links.map((link) => (
+            {groupedLinks.length > 0 && (
+              <div className={cn(
+                "w-full", 
+                (settings.layoutType === "grid" || settings.layoutType === "bento") 
+                  ? (compact ? "grid grid-cols-2 gap-2.5" : "bento-grid") 
+                  : settings.layoutType === "timeline"
+                  ? "relative border-l-2 border-current/20 pl-6 space-y-6 ml-2"
+                  : "grid grid-cols-1 gap-2"
+              )}>
+                {groupedLinks.map((group, groupIdx) => {
+                  if (group.layout === "video") {
+                    return (
+                      <div key={groupIdx} className={cn("flex overflow-x-auto gap-3 pb-2 w-[calc(100%+24px)] -mx-3 px-3 scrollbar-hide snap-x", compact && "gap-2 pb-1")}>
+                        {group.items.map(l => (
+                          <div 
+                            key={l.id} 
+                            className={cn(
+                              "shrink-0 rounded-2xl overflow-hidden shadow-md relative group snap-center",
+                              compact ? "w-28" : "w-36"
+                            )} 
+                            style={{ aspectRatio: '9/16', border: `1px solid ${cardBorder}` }}
+                          >
+                            <img src={getVideoThumbnail(l.url)} alt="" className="absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-110" loading="lazy" />
+                            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
+                            <div className={cn(
+                              "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center",
+                              compact ? "w-6 h-6" : "w-8 h-8"
+                            )}>
+                              <div className={cn(
+                                "w-0 h-0 border-y-transparent border-l-white border-r-0 ml-1",
+                                compact ? "border-[4px]" : "border-[6px]"
+                              )} />
+                            </div>
+                            <div className={cn(
+                              "absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent pt-10",
+                              compact ? "p-2" : "p-3"
+                            )}>
+                              <SocialIcon platform={l.basePlatform as SocialPlatform} className={cn("text-white mb-1", compact ? "w-3 h-3" : "w-4 h-4")} />
+                              <p className={cn("font-bold text-white leading-tight line-clamp-2", compact ? "text-[8px]" : "text-[10px]")}>{l.title}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  }
+
+                  if (group.layout === "article") {
+                    return group.items.map(l => (
+                      <div 
+                        key={l.id} 
+                        className={cn(
+                          "flex items-center w-full rounded-2xl shadow-sm border transition-transform hover:-translate-y-0.5",
+                          compact ? "p-2" : "p-2.5"
+                        )} 
+                        style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+                      >
+                        <div 
+                          className={cn(
+                            "shrink-0 rounded-[10px] overflow-hidden bg-black/5 flex items-center justify-center",
+                            compact ? "w-10 h-10 p-1.5 mr-2" : "w-14 h-14 p-2 mr-3"
+                          )} 
+                          style={{ backgroundColor: `${btnBg}15` }}
+                        >
+                          <img src={getDomainIcon(l.url)} alt="" className="w-full h-full object-contain drop-shadow-sm rounded" loading="lazy" />
+                        </div>
+                        <div className="flex-[1] min-w-0 pr-1 space-y-0.5">
+                          <p className={cn("font-bold tracking-tight line-clamp-2 leading-tight", compact ? "text-[10px]" : "text-[11px]")} style={{ color: cardText }}>{l.title}</p>
+                            <div className="flex items-center gap-1.5 opacity-60">
+                            <div style={{ color: cardText }}>
+                              <SocialIcon platform={l.basePlatform as SocialPlatform} className={compact ? "w-2.5 h-2.5" : "w-3 h-3"} />
+                            </div>
+                            <span className={cn("uppercase font-bold tracking-wider", compact ? "text-[7px]" : "text-[9px]")} style={{ color: cardText }}>Read Article</span>
+                          </div>
+                        </div>
+                        <ExternalLink className={cn("opacity-30 mr-1 shrink-0", compact ? "w-2.5 h-2.5" : "w-3.5 h-3.5")} style={{ color: cardText }} />
+                      </div>
+                    ));
+                  }
+
+                  return group.items.map((link) => {
+                  if (link.url?.includes("paypal.me") || link.url?.includes("venmo.com") || link.url?.includes("cash.app") || link.url?.includes("buymeacoffee.com") || link.url?.includes("ko-fi.com")) {
+                    return (
+                      <TipJar
+                        key={link.id}
+                        platform={link.basePlatform || "Support"}
+                        username={link.url}
+                        title={link.title}
+                        buttonBg={btnBg}
+                        buttonText={btnText}
+                        textColor={cardText}
+                        cardBg={`${cardText}05`}
+                        compact={compact}
+                      />
+                    );
+                  }
+
+                  return (
                     <div 
                       key={link.id} 
-                      className={cn(
-                        "flex items-center p-2.5 w-full shadow-sm relative overflow-hidden",
+                      className={getCardClasses(settings.cardStyle, cn(
+                        "flex items-center w-full shadow-sm relative overflow-hidden",
+                        compact ? "p-2" : "p-3",
                         getLinkButtonClasses(settings.buttonStyle)
-                      )}
+                      ))}
                       style={getLinkButtonStyle(settings.buttonStyle, btnBg, btnText)}
                     >
-                      <div className="w-7 h-7 rounded-lg flex items-center justify-center mr-2.5 shrink-0" style={getLinkIconBgStyle(settings.buttonStyle, btnBg)}>
-                        <SocialIcon platform={(link.platform || "website") as SocialPlatform} className="w-3.5 h-3.5" />
+                      {settings.layoutType === "timeline" && (
+                        <div className="absolute left-[-30px] top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-current border-2 border-background z-20" />
+                      )}
+                      <div className={cn(
+                        "rounded-lg flex items-center justify-center shrink-0",
+                        compact ? "w-6 h-6 mr-2" : "w-8 h-8 mr-3"
+                      )} style={getLinkIconBgStyle(settings.buttonStyle, btnBg)}>
+                        <SocialIcon platform={(link.basePlatform || "website") as SocialPlatform} className={compact ? "w-3 h-3" : "w-4 h-4"} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <span className="text-[11px] font-bold tracking-tight block truncate uppercase">{link.title}</span>
+                        <span className={cn("font-bold tracking-tight block truncate uppercase", compact ? "text-[10px]" : "text-[12px]")}>{link.title}</span>
                       </div>
                     </div>
-                  ))}
+                  );
+                })
+              })}
               </div>
             )}
 
-            <div
-              className="w-full rounded-2xl p-3 shadow-md bg-white dark:bg-zinc-900"
-              style={{
-                backgroundColor: cardBg,
-                border: `1px solid ${cardBorder}`,
-                boxShadow: `0 4px 20px -5px ${cardText}10`
-              }}
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: cardText }}>Contact Form</p>
-              </div>
-              <p className="text-[9px] font-medium opacity-60" style={{ color: cardSub }}>Visitors can send you messages directly</p>
-            </div>
+            {/* Contact Form Section */}
+            <ContactForm
+              profileUserId={user?.user_id || ""}
+              textColor={cardText}
+              buttonBg={btnBg}
+              buttonText={btnText}
+              buttonStyle={settings.buttonStyle}
+              hasPhoto={!!user?.avatar_url}
+              cardBg={cardBg}
+              cardBorder={cardBorder}
+              compact={compact}
+            />
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!hasTabs && (
+          <div className="w-full px-4 pt-6 text-center">
+             <div 
+               className={cn("w-full rounded-[24px] border p-8 flex flex-col items-center", compact && "p-6 rounded-[18px]")}
+               style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+             >
+                <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center mb-4", compact && "w-10 h-10 mb-3")} style={{ backgroundColor: `${btnBg}15` }}>
+                  <Zap className={cn("w-6 h-6", compact && "w-5 h-5")} style={{ color: btnBg }} />
+                </div>
+                <h3 className={cn("font-black tracking-tight mb-1", compact ? "text-sm" : "text-base")} style={{ color: cardText }}>Nothing published yet</h3>
+                <p className={cn("opacity-50 leading-relaxed", compact ? "text-[10px]" : "text-xs")} style={{ color: cardText }}>This creator hasn't added links or catalog items yet.</p>
+             </div>
           </div>
         )}
 
         <div className="pt-3 pb-5 text-[8px] px-3" style={{ color: getFooterColor(sharedAppearance) }}>
           <span className="flex items-center justify-center gap-1">
-            <Zap className="w-2 h-2" /> Made with LinkVertex
+            <Zap className="w-2 h-2" /> Made with BIOTRA
           </span>
         </div>
       </div>
@@ -520,7 +648,7 @@ const ProfilePreview = ({ settings, user, links, catalogItems = [], showSocialIc
 
   return (
     <div className="flex justify-center">
-      <div className="relative" style={{ filter: "drop-shadow(0 20px 40px rgba(0,0,0,0.12))" }}>
+      <div className="relative" style={{ filter: "drop-shadow(0 30px 60px rgba(0,0,0,0.18))" }}>
         {/* Phone bezel */}
         <div
           className="relative overflow-hidden"
@@ -528,9 +656,9 @@ const ProfilePreview = ({ settings, user, links, catalogItems = [], showSocialIc
             width: phoneWidth,
             height: phoneHeight,
             borderRadius,
-            border: `${bezelWidth}px solid #2a2a2c`,
+            border: `${bezelWidth}px solid #1a1a1c`,
             background: "#000",
-            boxShadow: "inset 0 0 0 1.5px #3a3a3c",
+            boxShadow: "inset 0 0 0 1.5px #2a2a2c",
           }}
         >
           {/* Side buttons */}
@@ -551,7 +679,7 @@ const ProfilePreview = ({ settings, user, links, catalogItems = [], showSocialIc
               width: '100%'
             }}
           >
-            <div className="w-full min-h-full flex flex-col">
+            <div className="w-full min-h-full flex flex-col relative">
               {screenContent}
             </div>
           </div>

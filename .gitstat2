@@ -1,0 +1,63 @@
+﻿On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   index.html
+	modified:   src/App.tsx
+	modified:   src/components/animations/StarryBackground.tsx
+	modified:   src/components/dashboard/AIThemeCreator.tsx
+	modified:   src/components/dashboard/DashboardLayout.tsx
+	modified:   src/components/dashboard/DashboardSidebar.tsx
+	modified:   src/components/dashboard/NicheTemplates.tsx
+	modified:   src/components/dashboard/NotificationPreferences.tsx
+	modified:   src/components/dashboard/ProfilePreview.tsx
+	modified:   src/components/landing/ChatWidget.tsx
+	modified:   src/components/public/CatalogItemDetail.tsx
+	modified:   src/components/public/PublicCatalog.tsx
+	modified:   src/components/ui/command.tsx
+	modified:   src/components/ui/sidebar.tsx
+	modified:   src/components/ui/textarea.tsx
+	modified:   src/data/nicheTemplates.ts
+	modified:   src/data/themes.ts
+	modified:   src/index.css
+	modified:   src/lib/activityLogger.ts
+	modified:   src/pages/PublicProfile.tsx
+	modified:   src/pages/PublicServices.tsx
+	modified:   src/pages/Register.tsx
+	modified:   src/pages/dashboard/AdminPage.tsx
+	modified:   src/pages/dashboard/AdminUserEditPage.tsx
+	modified:   src/pages/dashboard/AppearancePage.tsx
+	modified:   src/pages/dashboard/CatalogPage.tsx
+	modified:   src/pages/dashboard/DashboardOverview.tsx
+	modified:   src/pages/dashboard/LinkEditor.tsx
+	modified:   src/pages/dashboard/PlatformSettingsPage.tsx
+	modified:   src/pages/dashboard/SettingsPage.tsx
+	modified:   src/stores/appearanceStore.ts
+	modified:   src/stores/authStore.ts
+	modified:   src/stores/catalogStore.ts
+	modified:   src/stores/platformStore.ts
+	modified:   supabase/functions/order-notify/index.ts
+	modified:   tailwind.config.ts
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	.gitstat
+	.gitstat2
+	PROGRESS.md
+	creator-profile-design-studio-live-demo.png
+	creator-profile-design-studio.png
+	src/components/dashboard/ThemePreviewCard.tsx
+	src/components/design-studio/
+	src/components/public/StudioContentGrid.tsx
+	src/components/theme/
+	src/lib/catalogCategory.ts
+	src/lib/catalogTaxonomy.ts
+	src/lib/onboarding.ts
+	src/lib/publicStudio.ts
+	src/pages/CreatorProfileDesignStudio.tsx
+	src/pages/Onboarding.tsx
+	system-info/platform-audit-2026-03-13.md
+
+no changes added to commit (use "git add" and/or "git commit -a")

@@ -13,7 +13,7 @@ const blogPosts = [
     readTime: "5 min read",
   },
   {
-    title: "Why We Made LinkVertex 100% Free",
+    title: "Why We Made BIOTRA 100% Free",
     excerpt: "Most link-in-bio tools charge $5-20/month for basic features. Here's why we decided to make everything free — and how we sustain it.",
     date: "Feb 28, 2026",
     category: "Company",
@@ -27,7 +27,7 @@ const blogPosts = [
     readTime: "7 min read",
   },
   {
-    title: "How Restaurants Use LinkVertex to Take Orders",
+    title: "How Restaurants Use BIOTRA to Take Orders",
     excerpt: "From digital menus to direct ordering — see how food businesses are replacing expensive third-party apps with a free bio link page.",
     date: "Feb 12, 2026",
     category: "Case Study",
@@ -50,7 +50,7 @@ const blogPosts = [
 ];
 
 const Blog = () => (
-  <InfoPageLayout title="Blog" subtitle="Tips, updates, and stories from the LinkVertex team.">
+  <InfoPageLayout title="Blog" subtitle="Tips, updates, and stories from the BIOTRA team.">
     <div className="space-y-6 not-prose">
       {blogPosts.map((post, i) => (
         <motion.article

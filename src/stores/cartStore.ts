@@ -57,7 +57,7 @@ export const useCartStore = create<CartState>()(
       totalPrice: () => get().items.reduce((acc, i) => acc + (i.price || 0) * i.quantity, 0),
     }),
     {
-      name: 'linkvertex-cart',
+      name: 'BIOTRA-cart',
     }
   )
 );

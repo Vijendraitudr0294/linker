@@ -1,17 +1,14 @@
-import { motion, useScroll, useTransform, useMotionValue } from "framer-motion";
+import { motion, useScroll, useTransform, useMotionValue, useSpring } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Palette, Layers, Sparkles } from "lucide-react";
 import themeShowcaseImg from "@/assets/theme-showcase.jpg";
 
 const themes = [
-  { name: "Lime Fresh", gradient: "from-lime-400 to-emerald-500", accent: "bg-lime-400" },
-  { name: "Purple Haze", gradient: "from-violet-500 to-indigo-500", accent: "bg-violet-500" },
-  { name: "Ocean Wave", gradient: "from-sky-400 to-emerald-500", accent: "bg-sky-400" },
-  { name: "Sunset Gold", gradient: "from-amber-400 to-orange-500", accent: "bg-amber-400" },
-  { name: "Forest Deep", gradient: "from-green-700 to-emerald-500", accent: "bg-green-700" },
-  { name: "Warm Ember", gradient: "from-orange-400 to-amber-500", accent: "bg-orange-400" },
-  { name: "Neon Night", gradient: "from-violet-500 via-indigo-500 to-amber-400", accent: "bg-violet-500" },
-  { name: "Clean White", gradient: "from-gray-100 to-gray-200", accent: "bg-gray-200" },
+  { name: "Neon Cyber", gradient: "from-fuchsia-500 via-violet-600 to-indigo-700", type: "Vibrant" },
+  { name: "Liquid Glass", gradient: "from-white/10 via-white/5 to-transparent", type: "Minimal" },
+  { name: "Luxury Black", gradient: "from-neutral-900 via-neutral-800 to-amber-600/20", type: "Premium" },
+  { name: "Pastel Dreams", gradient: "from-pink-200 via-purple-200 to-indigo-100", type: "Soft" },
+  { name: "Lime Fresh", gradient: "from-lime-400 to-emerald-500", type: "Modern" },
 ];
 
 const ThemeShowcase = () => {
@@ -19,150 +16,128 @@ const ThemeShowcase = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const [isPaused, setIsPaused] = useState(false);
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start end", "end start"] });
-  const orbY = useTransform(scrollYProgress, [0, 1], [150, -150]);
+  const orbY = useTransform(scrollYProgress, [0, 1], [100, -100]);
 
-  // Mouse tilt effect for the main showcase image
-  const cardX = useMotionValue(0);
-  const cardY = useMotionValue(0);
-  const rotateX = useTransform(cardY, [-300, 300], [10, -10]);
-  const rotateY = useTransform(cardX, [-300, 300], [-10, 10]);
+  // Mouse tilt effect
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const springConfig = { damping: 25, stiffness: 150 };
+  const rotateX = useSpring(useTransform(mouseY, [-200, 200], [5, -5]), springConfig);
+  const rotateY = useSpring(useTransform(mouseX, [-200, 200], [-5, 5]), springConfig);
 
   const handleMouseMove = (event: React.MouseEvent) => {
     const rect = event.currentTarget.getBoundingClientRect();
-    const x = event.clientX - rect.left - rect.width / 2;
-    const y = event.clientY - rect.top - rect.height / 2;
-    cardX.set(x);
-    cardY.set(y);
+    mouseX.set(event.clientX - rect.left - rect.width / 2);
+    mouseY.set(event.clientY - rect.top - rect.height / 2);
   };
 
   const handleMouseLeave = () => {
-    cardX.set(0);
-    cardY.set(0);
-    setIsPaused(false);
+    mouseX.set(0);
+    mouseY.set(0);
   };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!isPaused && scrollRef.current) {
-        const el = scrollRef.current;
-        if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 10) {
-          el.scrollTo({ left: 0, behavior: "smooth" });
-        } else {
-          el.scrollBy({ left: 320, behavior: "smooth" });
-        }
-      }
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [isPaused]);
-
   const scroll = (dir: "left" | "right") => {
-    scrollRef.current?.scrollBy({ left: dir === "left" ? -320 : 320, behavior: "smooth" });
+    scrollRef.current?.scrollBy({ left: dir === "left" ? -400 : 400, behavior: "smooth" });
   };
 
   return (
-    <section ref={sectionRef} id="themes" className="py-20 sm:py-24 relative overflow-hidden bg-background">
-      {/* Dynamic Background */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(var(--primary),0.05),transparent_70%)]" />
-      <motion.div style={{ y: orbY }} className="glow-orb glow-orb-accent w-[350px] h-[350px] sm:w-[600px] sm:h-[600px] top-40 -left-40 sm:-left-60 opacity-30 mix-blend-screen" />
-
-      <div className="container mx-auto px-4 relative z-10">
+    <section ref={sectionRef} id="themes" className="py-20 lg:py-32 relative overflow-hidden bg-background">
+      <div className="container max-w-[1200px] mx-auto px-6 relative z-10">
+        
         <motion.div
-          className="text-center mb-12 sm:mb-14"
-          initial={{ opacity: 0, y: 30 }}
+          className="max-w-[800px] mb-16 lg:mb-24"
+          initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          transition={{ duration: 0.5 }}
         >
-          <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs sm:text-sm font-bold text-primary uppercase tracking-[0.3em] mb-6">
-            Visual Identity 🎨
+          <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-[11px] font-semibold tracking-wider text-primary uppercase mb-6">
+            Visual Identity
           </span>
-          <h2 className="text-[2.75rem] leading-[1.1] sm:text-6xl lg:text-8xl font-heading font-black mb-6 px-4 tracking-tighter">
-            Elevate your <span className="text-gradient">vibe.</span>
+          <h2 className="text-[32px] sm:text-[40px] font-semibold text-foreground mb-6 tracking-tight leading-tight">
+            Elevate your <span className="text-secondary italic">vibe.</span>
           </h2>
-          <p className="text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto px-6 font-medium leading-relaxed">
-            Your link in bio is your digital storefront. Choose from 60+ neon, glass, and minimal themes designed to convert.
+          <p className="text-base sm:text-lg text-muted-foreground font-normal leading-relaxed max-w-[540px]">
+             Your link in bio is your digital storefront. Choose from 60+ neon, glass, and minimal themes designed to convert fans into customers.
           </p>
         </motion.div>
 
-        {/* Interactive 3D Showcase Image */}
-        <motion.div
-          className="mb-14 sm:mb-20 max-w-5xl mx-auto perspective-1000 px-4"
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1, ease: "easeOut" }}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
-          style={{ rotateX, rotateY }}
-        >
-          <div className="relative group overflow-hidden rounded-[2rem] sm:rounded-[3rem] border border-white/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)]">
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-            <img
-              src={themeShowcaseImg}
-              alt="Ultimate Theme Showcase"
-              className="w-full h-auto scale-100 group-hover:scale-105 transition-transform duration-1000 ease-out"
-              loading="lazy"
-            />
-            {/* Glossy Reflection Effect */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-          </div>
-        </motion.div>
-
-        {/* Modern Horizontal Carousel */}
-        <div className="relative px-2">
-          <div
-            ref={scrollRef}
-            className="flex gap-5 sm:gap-10 overflow-x-auto scrollbar-hide px-4 sm:px-12 pb-12 snap-x snap-mandatory"
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
+        {/* Main Showcase Container */}
+        <div className="flex flex-col lg:flex-row gap-12 lg:gap-20 items-center mb-20 lg:mb-32">
+          
+          <motion.div
+            className="w-full lg:w-1/2 perspective-1000"
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            style={{ rotateX, rotateY }}
           >
-            {themes.map((theme, i) => (
+            <div className="relative group rounded-3xl overflow-hidden border border-white/5 shadow-2xl">
+              <img src={themeShowcaseImg} alt="Themes" className="w-full h-auto scale-100 group-hover:scale-[1.02] transition-transform duration-700" />
+              <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+          </motion.div>
+
+          <div className="w-full lg:w-1/2 space-y-8 lg:space-y-12">
+            {[
+              { icon: Layers, title: "Layered Design", desc: "Build depth with cards, lists, and grids." },
+              { icon: Sparkles, title: "AI Generation", desc: "Let AI draft your perfect theme in seconds." },
+              { icon: Palette, title: "Full Sandbox", desc: "Change every color, font, and animation." }
+            ].map((item, i) => (
               <motion.div
-                key={theme.name}
-                className="flex-shrink-0 w-[240px] sm:w-[320px] snap-center group"
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                key={item.title}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.6 }}
+                transition={{ delay: i * 0.1 }}
+                className="flex items-start gap-6 group"
               >
-                <div className="relative rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden glass border border-white/10 group-hover:border-primary/50 transition-all duration-700 group-hover:shadow-[0_40px_80px_-20px_rgba(var(--primary),0.3)] group-hover:-translate-y-2">
-                  <div className={`h-[200px] sm:h-[280px] bg-gradient-to-br ${theme.gradient} p-6 sm:p-8 flex flex-col justify-center items-center relative overflow-hidden`}>
-                    <div className="absolute inset-0 bg-mesh opacity-20 opacity-0 group-hover:opacity-30 transition-opacity duration-700" />
-
-                    {/* Mockup Elements - Linktree Style */}
-                    <div className="relative w-full space-y-3 sm:space-y-4">
-                      <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full glass border border-white/20 mx-auto shadow-2xl overflow-hidden">
-                        <div className={`w-full h-full bg-gradient-to-br ${theme.gradient} brightness-125 opacity-30`} />
-                      </div>
-                      <div className="h-4 w-2/3 bg-white/30 rounded-full mx-auto backdrop-blur-md" />
-                      <div className="space-y-2">
-                        <div className="h-10 w-full bg-white/20 rounded-2xl border border-white/20 backdrop-blur-xl group-hover:scale-105 transition-transform duration-500" />
-                        <div className="h-10 w-full bg-white/15 rounded-2xl backdrop-blur-xl" />
-                      </div>
-                    </div>
-
-                    {/* Accent glow orb */}
-                    <div className={`absolute -bottom-10 -right-10 w-32 h-32 rounded-full ${theme.accent} blur-[60px] opacity-40 group-hover:opacity-60 transition-opacity`} />
-                  </div>
-                  <div className="p-6 text-center bg-background/60 backdrop-blur-2xl border-t border-white/10 relative z-10">
-                    <p className="text-xs font-black text-primary/60 uppercase tracking-widest mb-1 font-heading">
-                      Themed Pack
-                    </p>
-                    <p className="text-lg sm:text-2xl font-accent font-black text-foreground tracking-tighter group-hover:text-primary transition-colors duration-300">
-                      {theme.name}
-                    </p>
-                  </div>
+                <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-center group-hover:bg-primary/5 group-hover:border-primary/20 transition-all">
+                  <item.icon className="w-5 h-5 text-primary/60 group-hover:text-primary transition-colors" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">{item.title}</h3>
+                  <p className="text-[14px] text-muted-foreground leading-relaxed">{item.desc}</p>
                 </div>
               </motion.div>
             ))}
           </div>
+        </div>
 
-          {/* New Interactive Scroll Controls */}
-          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-4 hidden sm:flex">
-            <button onClick={() => scroll("left")} className="w-12 h-12 rounded-full glass-strong flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-300 shadow-xl"><ChevronLeft className="w-6 h-6" /></button>
-            <button onClick={() => scroll("right")} className="w-12 h-12 rounded-full glass-strong flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-300 shadow-xl"><ChevronRight className="w-6 h-6" /></button>
+        {/* Horizontal Carousel */}
+        <div className="relative group/carousel">
+          <div
+            ref={scrollRef}
+            className="flex gap-6 overflow-x-auto scrollbar-hide px-2 pb-12 snap-x snap-mandatory"
+          >
+            {themes.map((theme, i) => (
+              <motion.div
+                key={theme.name}
+                className="flex-shrink-0 w-[280px] sm:w-[320px] snap-center"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+              >
+                <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 group cursor-pointer hover:border-white/10 transition-colors">
+                  <div className={`h-[240px] rounded-2xl bg-gradient-to-br ${theme.gradient} mb-6 relative overflow-hidden`}>
+                     <div className="absolute inset-x-8 top-12 bottom-0 bg-white/10 backdrop-blur-md rounded-t-xl border-x border-t border-white/20" />
+                  </div>
+                  <span className="text-[11px] font-semibold text-primary/60 uppercase tracking-widest block mb-2">{theme.type}</span>
+                  <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">{theme.name}</h3>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+          
+          <div className="absolute -bottom-4 right-2 flex gap-3 opacity-0 group-hover/carousel:opacity-100 transition-opacity">
+            <button onClick={() => scroll("left")} className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all"><ChevronLeft className="w-5 h-5" /></button>
+            <button onClick={() => scroll("right")} className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all"><ChevronRight className="w-5 h-5" /></button>
           </div>
         </div>
+
       </div>
     </section>
   );

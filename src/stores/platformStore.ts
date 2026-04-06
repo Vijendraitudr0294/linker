@@ -22,11 +22,11 @@ export interface PlatformSettings {
   cta_label_overrides?: Record<string, string> | null;
   category_label_overrides?: Record<string, string> | null;
   item_type_label_overrides?: Record<string, string> | null;
-  link_template_categories?: unknown[] | null;
-  theme_categories?: unknown[] | null;
-  theme_presets?: unknown[] | null;
-  niche_templates?: unknown[] | null;
-  demo_catalog_packs?: Record<string, unknown> | null;
+  link_template_categories?: any[] | null;
+  theme_categories?: any[] | null;
+  theme_presets?: any[] | null;
+  niche_templates?: any[] | null;
+  demo_catalog_packs?: Record<string, any> | null;
 }
 
 interface PlatformState {
@@ -43,18 +43,27 @@ export const usePlatformStore = create<PlatformState>()((set, get) => ({
   initialized: false,
 
   fetchSettings: async (force = false) => {
-    if (get().initialized && !force) return;
+    if ((get().initialized || get().loading) && !force) return;
+    
     set({ loading: true });
-    const { data, error } = await (supabase.from("platform_settings") as any)
-      .select("*")
-      .limit(1)
-      .single();
-    if (data && !error) {
-      set({ settings: data as PlatformSettings, initialized: true });
-    } else if (error) {
-      console.error("Failed to fetch platform settings:", error.message);
+    try {
+      const { data, error } = await supabase
+        .from("platform_settings")
+        .select("*")
+        .limit(1)
+        .single();
+        
+      if (data && !error) {
+        set({ settings: data as PlatformSettings, initialized: true });
+      } else if (error) {
+        console.error("Failed to fetch platform settings:", error.message);
+        // Even on error, we mark as initialized to prevent infinite loop
+        // unless it's a transient error. For now, let's mark it.
+        set({ initialized: true });
+      }
+    } finally {
+      set({ loading: false });
     }
-    set({ loading: false });
   },
 
   updateSettings: async (partial) => {
@@ -64,7 +73,8 @@ export const usePlatformStore = create<PlatformState>()((set, get) => ({
     const updated = { ...current, ...partial };
     set({ settings: updated });
     
-    const { error } = await (supabase.from("platform_settings") as any)
+    const { error } = await supabase
+      .from("platform_settings")
       .update(partial)
       .eq("id", current.id);
     

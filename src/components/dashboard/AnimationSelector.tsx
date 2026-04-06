@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Sparkles, Stars, Waves, Box, Zap, Cloud, Grid3X3 } from "lucide-react";
+import { Sparkles, Stars, Waves, Box, Zap, Cloud, Grid3X3, Disc as Curves } from "lucide-react";
 
 interface AnimationSelectorProps {
     currentAnimation?: string;
@@ -14,14 +14,26 @@ const animations = [
     { id: "animate-star-shower", label: "Star Shower", icon: Stars, class: "animate-star-shower" },
     { id: "animate-mesh", label: "Liquid Mesh", icon: Waves, class: "animate-mesh" },
     { id: "animate-aurora", label: "Northern Lights", icon: Cloud, class: "animate-aurora" },
-    { id: "animate-leaves", label: "Autumn Fall", icon: Box, class: "animate-leaves" },
-    { id: "animate-rain", label: "Raindrops", icon: Cloud, class: "animate-rain" },
-    { id: "animate-water", label: "Water Ripple", icon: Waves, class: "animate-water" },
-    { id: "animate-geometric", label: "Geometric", icon: Grid3X3, class: "animate-geometric" },
-    { id: "animate-blinking", label: "Blinking Lights", icon: Sparkles, class: "animate-blinking" },
+    { id: "animate-cyber-grid", label: "Neon Cyber", icon: Grid3X3, class: "animate-cyber-grid" },
+    { id: "fx-liquid-gradient", label: "Liquid Glow", icon: Waves, class: "fx-liquid-gradient" },
+    { id: "fx-pop-grain", label: "Retro Grain", icon: Sparkles, class: "fx-pop-grain" },
+    { id: "fx-midnight-grid", label: "Midnight Grid", icon: Grid3X3, class: "fx-midnight-grid" },
+    { id: "fx-constellation-3d", label: "3D Nodes", icon: Stars, class: "fx-constellation-3d" },
+    { id: "fx-neon-grid-3d", label: "3D Grid", icon: Grid3X3, class: "fx-neon-grid-3d" },
+    { id: "fm-fade", label: "Soft Fade", icon: Sparkles, class: "fm-fade" },
+    { id: "fm-pulse-glow", label: "Pulse Glow", icon: Zap, class: "fm-pulse-glow" },
+    { id: "fm-float", label: "Floating Orbs", icon: Box, class: "fm-float" },
+    { id: "fm-parallax", label: "Parallax Multi", icon: Cloud, class: "fm-parallax" },
     { id: "animate-liquid", label: "Liquid Morph", icon: Waves, class: "animate-liquid" },
     { id: "animate-particles", label: "Interstellar", icon: Box, class: "animate-particles" },
     { id: "animate-energy", label: "Energy Flow", icon: Zap, class: "animate-energy" },
+    // ─── Pro Batch Additions ───
+    { id: "fm-snow-glow", label: "Snow Crystals", icon: Sparkles, class: "fm-snow-glow" },
+    { id: "fm-fireflies", label: "Fireflies", icon: Stars, class: "fm-fireflies" },
+    { id: "fm-nebula-pulse", label: "Nebula Pulse", icon: Cloud, class: "fm-nebula-pulse" },
+    { id: "fm-neon-lines", label: "Data Streams", icon: Zap, class: "fm-neon-lines" },
+    { id: "fm-liquid-blob", label: "Morph Blob", icon: Curves, class: "fm-liquid-blob" },
+    { id: "fm-slide-up", label: "Rising Fog", icon: Cloud, class: "fm-slide-up" }
 ];
 
 const AnimationSelector = ({ currentAnimation, onSelect }: AnimationSelectorProps) => {

@@ -20,7 +20,7 @@ const incidents = [
 ];
 
 const StatusPage = () => (
-  <InfoPageLayout title="System Status" subtitle="Real-time status of all LinkVertex services.">
+  <InfoPageLayout title="System Status" subtitle="Real-time status of all BIOTRA services.">
     <div className="not-prose">
       {/* Overall status */}
       <div className="glass rounded-2xl p-6 mb-8 flex items-center gap-4">

@@ -1,9 +1,9 @@
-﻿import { Card } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, X } from "lucide-react";
 import { SocialIcon, platformOptions } from "@/components/SocialIcon";
-import type { SocialPlatform } from "@/stores/linksStore";
+import { type SocialPlatform } from "@/types/links";
 import { Button } from "@/components/ui/button";
 
 type StatusFilter = "all" | "active" | "disabled";

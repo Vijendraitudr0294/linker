@@ -9,82 +9,89 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuthStore } from "@/stores/authStore";
-import { useCatalogStore, type CatalogItem, type ItemType, type ItemVariant } from "@/stores/catalogStore";
+import type { CatalogItem, ItemType, ItemVariant } from "@/stores/catalogStore";
 import { usePlatformStore } from "@/stores/platformStore";
-import { supabase } from "@/integrations/supabase/client";
+import { useCatalogItems, useCatalogMutations } from "@/hooks/useCatalogApi";
+import { CatalogFormModal } from "@/components/catalog/CatalogFormModal";
+import { CatalogGrid, TYPE_ICONS } from "@/components/catalog/CatalogGrid";
+import { CatalogQRCodeModal } from "@/components/catalog/CatalogQRCodeModal";
+import { CatalogDemoDataModal } from "@/components/catalog/CatalogDemoDataModal";
+import { cn } from "@/lib/utils";
 import {
-  Plus, Trash2, Pencil, Check, X, ShoppingBag, UtensilsCrossed,
-  Dumbbell, Download, ImageIcon, Upload, Loader2, ExternalLink, FileText, Tags,
-  QrCode, Copy, Printer, Sparkles, Database, Ship, Car, Users
+  Plus, ShoppingBag, UtensilsCrossed, Dumbbell, Download, Ship, Car,
+  Video, Newspaper, Music, MessageSquare, Clapperboard, Loader2, Activity
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { QRCodeSVG } from "qrcode.react";
 import { MOCK_SERVICES } from "@/data/mockCatalogServices";
+import { joinCatalogCategory, parseCatalogCategory } from "@/lib/catalogCategory";
+import { readCatalogTaxonomy } from "@/lib/catalogTaxonomy";
 
-const TYPE_OPTIONS: { value: ItemType; label: string; icon: typeof ShoppingBag }[] = [
+const TYPE_OPTIONS: { value: string; label: string; icon: typeof ShoppingBag }[] = [
   { value: "physical", label: "Physical Product", icon: ShoppingBag },
   { value: "food", label: "Food / Menu Item", icon: UtensilsCrossed },
   { value: "service", label: "Service / Package", icon: Dumbbell },
   { value: "digital", label: "Digital Product", icon: Download },
   { value: "boat", label: "Boat / Yacht", icon: Ship },
   { value: "car", label: "Car Rental", icon: Car },
+  { value: "video", label: "Video", icon: Video },
+  { value: "article", label: "Article / News", icon: Newspaper },
+  { value: "music", label: "Music / Audio", icon: Music },
+  { value: "post", label: "Post / Shoutout", icon: MessageSquare },
+  { value: "reel", label: "Short Reel / Video", icon: Clapperboard },
 ];
 
-const TYPE_ICONS: Record<ItemType, typeof ShoppingBag> = {
-  physical: ShoppingBag,
-  food: UtensilsCrossed,
-  service: Dumbbell,
-  digital: Download,
-  boat: Ship,
-  car: Car,
-  social: Users,
-  blog: FileText,
+type CatalogMediaInput = { type: "image" | "video"; url: string };
+type ItemTypeOption = { value: string; label: string; icon: typeof ShoppingBag };
+type CatalogManagerView = "all" | "shop" | "content";
+
+const EMPTY_ITEM_TYPE_VALUE = "__lv_item_type_empty__";
+const EMPTY_CATEGORY_VALUE = "__lv_category_empty__";
+const EMPTY_SUBCATEGORY_VALUE = "__lv_subcategory_empty__";
+const SELLABLE_ITEM_TYPE_KEYS = new Set(["physical", "food", "service", "digital", "boat", "car"]);
+const CONTENT_ITEM_TYPE_KEYS = new Set(["video", "article", "music", "post", "reel", "blog", "social"]);
+
+const isHttpUrl = (value: string): boolean => {
+  if (!value.trim()) return false;
+  try {
+    const parsed = new URL(value.trim());
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
 };
+
+const isVideoUrl = (value: string): boolean => isHttpUrl(value.trim());
+const normalizeValue = (value: string): string => value.trim().toLowerCase();
+const toItemTypeLabel = (value: string): string =>
+  value
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (m) => m.toUpperCase());
+
+const isSellableItemType = (value: string) => SELLABLE_ITEM_TYPE_KEYS.has(normalizeValue(value));
 
 const CatalogPage = () => {
   const user = useAuthStore((s) => s.user);
-  const { items, loading, fetchItems, addItem, updateItem, deleteItem, toggleItem, bulkAddItems } = useCatalogStore();
+  const { data: items = [], isLoading: loading } = useCatalogItems(user?.user_id);
+  const { addItem, updateItem, deleteItem, toggleItem, bulkAddItems } = useCatalogMutations();
+  
   const platformSettings = usePlatformStore((s) => s.settings);
   const platformInitialized = usePlatformStore((s) => s.initialized);
   const fetchPlatformSettings = usePlatformStore((s) => s.fetchSettings);
+  
   const [showAdd, setShowAdd] = useState(false);
   const [showDemoDialog, setShowDemoDialog] = useState(false);
   const [importingDemo, setImportingDemo] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  // Form state
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    price: "",
-    price_label: "",
-    image_url: "",
-    category: "",
-    item_type: "physical" as ItemType,
-    external_url: "",
-    allow_order_form: false,
-    tags: "",
-    variants: [] as ItemVariant[],
-    media: [] as { type: 'image' | 'video', url: string }[],
-    track_inventory: false,
-    stock_quantity: "",
-    duration: "",
-    schedule: "",
-    location: "",
-  });
-
-  useEffect(() => {
-    if (user) fetchItems(user.user_id);
-  }, [fetchItems, user]);
+  const [editItem, setEditItem] = useState<CatalogItem | undefined>(undefined);
+  const [saving, setSaving] = useState(false);
+  const [managerView, setManagerView] = useState<CatalogManagerView>("all");
 
   useEffect(() => {
     if (!platformInitialized) {
       void fetchPlatformSettings();
     }
   }, [fetchPlatformSettings, platformInitialized]);
+
   const demoCatalogPacks = useMemo(() => {
     const rawPacks = platformSettings?.demo_catalog_packs;
     if (!rawPacks || typeof rawPacks !== "object" || Array.isArray(rawPacks)) {
@@ -93,9 +100,9 @@ const CatalogPage = () => {
 
     const parsed = Object.entries(rawPacks).reduce<Record<string, Record<string, unknown>[]>>((acc, [key, value]) => {
       if (Array.isArray(value)) {
-        const items = value.filter((item): item is Record<string, unknown> => typeof item === "object" && item !== null);
-        if (items.length > 0) {
-          acc[key] = items;
+        const demoItems = value.filter((entry): entry is Record<string, unknown> => typeof entry === "object" && entry !== null);
+        if (demoItems.length > 0) {
+          acc[key] = demoItems;
         }
       }
       return acc;
@@ -106,99 +113,110 @@ const CatalogPage = () => {
 
   const demoCategories = useMemo(() => Object.keys(demoCatalogPacks), [demoCatalogPacks]);
 
-  const resetForm = () => {
-    setForm({
-      title: "", description: "", price: "", price_label: "", image_url: "",
-      category: "", item_type: "physical", external_url: "", allow_order_form: false, tags: "",
-      variants: [], track_inventory: false, stock_quantity: "",
-      duration: "", schedule: "", location: "",
-      media: [],
-    });
-  };
+  const taxonomyCategories = useMemo(
+    () => readCatalogTaxonomy(platformSettings?.demo_catalog_packs),
+    [platformSettings?.demo_catalog_packs]
+  );
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
-    if (file.size > 10 * 1024 * 1024) { toast.error("Max 10MB"); return; }
-    setUploading(true);
-    try {
-      const ext = file.name.split(".").pop() || "jpg";
-      const path = `${user.user_id}/catalog-${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from("user-uploads").upload(path, file, { upsert: true });
-      if (error) throw error;
-      const { data: urlData } = supabase.storage.from("user-uploads").getPublicUrl(path);
-      setForm((f) => ({ ...f, image_url: urlData.publicUrl }));
-      toast.success("Image uploaded!");
-    } catch { toast.error("Upload failed"); }
-    finally { setUploading(false); if (fileRef.current) fileRef.current.value = ""; }
-  };
+  const itemTypeOptions = useMemo<ItemTypeOption[]>(() => {
+    const baseOptions = TYPE_OPTIONS.map((option) => ({ ...option }));
+    const baseKeys = new Set(baseOptions.map((option) => normalizeValue(option.value)));
+    const customOptions = new Map<string, ItemTypeOption>();
 
-  const handleSave = () => {
-    if (!form.title.trim()) { toast.error("Title is required"); return; }
-    if (form.title.trim().length > 100) { toast.error("Title must be less than 100 characters"); return; }
-    if (form.price && (isNaN(parseFloat(form.price)) || parseFloat(form.price) < 0)) { toast.error("Price must be a valid positive number"); return; }
-    if (form.stock_quantity && (isNaN(parseInt(form.stock_quantity)) || parseInt(form.stock_quantity) < 0)) { toast.error("Stock quantity must be a valid positive number"); return; }
-    const item = {
-      user_id: user!.user_id,
-      title: form.title.trim(),
-      description: form.description.trim(),
-      price: form.price ? parseFloat(form.price) : null,
-      price_label: form.price_label.trim(),
-      image_url: form.image_url,
-      category: form.category.trim() || "General",
-      item_type: form.item_type,
-      tags: form.tags ? form.tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
-      external_url: form.external_url.trim(),
-      allow_order_form: form.allow_order_form,
-      variants: form.variants.filter((v) => v.label.trim() && v.options.length > 0),
-      media: form.media,
-      track_inventory: form.track_inventory,
-      stock_quantity: form.track_inventory && form.stock_quantity ? parseInt(form.stock_quantity) : null,
-      enabled: true,
-      duration: form.duration.trim(),
-      schedule: form.schedule.trim(),
-      location: form.location.trim(),
+    const addCustomOption = (value: string) => {
+      const clean = value.trim();
+      if (!clean) return;
+
+      const key = normalizeValue(clean);
+      if (baseKeys.has(key) || customOptions.has(key)) return;
+
+      const icon = (TYPE_ICONS as Record<string, typeof ShoppingBag>)[clean] || ShoppingBag;
+      customOptions.set(key, {
+        value: clean,
+        label: toItemTypeLabel(clean),
+        icon,
+      });
     };
 
-    if (editingId) {
-      updateItem(editingId, item);
-      setEditingId(null);
-      toast.success("Item updated!");
-    } else {
-      addItem(item);
-      toast.success("Item added!");
+    items.forEach((item) => addCustomOption(item.item_type));
+
+    return [...baseOptions, ...Array.from(customOptions.values()).sort((a, b) => a.label.localeCompare(b.label))];
+  }, [items]);
+
+  const categoryOptions = useMemo(() => {
+    const unique = new Set<string>();
+
+    taxonomyCategories.forEach((entry) => {
+      if (entry.name) unique.add(entry.name);
+    });
+
+    items.forEach((item) => {
+      const parsed = parseCatalogCategory(item.category);
+      if (parsed.primary) unique.add(parsed.primary);
+    });
+
+    return Array.from(unique).sort((a, b) => a.localeCompare(b));
+  }, [items, taxonomyCategories]);
+
+  const subcategoryOptions = useMemo(() => {
+    const baseCategory = editItem?.category ? parseCatalogCategory(editItem.category).primary.toLowerCase() : "";
+    const unique = new Set<string>();
+
+    taxonomyCategories.forEach((entry) => {
+      if (baseCategory && entry.name.trim().toLowerCase() !== baseCategory) return;
+      entry.subcategories.forEach((sub) => {
+        if (sub) unique.add(sub);
+      });
+    });
+
+    items.forEach((item) => {
+      const parsed = parseCatalogCategory(item.category);
+      if (!parsed.subcategory) return;
+      if (baseCategory && parsed.primary.toLowerCase() !== baseCategory) return;
+      unique.add(parsed.subcategory);
+    });
+
+    return Array.from(unique).sort((a, b) => a.localeCompare(b));
+  }, [editItem?.category, items, taxonomyCategories]);
+
+  const handleSaveItem = async (payload: any, isEdit: boolean) => {
+    setSaving(true);
+    try {
+      if (isEdit && editItem) {
+        await updateItem.mutateAsync({ id: editItem.id, data: payload });
+        toast.success("Item updated");
+      } else {
+        await addItem.mutateAsync(payload);
+        toast.success("Item added");
+      }
+
+      setEditItem(undefined);
+      setShowAdd(false);
+
+      if (!isEdit) {
+        if (isSellableItemType(payload.item_type)) {
+          if (managerView === "content") setManagerView("all");
+        } else {
+          if (managerView === "shop") setManagerView("all");
+        }
+      }
+    } finally {
+      setSaving(false);
     }
-    resetForm();
-    setShowAdd(false);
   };
 
   const startEdit = (item: CatalogItem) => {
-    setEditingId(item.id);
-    setForm({
-      title: item.title,
-      description: item.description,
-      price: item.price?.toString() || "",
-      price_label: item.price_label,
-      image_url: item.image_url,
-      category: item.category,
-      item_type: item.item_type,
-      external_url: item.external_url,
-      allow_order_form: item.allow_order_form,
-      tags: item.tags.join(", "),
-      variants: item.variants || [],
-      media: item.media || [],
-      track_inventory: item.track_inventory,
-      stock_quantity: item.stock_quantity?.toString() || "",
-      duration: item.duration || "",
-      schedule: item.schedule || "",
-      location: item.location || "",
-    });
+    setEditItem(item);
     setShowAdd(true);
   };
 
-  const handleDelete = (id: string) => {
-    deleteItem(id);
-    toast.success("Item deleted");
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteItem.mutateAsync(id);
+      toast.success("Item deleted");
+    } catch (e) {
+      // errors handled by mutation hook
+    }
   };
 
   const handleBulkAdd = async (category: string) => {
@@ -207,16 +225,20 @@ const CatalogPage = () => {
     try {
       const mockItems = demoCatalogPacks[category];
       if (!mockItems) throw new Error("Category not found");
-      
-      await bulkAddItems(mockItems.map(item => ({
-        ...item,
-        enabled: true,
-        variants: [],
-        track_inventory: false,
-        stock_quantity: null,
-        allow_order_form: true,
-      } as any)));
-      
+
+      await bulkAddItems.mutateAsync(
+        mockItems.map((item) =>
+          ({
+            ...item,
+            enabled: true,
+            variants: [],
+            track_inventory: false,
+            stock_quantity: null,
+            allow_order_form: true,
+          } as Omit<CatalogItem, "id" | "sort_order" | "user_id">)
+        )
+      );
+
       toast.success(`Imported ${mockItems.length} items for ${category}!`);
       setShowDemoDialog(false);
     } catch (err) {
@@ -227,10 +249,20 @@ const CatalogPage = () => {
     }
   };
 
-  // Group items by category
-  const categories = [...new Set(items.map((i) => i.category))];
+  const sellableCount = useMemo(() => items.filter((item) => isSellableItemType(item.item_type)).length, [items]);
+  const contentCount = items.length - sellableCount;
 
-  if (loading) {
+  const managedItems = useMemo(() => {
+    if (managerView === "shop") {
+      return items.filter((item) => isSellableItemType(item.item_type));
+    }
+    if (managerView === "content") {
+      return items.filter((item) => !isSellableItemType(item.item_type));
+    }
+    return items;
+  }, [items, managerView]);
+
+  if (loading && items.length === 0) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -241,503 +273,155 @@ const CatalogPage = () => {
   const servicesUrl = user ? `${window.location.origin}/p/${user.username}/services` : "";
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-heading font-bold text-foreground flex items-center gap-2">
-            <ShoppingBag className="w-6 h-6" /> Catalog & Menu
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Add products, food menus, services, or digital items to your profile
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {/* QR Code Dialog */}
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button size="sm" variant="outline" className="gap-1.5">
-                <QrCode className="w-4 h-4" /> QR Code
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <QrCode className="w-5 h-5 text-primary" /> Services QR Code
-                </DialogTitle>
-              </DialogHeader>
-              <div className="flex flex-col items-center space-y-4 py-4">
-                <div className="p-6 bg-white rounded-2xl shadow-lg" id="qr-code-container">
-                  <QRCodeSVG
-                    value={servicesUrl}
-                    size={220}
-                    level="H"
-                    includeMargin
-                    fgColor="#1a1a1a"
-                    bgColor="#ffffff"
-                  />
-                  <p className="text-center text-xs text-gray-500 mt-3 font-medium">
-                    Scan to view {user?.username}'s catalog
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 w-full">
-                  <Input value={servicesUrl} readOnly className="text-xs" />
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      navigator.clipboard.writeText(servicesUrl);
-                      toast.success("Link copied!");
-                    }}
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      const svg = document.querySelector("#qr-code-container svg");
-                      if (!svg) return;
-                      const svgData = new XMLSerializer().serializeToString(svg);
-                      const canvas = document.createElement("canvas");
-                      canvas.width = 440; canvas.height = 440;
-                      const ctx = canvas.getContext("2d");
-                      const img = new Image();
-                      img.onload = () => {
-                        ctx?.drawImage(img, 0, 0);
-                        const a = document.createElement("a");
-                        a.download = `${user?.username}-qr-code.png`;
-                        a.href = canvas.toDataURL("image/png");
-                        a.click();
-                      };
-                      img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
-                    }}
-                  >
-                    <Download className="w-3.5 h-3.5 mr-1" /> Download PNG
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      const printWindow = window.open("", "_blank");
-                      if (!printWindow) return;
-                      const svg = document.querySelector("#qr-code-container")?.innerHTML || "";
-                      printWindow.document.write(`
-                        <html><head><title>QR Code - ${user?.username}</title>
-                        <style>body{display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;font-family:sans-serif}
-                        .container{text-align:center;padding:40px}p{font-size:14px;color:#666;margin-top:16px}</style></head>
-                        <body><div class="container">${svg}<p>Scan to view catalog · linkvertex.com/p/${user?.username}/services</p></div></body></html>
-                      `);
-                      printWindow.document.close();
-                      printWindow.print();
-                    }}
-                  >
-                    <Printer className="w-3.5 h-3.5 mr-1" /> Print
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground text-center max-w-xs">
-                  Print this QR code and display it at your store, gym, or restaurant. Customers can scan it to see your full menu/services.
-                </p>
-              </div>
-            </DialogContent>
-          </Dialog>
-          <Button size="sm" onClick={() => { resetForm(); setEditingId(null); setShowAdd(true); }}>
-            <Plus className="w-4 h-4 mr-1" /> Add Item
-          </Button>
+    <div className="p-6 md:p-10 lg:p-16 space-y-10 bg-background min-h-screen text-foreground selection:bg-primary selection:text-white">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap');
+        .airbnb-shadow { box-shadow: 0 4px 20px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04); }
+        .store-title { font-family: 'Outfit', sans-serif; }
+      `}</style>
+      
+      <div className="relative overflow-hidden rounded-[2rem] border border-white/5 bg-card p-10 md:p-14 lg:p-16 shadow-lg mb-12 airbnb-shadow">
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 blur-[120px] rounded-full translate-x-1/3 -translate-y-1/2 pointer-events-none opacity-40" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff02_1px,transparent_1px),linear-gradient(to_bottom,#ffffff02_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
+        
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-end justify-between gap-10">
+          <div className="space-y-8">
+            <div className="flex items-center gap-2.5">
+               <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+               <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">Studio Storefront • Live Sync</span>
+            </div>
+            
+            <div className="space-y-3">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-tight store-title">
+                Your <br />
+                <span className="text-primary italic font-medium">Collections.</span>
+              </h1>
+              <p className="text-base md:text-lg text-muted-foreground/60 font-medium tracking-tight max-w-[500px]">
+                Manage your vision with professional simplicity. Every item is optimized for global commerce.
+              </p>
+            </div>
 
-          <Dialog open={showDemoDialog} onOpenChange={setShowDemoDialog}>
-            <DialogTrigger asChild>
-              <Button size="sm" variant="outline" className="gap-1.5 border-primary/20 hover:bg-primary/5 text-primary">
-                <Sparkles className="w-4 h-4" /> Load Demo Data
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Database className="w-5 h-5 text-primary" /> Load Sample Catalog
-                </DialogTitle>
-              </DialogHeader>
-              <div className="py-4 space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Choose a niche to pre-populate your catalog with 15 high-quality sample items including images, descriptions, and prices.
-                </p>
-                <div className="grid grid-cols-1 gap-2">
-                  {demoCategories.map((cat) => (
-                    <Button
-                      key={cat}
-                      variant="outline"
-                      className="justify-start h-12 text-left hover:border-primary/50 hover:bg-primary/5 transition-all group"
-                      onClick={() => handleBulkAdd(cat)}
-                      disabled={importingDemo}
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <span className="font-medium">{cat}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{demoCatalogPacks[cat]?.length || 0} Items</span>
-                          <Plus className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                      </div>
-                    </Button>
-                  ))}
-                </div>
-                {importingDemo && (
-                  <div className="flex items-center justify-center gap-2 text-primary text-sm py-2">
-                    <Loader2 className="w-4 h-4 animate-spin" /> Importing catalog...
-                  </div>
-                )}
-              </div>
-            </DialogContent>
-          </Dialog>
+            <div className="flex items-center gap-6">
+               {["Premium Hosting", "Secure Checkout", "Global Reach"].map((tag, i) => (
+                 <div key={tag} className="flex items-center gap-2.5">
+                    {i > 0 && <div className="w-1 h-1 rounded-full bg-primary/20" />}
+                    <span className="text-[11px] font-bold text-muted-foreground/30 whitespace-nowrap">{tag}</span>
+                 </div>
+               ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <CatalogQRCodeModal username={user?.username || ""} servicesUrl={servicesUrl} />
+            <CatalogDemoDataModal
+              open={showDemoDialog}
+              onOpenChange={setShowDemoDialog}
+              demoCategories={demoCategories}
+              demoCatalogPacks={demoCatalogPacks}
+              importingDemo={importingDemo}
+              onBulkAdd={handleBulkAdd}
+            />
+            <Button 
+              onClick={() => {
+                setEditItem(undefined);
+                setShowAdd(true);
+              }}
+              className="h-14 px-8 rounded-2xl bg-primary hover:bg-foreground text-white font-bold text-[14px] gap-3 shadow-xl shadow-primary/10 transition-all duration-300 active:scale-95 border-none"
+            >
+              <Plus className="w-5 h-5" /> Host Item
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Add/Edit Form */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
+        <div className="flex bg-white/5 p-1 rounded-2xl border border-white/5 shadow-xl overflow-x-auto no-scrollbar scrollbar-hide w-full md:w-auto">
+          {[
+            { id: "all", label: "All Items", count: items.length },
+            { id: "shop", label: "Store", count: sellableCount },
+            { id: "content", label: "Media Hub", count: contentCount }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setManagerView(tab.id as any)}
+              className={cn(
+                "px-6 py-2.5 rounded-xl text-[11px] font-bold tracking-tight transition-all duration-300 flex items-center gap-2 whitespace-nowrap",
+                managerView === tab.id 
+                  ? "bg-white text-black shadow-lg" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+              )}
+            >
+              {tab.label}
+              <span className={cn(
+                "text-[9px] px-2 py-0.5 rounded-md font-bold",
+                managerView === tab.id ? "bg-black/10 text-black" : "bg-white/5 text-muted-foreground/30"
+              )}>
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </div>
+        
+        <div className="hidden md:flex items-center gap-3 text-[11px] font-bold text-muted-foreground/30">
+           <Activity className="w-3.5 h-3.5 text-primary" />
+           Storefront active and synced.
+        </div>
+      </div>
+
       <AnimatePresence>
         {showAdd && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
-            <Card className="p-5 space-y-4 border-primary/30 border-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Item Type</Label>
-                  <Select value={form.item_type} onValueChange={(v) => setForm((f) => ({ ...f, item_type: v as ItemType }))}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {TYPE_OPTIONS.map((t) => (
-                        <SelectItem key={t.value} value={t.value}>
-                          <div className="flex items-center gap-2">
-                            <t.icon className="w-4 h-4" /> {t.label}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Category</Label>
-                  <Input
-                    placeholder="e.g. Appetizers, Premium Plan, T-Shirts..."
-                    value={form.category}
-                    onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Title *</Label>
-                <Input placeholder="Item name" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Description</Label>
-                <Textarea placeholder="Describe this item..." value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} rows={2} />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Price</Label>
-                  <Input type="number" step="0.01" placeholder="29.99" value={form.price} onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Price Label (optional)</Label>
-                  <Input placeholder="e.g. /month, Starting at, Free" value={form.price_label} onChange={(e) => setForm((f) => ({ ...f, price_label: e.target.value }))} />
-                </div>
-              </div>
-
-              {/* Service-specific fields */}
-              {(form.item_type === "service" || form.item_type === "food") && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl bg-muted/50 border border-border/50">
-                  <div className="space-y-2">
-                    <Label className="text-xs">⏱ Duration</Label>
-                    <Input placeholder="e.g. 60 min, 1 hour, 30 min" value={form.duration} onChange={(e) => setForm((f) => ({ ...f, duration: e.target.value }))} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs">📅 Schedule / Timing</Label>
-                    <Input placeholder="e.g. Mon-Fri 9am-5pm" value={form.schedule} onChange={(e) => setForm((f) => ({ ...f, schedule: e.target.value }))} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs">📍 Location</Label>
-                    <Input placeholder="e.g. Studio A, Online, Table 5" value={form.location} onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))} />
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label>Tags (comma separated)</Label>
-                <Input placeholder="e.g. Vegan, Bestseller, New" value={form.tags} onChange={(e) => setForm((f) => ({ ...f, tags: e.target.value }))} />
-              </div>
-
-              {/* Image */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2"><ImageIcon className="w-4 h-4" /> Image</Label>
-                <div className="flex gap-2 items-center">
-                  {form.image_url && (
-                    <img src={form.image_url} alt="" className="w-16 h-16 rounded-lg object-cover border border-border" />
-                  )}
-                  <Button size="sm" variant="outline" onClick={() => fileRef.current?.click()} disabled={uploading}>
-                    {uploading ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Upload className="w-4 h-4 mr-1" />}
-                    Upload
-                  </Button>
-                  <span className="text-xs text-muted-foreground">or</span>
-                  <Input placeholder="Image URL" value={form.image_url} onChange={(e) => setForm((f) => ({ ...f, image_url: e.target.value }))} className="flex-1 h-9 text-xs" />
-                </div>
-                <input ref={fileRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-              </div>
-
-              {/* Commerce options */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2"><ExternalLink className="w-4 h-4" /> External Buy Link</Label>
-                  <Input placeholder="https://shop.example.com/..." value={form.external_url} onChange={(e) => setForm((f) => ({ ...f, external_url: e.target.value }))} />
-                </div>
-                <div className="flex items-center gap-3 pt-6">
-                  <Switch checked={form.allow_order_form} onCheckedChange={(v) => setForm((f) => ({ ...f, allow_order_form: v }))} />
-                  <div>
-                    <Label className="text-sm">Enable Order Form</Label>
-                    <p className="text-[10px] text-muted-foreground">Visitors can submit orders directly</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Inventory tracking */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3">
-                  <Switch checked={form.track_inventory} onCheckedChange={(v) => setForm((f) => ({ ...f, track_inventory: v }))} />
-                  <div>
-                    <Label className="text-sm">Track Inventory</Label>
-                    <p className="text-[10px] text-muted-foreground">Limit orders based on stock</p>
-                  </div>
-                </div>
-                {form.track_inventory && (
-                  <div className="space-y-2">
-                    <Label>Stock Quantity</Label>
-                    <Input type="number" min="0" placeholder="e.g. 50" value={form.stock_quantity} onChange={(e) => setForm((f) => ({ ...f, stock_quantity: e.target.value }))} />
-                  </div>
-                )}
-              </div>
-
-              {/* Variants editor */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2"><Tags className="w-4 h-4" /> Variants (Size, Color, etc.)</Label>
-                {form.variants.map((v, vi) => (
-                  <div key={vi} className="flex gap-2 items-start">
-                    <Input
-                      placeholder="Label (e.g. Size)"
-                      value={v.label}
-                      onChange={(e) => {
-                        const updated = [...form.variants];
-                        updated[vi] = { ...updated[vi], label: e.target.value };
-                        setForm((f) => ({ ...f, variants: updated }));
-                      }}
-                      className="w-32 h-9 text-xs"
-                    />
-                    <Input
-                      placeholder="Options (comma separated, e.g. S, M, L, XL)"
-                      value={v.options.join(", ")}
-                      onChange={(e) => {
-                        const updated = [...form.variants];
-                        updated[vi] = { ...updated[vi], options: e.target.value.split(",").map((o) => o.trim()).filter(Boolean) };
-                        setForm((f) => ({ ...f, variants: updated }));
-                      }}
-                      className="flex-1 h-9 text-xs"
-                    />
-                    <Button
-                      size="icon" variant="ghost" className="h-9 w-9 shrink-0 text-muted-foreground hover:text-destructive"
-                      onClick={() => setForm((f) => ({ ...f, variants: f.variants.filter((_, i) => i !== vi) }))}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
-                ))}
-                <Button
-                  size="sm" variant="outline" className="text-xs"
-                  onClick={() => setForm((f) => ({ ...f, variants: [...f.variants, { label: "", options: [] }] }))}
-                >
-                  <Plus className="w-3 h-3 mr-1" /> Add Variant
-                </Button>
-                <p className="text-[10px] text-muted-foreground">Add options like Size (S, M, L) or Color (Red, Blue, Black)</p>
-              </div>
-
-              {/* Media Gallery Editor */}
-              <div className="space-y-4 p-5 rounded-2xl bg-muted/30 border border-primary/10 shadow-inner">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="flex items-center gap-2 text-sm font-bold tracking-tight">
-                      <ImageIcon className="w-4 h-4 text-primary" /> Visual Gallery
-                    </Label>
-                    <p className="text-[10px] text-muted-foreground">Add up to 10 images or videos for an auto-scrolling carousel.</p>
-                  </div>
-                  <Button 
-                    size="sm" variant="outline" className="h-8 rounded-xl border-primary/20 hover:bg-primary/5 text-xs"
-                    onClick={() => setForm(f => ({ ...f, media: [...f.media, { type: 'image', url: '' }] }))}
-                    disabled={form.media.length >= 10}
-                  >
-                    <Plus className="w-3.5 h-3.5 mr-1" /> Add Media
-                  </Button>
-                </div>
-                
-                <div className="grid grid-cols-1 gap-3">
-                  <AnimatePresence initial={false}>
-                    {form.media.map((m, mi) => (
-                      <motion.div 
-                        key={mi} 
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className="flex gap-3 items-center bg-card p-3 rounded-xl border border-border/50 shadow-sm"
-                      >
-                        <div className="shrink-0">
-                          <Select 
-                            value={m.type} 
-                            onValueChange={(v) => {
-                              const updated = [...form.media];
-                              updated[mi] = { ...updated[mi], type: v as 'image' | 'video' };
-                              setForm(f => ({ ...f, media: updated }));
-                            }}
-                          >
-                            <SelectTrigger className="w-24 h-9 rounded-lg text-xs border-border/40 font-medium">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="image">Image</SelectItem>
-                              <SelectItem value="video">Video</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <Input 
-                          placeholder={m.type === 'image' ? "Image URL (direct link)" : "Video URL (YouTube, Vimeo, or mp4)"}
-                          value={m.url} 
-                          onChange={(e) => {
-                            const updated = [...form.media];
-                            updated[mi] = { ...updated[mi], url: e.target.value };
-                            setForm(f => ({ ...f, media: updated }));
-                          }}
-                          className="flex-1 h-9 rounded-lg text-xs border-border/40 focus-visible:ring-primary/20"
-                        />
-                        <Button 
-                          size="icon" variant="ghost" className="h-9 w-9 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/5"
-                          onClick={() => setForm(f => ({ ...f, media: f.media.filter((_, i) => i !== mi) }))}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </div>
-                {form.media.length === 0 && (
-                  <div className="text-center py-6 border-2 border-dashed border-border/40 rounded-xl bg-background/20">
-                    <ImageIcon className="w-8 h-8 mx-auto text-muted-foreground/30 mb-2" />
-                    <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground/50">Gallery Empty</p>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <Button size="sm" onClick={handleSave}>
-                  <Check className="w-4 h-4 mr-1" /> {editingId ? "Update" : "Add Item"}
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => { setShowAdd(false); resetForm(); setEditingId(null); }}>
-                  <X className="w-4 h-4 mr-1" /> Cancel
-                </Button>
-              </div>
-            </Card>
-          </motion.div>
+          <CatalogFormModal
+            initialData={editItem}
+            itemTypeOptions={itemTypeOptions}
+            categoryOptions={categoryOptions}
+            subcategoryOptions={subcategoryOptions}
+            onSave={handleSaveItem}
+            onCancel={() => {
+              setShowAdd(false);
+              setEditItem(undefined);
+            }}
+            saving={saving}
+          />
         )}
       </AnimatePresence>
 
-      {/* Items grouped by category */}
-      {categories.length === 0 && !showAdd && (
-        <Card className="p-8 text-center space-y-4">
-          <ShoppingBag className="w-12 h-12 mx-auto text-muted-foreground" />
-          <div>
-            <h3 className="text-lg font-heading font-semibold text-foreground">Your catalog is empty</h3>
-            <p className="text-muted-foreground text-sm mt-1 max-w-md mx-auto">
-              Add products, food menus, gym packages, or digital items here. They'll automatically appear on your <strong>public profile</strong> for visitors to browse and order.
+      {items.length === 0 && !showAdd && (
+        <Card className="p-12 text-center space-y-6">
+          <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mx-auto">
+            <ShoppingBag className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-bold">Your Catalog is Empty</h3>
+            <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+              Add products, food menus, or digital items. They'll appear on your public profile for visitors to browse.
             </p>
           </div>
-          <div className="flex flex-wrap justify-center gap-3 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1 bg-muted px-3 py-1.5 rounded-full"><UtensilsCrossed className="w-3.5 h-3.5" /> Food menus</span>
-            <span className="flex items-center gap-1 bg-muted px-3 py-1.5 rounded-full"><Dumbbell className="w-3.5 h-3.5" /> Service packages</span>
-            <span className="flex items-center gap-1 bg-muted px-3 py-1.5 rounded-full"><ShoppingBag className="w-3.5 h-3.5" /> Products</span>
-            <span className="flex items-center gap-1 bg-muted px-3 py-1.5 rounded-full"><Download className="w-3.5 h-3.5" /> Digital items</span>
-          </div>
-          <Button onClick={() => { resetForm(); setEditingId(null); setShowAdd(true); }} className="mt-2">
-            <Plus className="w-4 h-4 mr-1" /> Add Your First Item
+          <Button onClick={() => { setEditItem(undefined); setShowAdd(true); }} size="lg" className="px-8">
+            <Plus className="w-5 h-5 mr-2" /> 
+            Add Your First Item
           </Button>
         </Card>
       )}
 
-      {categories.map((cat) => {
-        const catItems = items.filter((i) => i.category === cat);
-        return (
-          <div key={cat} className="space-y-2">
-            <h2 className="text-lg font-heading font-semibold text-foreground">{cat}</h2>
-            <div className="space-y-2">
-              {catItems.map((item) => {
-                const Icon = TYPE_ICONS[item.item_type] || ShoppingBag;
-                return (
-                  <Card
-                    key={item.id}
-                    className={`p-4 flex items-center gap-4 transition-opacity ${!item.enabled ? "opacity-50" : ""}`}
-                  >
-                    {item.image_url ? (
-                      <img src={item.image_url} alt={item.title} className="w-14 h-14 rounded-lg object-cover shrink-0" />
-                    ) : (
-                      <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                        <Icon className="w-6 h-6 text-muted-foreground" />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium text-foreground text-sm truncate">{item.title}</p>
-                        {item.tags.map((t) => (
-                          <Badge key={t} variant="secondary" className="text-[10px]">{t}</Badge>
-                        ))}
-                      </div>
-                      <p className="text-xs text-muted-foreground truncate">{item.description}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        {item.price !== null && (
-                          <span className="text-sm font-semibold text-primary">
-                            ${item.price.toFixed(2)}{item.price_label && ` ${item.price_label}`}
-                          </span>
-                        )}
-                        {item.price === null && item.price_label && (
-                          <span className="text-sm font-medium text-muted-foreground">{item.price_label}</span>
-                        )}
-                        {item.allow_order_form && (
-                          <Badge variant="outline" className="text-[10px]"><FileText className="w-3 h-3 mr-1" /> Order Form</Badge>
-                        )}
-                        {item.external_url && (
-                          <Badge variant="outline" className="text-[10px]"><ExternalLink className="w-3 h-3 mr-1" /> Buy Link</Badge>
-                        )}
-                        {item.track_inventory && (
-                          <Badge variant={item.stock_quantity === 0 ? "destructive" : "outline"} className="text-[10px]">
-                            {item.stock_quantity === 0 ? "Out of Stock" : `Stock: ${item.stock_quantity}`}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => startEdit(item)}><Pencil className="w-3 h-3" /></Button>
-                      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(item.id)}><Trash2 className="w-3 h-3" /></Button>
-                      <button
-                        onClick={() => toggleItem(item.id)}
-                        className={`w-9 h-5 rounded-full transition-colors ${item.enabled ? "bg-primary" : "bg-muted"} relative`}
-                      >
-                        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-primary-foreground transition-transform ${item.enabled ? "left-[18px]" : "left-0.5"}`} />
-                      </button>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
+      {items.length > 0 && managedItems.length === 0 && !showAdd && (
+        <Card className="p-6 text-center space-y-2 border-border/60">
+          <h3 className="text-base font-semibold text-foreground">No items in this view</h3>
+          <p className="text-sm text-muted-foreground">
+            Switch to another manage view or add a new item.
+          </p>
+        </Card>
+      )}
+
+      {managedItems.length > 0 && (
+        <CatalogGrid 
+          items={managedItems} 
+          onEdit={startEdit} 
+          onDelete={handleDelete} 
+          onToggle={(id, enabled) => toggleItem.mutateAsync({ id, enabled })} 
+        />
+      )}
     </div>
   );
 };
 
 export default CatalogPage;
-
-

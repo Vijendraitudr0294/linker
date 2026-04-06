@@ -91,7 +91,7 @@ const updates = [
 ];
 
 const Changelog = () => (
-  <InfoPageLayout title="Changelog" subtitle="What's new in LinkVertex — every update, every feature.">
+  <InfoPageLayout title="Changelog" subtitle="What's new in BIOTRA — every update, every feature.">
     <div className="not-prose space-y-8">
       {updates.map((update, i) => (
         <motion.div

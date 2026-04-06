@@ -1,131 +1,98 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, X, Globe, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Zap } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import ThemeToggle from "@/components/dashboard/ThemeToggle";
 
 const Navbar = () => {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const navLinks = [
-    { label: "Features", href: "/#features" },
-    { label: "Themes", href: "/#themes" },
-    { label: "Pricing", href: "/#pricing" },
-    { label: "FAQ", href: "/#faq" },
+    { name: "Platform", href: "/#how-it-works" },
+    { name: "Sectors", href: "/#marketplace" },
+    { name: "Protocol", href: "/#deep-tech" }
   ];
 
   return (
-    <motion.nav
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className={`fixed z-50 transition-all duration-500 top-3 left-4 right-4 rounded-2xl border border-white/20 ${
-        scrolled
-          ? "bg-background/82 backdrop-blur-xl shadow-lg shadow-black/10"
-          : "bg-background/78 backdrop-blur-xl shadow-[0_10px_30px_-18px_rgba(0,0,0,0.35)]"
+    <nav 
+      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-700 font-body ${
+        isScrolled ? "bg-black/40 backdrop-blur-2xl border-b border-white/5 py-4" : "bg-transparent py-8"
       }`}
     >
-      <div className="mx-auto max-w-[1440px] px-5 sm:px-7 flex items-center justify-between h-16">
-        <Link to="/" className="flex items-center gap-2.5 group flex-shrink-0">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20 group-hover:shadow-primary/40 transition-shadow">
-            <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
+      <div className="boutique-container flex items-center justify-between">
+        
+        {/* Boutique Logo */}
+        <Link to="/" className="flex items-center gap-4 group">
+          <div className="w-10 h-10 rounded-sm bg-primary flex items-center justify-center rotate-45 group-hover:rotate-0 transition-transform duration-700">
+             <div className="w-6 h-6 border-b-4 border-r-4 border-black/40 -rotate-45 group-hover:rotate-0 transition-transform" />
           </div>
-          <span className="text-xl sm:text-2xl font-heading font-extrabold text-foreground tracking-tight">
-            LinkVertex
-          </span>
+          <span className="text-[20px] font-display font-black tracking-tight text-white group-hover:text-primary transition-colors">BIOTRA</span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-1">
-          {navLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              className="px-4 py-2 text-sm font-semibold text-foreground/60 hover:text-foreground rounded-lg hover:bg-white/5 transition-all duration-300"
-            >
-              {link.label}
-            </a>
-          ))}
+        {/* Desktop Anchor Hub */}
+        <div className="hidden md:flex items-center gap-12">
+           {navLinks.map((link) => (
+             <a 
+               key={link.name} 
+               href={link.href}
+               className="label text-[10px] text-white/30 hover:text-primary tracking-[0.3em] transition-all hover:translate-y-[-2px]"
+             >
+                {link.name}
+             </a>
+           ))}
         </div>
 
-        <div className="hidden md:flex items-center gap-3">
-          <ThemeToggle />
-          <Link to="/login">
-            <Button variant="ghost" size="sm" className="font-semibold text-foreground/70 hover:text-foreground">
-              Log in
-            </Button>
-          </Link>
-          <Link to="/register">
-            <Button size="sm" className="font-bold rounded-full px-6 btn-glow">
-              Sign up free
-            </Button>
-          </Link>
+        {/* Global Connection Trigger */}
+        <div className="flex items-center gap-8">
+           <button 
+             onClick={() => navigate("/login")}
+             className="hidden sm:block label text-[10px] text-white/40 hover:text-white transition-colors"
+           >
+              Log In
+           </button>
+           <Button className="h-12 px-8 rounded-sm bg-primary text-black font-display font-black uppercase tracking-[0.2em] text-[11px] hover:bg-white transition-all shadow-xl group">
+              Establish Node <Sparkles className="w-3.5 h-3.5 ml-3 group-hover:text-primary transition-colors" />
+           </Button>
+           
+           <button 
+              className="md:hidden text-white"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+           >
+              {isMobileMenuOpen ? <X /> : <Menu />}
+           </button>
         </div>
 
-        <div className="flex items-center gap-2 md:hidden">
-          <ThemeToggle />
-          <button
-            className="text-foreground p-2 rounded-lg hover:bg-white/5 transition-colors"
-            onClick={() => setMobileOpen(!mobileOpen)}
-          >
-            {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
       </div>
 
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="md:hidden overflow-hidden glass-strong rounded-b-2xl border-t border-white/5"
-          >
-            <div className="p-4 flex flex-col gap-1">
-              {navLinks.map((link, i) => (
-                <motion.a
-                  initial={{ x: -20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: i * 0.05 }}
-                  key={link.label}
-                  href={link.href}
-                  className="text-sm font-semibold text-foreground/80 hover:text-foreground py-3 px-3 rounded-lg hover:bg-white/5 transition-colors"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  {link.label}
-                </motion.a>
-              ))}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className="border-t border-white/10 my-2"
-              />
-              <motion.div
-                initial={{ y: 10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.3 }}
-                className="flex flex-col gap-2"
-              >
-                <Link to="/login" onClick={() => setMobileOpen(false)}>
-                  <Button variant="ghost" size="lg" className="justify-start w-full font-semibold text-sm h-11">Log in</Button>
-                </Link>
-                <Link to="/register" onClick={() => setMobileOpen(false)}>
-                  <Button size="lg" className="w-full font-bold rounded-xl btn-glow text-sm h-11">Sign up free</Button>
-                </Link>
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.nav>
+      {/* Boutique Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 top-0 bg-[#0A0A0A] z-[90] flex flex-col items-center justify-center gap-12 pt-24">
+           {navLinks.map((link) => (
+             <a 
+               key={link.name} 
+               href={link.href}
+               onClick={() => setIsMobileMenuOpen(false)}
+               className="text-[32px] font-display font-bold text-white hover:text-primary transition-colors"
+             >
+                {link.name}
+             </a>
+           ))}
+           <div className="w-12 h-[1px] bg-white/10" />
+           <Button className="h-16 px-12 rounded-sm bg-primary text-black font-display font-black uppercase tracking-[0.1em] text-[12px]">
+              Establish Node
+           </Button>
+        </div>
+      )}
+    </nav>
   );
 };
 

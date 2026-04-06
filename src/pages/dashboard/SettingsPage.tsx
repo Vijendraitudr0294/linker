@@ -5,23 +5,32 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuthStore } from "@/stores/authStore";
 import { useAppearanceStore } from "@/stores/appearanceStore";
-import { useLinksStore } from "@/stores/linksStore";
-import { useState, useEffect, useRef } from "react";
+import { usePlatformStore } from "@/stores/platformStore";
+import { useLinks } from "@/hooks/useLinksApi";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { User, AtSign, FileText, Save, AlertCircle, IndianRupee, Smartphone, X, Users2, Zap } from "lucide-react";
+import { User, AtSign, FileText, Save, AlertCircle, IndianRupee, Smartphone, X, Users2, Zap, Palette, ChevronDown, ChevronUp, Sparkles, ExternalLink, Copy } from "lucide-react";
 import NotificationPreferences from "@/components/dashboard/NotificationPreferences";
 import { profileSchema } from "@/lib/validation";
 import AvatarUpload from "@/components/dashboard/AvatarUpload";
 import EmojiPicker from "@/components/dashboard/EmojiPicker";
 import SocialLinksEditor, { type SocialLinkConfig } from "@/components/dashboard/SocialLinksEditor";
 import ProfilePreview from "@/components/dashboard/ProfilePreview";
+import ShareProfile from "@/components/dashboard/ShareProfile";
+import ThemePreviewCard from "@/components/dashboard/ThemePreviewCard";
+import { getThemePresetsFromSettings, type ThemePreset } from "@/data/themes";
 
 const BIO_MAX = 160;
 
 const SettingsPage = () => {
+  const navigate = useNavigate();
   const { user, updateProfile } = useAuthStore();
-  const settings = useAppearanceStore((s) => s.settings);
-  const links = useLinksStore((s) => s.links);
+  const { settings, applyTheme } = useAppearanceStore();
+  const platformSettings = usePlatformStore((s) => s.settings);
+  const platformInitialized = usePlatformStore((s) => s.initialized);
+  const fetchPlatformSettings = usePlatformStore((s) => s.fetchSettings);
+  const { data: links = [] } = useLinks(user?.user_id);
   const activeLinks = links.filter((l) => l.enabled);
 
   const [name, setName] = useState("");
@@ -42,7 +51,14 @@ const SettingsPage = () => {
   });
   const [errors, setErrors] = useState<{ name?: string; username?: string; bio?: string }>({});
   const [showPreview, setShowPreview] = useState(false);
+  const [showAdvancedProfile, setShowAdvancedProfile] = useState(false);
   const bioRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (!platformInitialized) {
+      void fetchPlatformSettings();
+    }
+  }, [fetchPlatformSettings, platformInitialized]);
 
   useEffect(() => {
     if (user) {
@@ -135,11 +151,30 @@ const SettingsPage = () => {
     }
   };
 
-  if (!user) return null;
+  const quickThemes = useMemo(() => {
+    const presets = getThemePresetsFromSettings(platformSettings);
+    const featured = presets.filter((theme) => theme.isPopular);
+    return (featured.length > 0 ? featured : presets).slice(0, 4);
+  }, [platformSettings]);
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          <p className="text-sm text-muted-foreground">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   const bioLength = bio.length;
   const bioPercentage = (bioLength / BIO_MAX) * 100;
 
+  const handleQuickThemeSelect = async (theme: ThemePreset) => {
+    await applyTheme(theme);
+    toast.success(`Theme set to ${theme.name}`);
+  };
   const previewLinks = activeLinks.map((l) => ({ id: l.id, title: l.title, platform: l.platform }));
 
   const previewUser = { 
@@ -150,373 +185,556 @@ const SettingsPage = () => {
     social_links: socialLinks,
     social_stats: socialStats 
   };
+  const profileUrl = `${window.location.origin}/p/${username || user.username}`;
+
+  const copyProfileLink = async () => {
+    try {
+      await navigator.clipboard.writeText(profileUrl);
+      toast.success("Profile link copied!");
+    } catch {
+      toast.error("Failed to copy link");
+    }
+  };
 
   return (
-    <div className="flex flex-col xl:flex-row gap-4 md:gap-6">
-      {/* Main form */}
-      <div className="flex-1 space-y-4 md:space-y-6 max-w-2xl">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl md:text-2xl font-heading font-bold text-foreground">Settings</h1>
-            <p className="text-muted-foreground text-xs md:text-sm mt-1">Edit your profile information</p>
+    <div className="p-6 md:p-12 space-y-10 bg-[#F0F2F5] min-h-screen text-[#1D1D1F]">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@400;500;600;700;800;900&display=swap');
+        .font-script { font-family: 'Dancing Script', cursive; }
+        .gradient-blur-1 { background: radial-gradient(circle, #D1FAE5 0%, transparent 70%); }
+        .gradient-blur-2 { background: radial-gradient(circle, #DBEAFE 0%, transparent 70%); }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
+      
+      {/* Background Glows */}
+      <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+         <div className="absolute top-0 right-0 w-[1000px] h-[1000px] gradient-blur-1 opacity-40 -translate-y-1/2 translate-x-1/2" />
+         <div className="absolute bottom-0 left-0 w-[800px] h-[800px] gradient-blur-2 opacity-30 translate-y-1/3 -translate-x-1/3" />
+      </div>
+
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-4 p-12 rounded-[48px] bg-white border border-black/5 shadow-2xl shadow-black/[0.04] relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
+        <div className="relative z-10 flex-1">
+          <div className="inline-flex items-center gap-2 rounded-full border border-black/5 bg-black/5 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.25em] text-emerald-600 mb-6">
+            <User className="w-3.5 h-3.5" />
+            Identity Control Node
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="xl:hidden gap-2"
-            onClick={() => setShowPreview(!showPreview)}
-          >
-            <Smartphone className="w-4 h-4" />
-            <span className="hidden sm:inline">{showPreview ? "Hide" : "Preview"}</span>
-          </Button>
+          <h1 className="text-5xl md:text-7xl font-black tracking-tight flex items-baseline gap-4 text-black leading-[0.9]">
+            Identity <span className="font-script text-primary text-3xl md:text-4xl lowercase opacity-90">studio</span>
+          </h1>
+          <p className="mt-8 max-w-2xl text-[16px] font-medium text-black/30 leading-relaxed uppercase tracking-widest text-[11px]">
+            Master Authority Node • <span className="text-black font-black">Verified Identity Architecture</span>
+          </p>
         </div>
+        
+        <div className="relative z-10 flex flex-wrap items-center gap-4">
+           <Button
+              variant="outline"
+              className="rounded-full h-16 px-10 border-black/10 bg-white hover:bg-black/5 transition-all text-[11px] font-black uppercase tracking-widest shadow-xl flex items-center gap-3"
+              onClick={() => setShowPreview(!showPreview)}
+            >
+              <Smartphone className="w-5 h-5" />
+              {showPreview ? "Conceal Orbit" : "Visual Orbit"}
+            </Button>
+            <Button 
+               className="rounded-full bg-black text-white hover:bg-black/90 px-12 py-8 h-16 text-[11px] font-black uppercase tracking-widest shadow-2xl transition-all hover:scale-[1.05] active:scale-95 flex items-center gap-3"
+               onClick={handleSave}
+            >
+              <Save className="w-6 h-6" />
+              Sync Protocol
+            </Button>
+        </div>
+      </div>
 
-        <Card className="p-4 md:p-6 space-y-4 md:space-y-6">
-          <div>
-            <Label className="text-sm md:text-base font-heading font-semibold mb-3 block">Profile Photo</Label>
-            <AvatarUpload />
+      <ShareProfile />
+
+      {/* Main Orchestration Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <div className="lg:col-span-8 space-y-12">
+          
+          {/* Transition Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <Card className="p-12 rounded-[48px] border-black/5 bg-white shadow-2xl shadow-black/[0.02] group hover:shadow-primary/10 transition-all duration-700 overflow-hidden relative">
+               <div className="absolute top-0 right-0 w-40 h-40 bg-primary/10 rounded-bl-[100px] -translate-y-10 translate-x-10 group-hover:scale-110 transition-transform duration-700" />
+               <div className="relative z-10 flex flex-col gap-8">
+                  <div className="w-16 h-16 rounded-[24px] bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                    <Zap className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black tracking-tight text-black flex items-center gap-2">
+                       Wizard Node
+                    </h2>
+                    <p className="text-black/40 text-[15px] font-medium mt-3 leading-relaxed">
+                      Re-initialize your identity parameters and onboarding sequence.
+                    </p>
+                  </div>
+                  <Button onClick={() => navigate("/welcome")} className="w-fit rounded-full bg-black text-white px-10 py-7 h-14 text-[10px] font-black uppercase tracking-widest shadow-2xl transition-all hover:scale-[1.05]">
+                    Launch Control
+                  </Button>
+               </div>
+            </Card>
+
+            <Card className="p-12 rounded-[48px] border-black/5 bg-white shadow-2xl shadow-black/[0.02] group hover:shadow-emerald-500/10 transition-all duration-700 overflow-hidden relative">
+               <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/10 rounded-bl-[100px] -translate-y-10 translate-x-10 group-hover:scale-110 transition-transform duration-700" />
+               <div className="relative z-10 flex flex-col gap-8">
+                  <div className="w-16 h-16 rounded-[24px] bg-emerald-500/5 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
+                    <Palette className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black tracking-tight text-black">Aesthetic Core</h2>
+                    <p className="text-black/40 text-[15px] font-medium mt-3 leading-relaxed">
+                      Refine your visual signature, themes, and global presence.
+                    </p>
+                  </div>
+                  <Button onClick={() => navigate("/dashboard/appearance")} className="w-fit rounded-full bg-emerald-600 text-white px-10 py-7 h-14 text-[10px] font-black uppercase tracking-widest shadow-2xl transition-all hover:scale-[1.05]">
+                    Open Design Studio
+                  </Button>
+               </div>
+            </Card>
           </div>
 
-          <div className="border-t border-border pt-4 md:pt-6 space-y-4">
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2 text-sm">
-                <User className="w-4 h-4 text-muted-foreground" />
-                Display Name
-              </Label>
-              <Input
-                value={name}
-                onChange={(e) => { setName(e.target.value); setErrors((prev) => ({ ...prev, name: undefined })); }}
-                placeholder="Your display name"
-                className={errors.name ? "border-destructive" : ""}
-              />
-              {errors.name && (
-                <p className="text-xs text-destructive flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" /> {errors.name}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2 text-sm">
-                <AtSign className="w-4 h-4 text-muted-foreground" />
-                Username
-              </Label>
-              <Input
-                value={username}
-                onChange={(e) => {
-                  setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""));
-                  setErrors((prev) => ({ ...prev, username: undefined }));
-                }}
-                placeholder="yourusername"
-                className={errors.username ? "border-destructive" : ""}
-              />
-              {errors.username ? (
-                <p className="text-xs text-destructive flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" /> {errors.username}
-                </p>
-              ) : (
-                <p className="text-[10px] md:text-xs text-muted-foreground truncate">
-                  Your public profile: {window.location.origin}/p/{username || "username"}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="flex items-center gap-2 text-sm">
-                  <FileText className="w-4 h-4 text-muted-foreground" />
-                  Bio
-                </Label>
-                <EmojiPicker onSelect={insertEmoji} />
+          {/* Primary Persona Node */}
+          <Card className="p-12 rounded-[48px] border-black/5 bg-white shadow-2xl shadow-black/[0.04] space-y-12">
+            <div className="flex items-center gap-4 pb-8 border-b border-black/5">
+              <div className="w-14 h-14 rounded-2xl bg-black/5 flex items-center justify-center text-primary">
+                <User className="w-7 h-7" />
               </div>
-              <Textarea
-                ref={bioRef}
-                value={bio}
-                onChange={(e) => {
-                  if (e.target.value.length <= BIO_MAX) {
-                    setBio(e.target.value);
-                    setErrors((prev) => ({ ...prev, bio: undefined }));
-                  }
-                }}
-                placeholder="Tell visitors about yourself... âœ¨"
-                rows={3}
-                maxLength={BIO_MAX}
-                className={errors.bio ? "border-destructive" : ""}
-              />
-              <div className="flex items-center justify-between">
-                {errors.bio ? (
-                  <p className="text-xs text-destructive flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" /> {errors.bio}
-                  </p>
-                ) : (
-                  <div />
-                )}
-                <div className="flex items-center gap-2">
-                  <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{
-                        width: `${bioPercentage}%`,
-                        backgroundColor: bioPercentage > 90 ? "hsl(var(--destructive))" : bioPercentage > 70 ? "hsl(var(--accent))" : "hsl(var(--primary))",
-                      }}
-                    />
+              <div>
+                <h2 className="text-3xl font-black text-black tracking-tight">Public Persona</h2>
+                <p className="text-[15px] font-medium text-black/40">Visible to global network nodes</p>
+              </div>
+            </div>
+
+            <div className="space-y-12">
+              <div className="flex flex-col md:flex-row gap-16 items-start">
+                <div className="relative group shrink-0">
+                   <div className="absolute -inset-2 bg-gradient-to-tr from-emerald-400 to-blue-400 rounded-[44px] blur-xl opacity-20 group-hover:opacity-60 transition duration-700" />
+                   <div className="relative">
+                      <AvatarUpload user={user} onUpdate={(url) => updateProfile({ avatar_url: url })} />
+                   </div>
+                </div>
+                <div className="flex-1 space-y-10 w-full">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div className="space-y-4">
+                       <Label className="text-[11px] font-black uppercase tracking-[0.25em] text-black/30 ml-2">Display Name</Label>
+                       <div className="relative">
+                          <User className="absolute left-7 top-1/2 -translate-y-1/2 w-5 h-5 text-black/20" />
+                          <Input
+                            className="h-20 rounded-[32px] border-black/5 bg-black/[0.02] text-black font-bold focus:bg-white transition-all pl-20 pr-8 text-[17px] shadow-inner focus:shadow-2xl"
+                            value={name}
+                            onChange={(e) => {
+                              setName(e.target.value);
+                              if (errors.name) setErrors({ ...errors, name: undefined });
+                            }}
+                            placeholder="Your Name"
+                          />
+                       </div>
+                       {errors.name && <p className="text-xs text-rose-500 font-black px-6 uppercase tracking-wider">{errors.name}</p>}
+                    </div>
+
+                    <div className="space-y-4">
+                       <Label className="text-[11px] font-black uppercase tracking-[0.25em] text-black/30 ml-2">Unique Alias</Label>
+                       <div className="relative">
+                          <AtSign className="absolute left-7 top-1/2 -translate-y-1/2 w-5 h-5 text-black/20" />
+                          <Input
+                             className="h-20 rounded-[32px] border-black/5 bg-black/[0.02] text-black font-bold focus:bg-white transition-all pl-20 pr-8 text-[17px] shadow-inner focus:shadow-2xl"
+                             value={username}
+                             onChange={(e) => {
+                               setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""));
+                               if (errors.username) setErrors({ ...errors, username: undefined });
+                             }}
+                             placeholder="username"
+                          />
+                       </div>
+                       {errors.username && <p className="text-xs text-rose-500 font-black px-6 uppercase tracking-wider">{errors.username}</p>}
+                       {!errors.username && (
+                         <p className="text-[10px] font-black text-black/20 uppercase tracking-[0.15em] px-6">
+                           path: /p/{username || "..."}
+                         </p>
+                       )}
+                    </div>
                   </div>
-                  <span className={`text-xs ${bioPercentage > 90 ? "text-destructive" : "text-muted-foreground"}`}>
-                    {bioLength}/{BIO_MAX}
-                  </span>
+
+                  <div className="space-y-5">
+                     <div className="flex items-center justify-between px-2">
+                        <Label className="text-[11px] font-black uppercase tracking-[0.25em] text-black/30">Narrative Bio</Label>
+                        <span className={cn(
+                          "text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full",
+                          bio.length >= BIO_MAX ? "bg-rose-500 text-white" : "bg-black/5 text-black/40"
+                        )}>
+                          {bio.length} / {BIO_MAX}
+                        </span>
+                     </div>
+                     <div className="relative">
+                        <Textarea
+                          ref={bioRef}
+                          className="min-h-[200px] rounded-[48px] border-black/5 bg-black/[0.02] text-black font-medium focus:bg-white transition-all p-10 resize-none leading-relaxed text-[17px] shadow-inner"
+                          value={bio}
+                          onChange={(e) => {
+                            if (e.target.value.length <= BIO_MAX) {
+                              setBio(e.target.value);
+                              if (errors.bio) setErrors({ ...errors, bio: undefined });
+                            }
+                          }}
+                          placeholder="Inject your essence into the network..."
+                        />
+                        <div className="absolute right-8 bottom-8">
+                           <EmojiPicker onSelect={insertEmoji} />
+                        </div>
+                     </div>
+                     {errors.bio && <p className="text-xs text-rose-500 font-black px-6 uppercase tracking-wider">{errors.bio}</p>}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-
-          <div className="pt-4 border-t border-border">
-            <Button onClick={handleSave} className="w-full sm:w-auto">
-              <Save className="w-4 h-4 mr-2" />
-              Save Changes
-            </Button>
-          </div>
-        </Card>
-
-        {/* UPI Payment Settings */}
-        <Card className="p-4 md:p-6 space-y-4">
-          <div>
-            <h2 className="text-base md:text-lg font-heading font-semibold text-foreground flex items-center gap-2">
-              <IndianRupee className="w-5 h-5 text-primary" />
-              Payment Settings
-            </h2>
-            <p className="text-muted-foreground text-xs md:text-sm mt-1">
-              Add your UPI ID so customers can pay you directly via QR code
-            </p>
-          </div>
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2 text-sm">
-              <IndianRupee className="w-4 h-4 text-muted-foreground" />
-              UPI ID
-            </Label>
-            <Input
-              value={upiId}
-              onChange={(e) => setUpiId(e.target.value)}
-              placeholder="yourname@upi or 9876543210@paytm"
-            />
-            <p className="text-[10px] md:text-xs text-muted-foreground">
-              Shows a UPI payment QR code on your catalog items.
-            </p>
-          </div>
-          <Button
-            size="sm"
-            onClick={async () => {
-              try {
-                await updateProfile({ upi_id: upiId.trim() });
-                toast.success("Payment settings saved!");
-              } catch (err) {
-                toast.error(err instanceof Error ? err.message : "Failed to save payment settings");
-              }
-            }}
-            className="w-full sm:w-auto"
-          >
-            <Save className="w-4 h-4 mr-2" /> Save Payment Settings
-          </Button>
-        </Card>
-
-        {/* Creator Stats Settings */}
-        <Card className="p-4 md:p-6 space-y-4">
-          <div>
-            <h2 className="text-base md:text-lg font-heading font-semibold text-foreground flex items-center gap-2">
-              <Users2 className="w-5 h-5 text-primary" />
-              Creator Stats
-            </h2>
-            <p className="text-muted-foreground text-xs md:text-sm mt-1">
-              Show off your social media reach with premium chips on your profile
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="text-xs">Instagram Followers</Label>
-              <Input
-                value={socialStats.ig_followers}
-                onChange={(e) => setSocialStats(s => ({ ...s, ig_followers: e.target.value }))}
-                placeholder="e.g. 1.2M or 15K"
-              />
+            
+            <div className="pt-10 flex border-t border-black/5">
+               <Button onClick={handleSave} className="rounded-full bg-black text-white px-12 py-8 h-16 text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl transition-all hover:scale-[1.05] active:scale-95 flex items-center gap-4">
+                  <Save className="w-6 h-6" />
+                  Sync Identity
+               </Button>
             </div>
-            <div className="space-y-2">
-              <Label className="text-xs">TikTok Followers</Label>
-              <Input
-                value={socialStats.tiktok_followers}
-                onChange={(e) => setSocialStats(s => ({ ...s, tiktok_followers: e.target.value }))}
-                placeholder="e.g. 2.4M"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs">Facebook Likes</Label>
-              <Input
-                value={socialStats.fb_likes}
-                onChange={(e) => setSocialStats(s => ({ ...s, fb_likes: e.target.value }))}
-                placeholder="e.g. 850K"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs">YouTube Subscribers</Label>
-              <Input
-                value={socialStats.youtube_subs}
-                onChange={(e) => setSocialStats(s => ({ ...s, youtube_subs: e.target.value }))}
-                placeholder="e.g. 1.1M"
-              />
-            </div>
-          </div>
-          <Button
-            size="sm"
-            onClick={async () => {
-              try {
-                await updateProfile({ social_stats: socialStats });
-                toast.success("Social stats updated!");
-              } catch (err) {
-                toast.error(err instanceof Error ? err.message : "Failed to save social stats");
-              }
-            }}
-            className="w-full sm:w-auto"
-          >
-            <Save className="w-4 h-4 mr-2" /> Save Stats
-          </Button>
-        </Card>
+          </Card>
 
-        {/* Social Media Icons */}
-        <Card className="p-4 md:p-6">
-          <SocialLinksEditor socialLinks={socialLinks} onChange={setSocialLinks} />
-          <div className="mt-4 pt-4 border-t border-border">
-            <Button
-              size="sm"
-              onClick={async () => {
-                try {
-                  await updateProfile({ social_links: socialLinks });
-                  toast.success("Social icons updated!");
-                } catch (err) {
-                  toast.error(err instanceof Error ? err.message : "Failed to save social icons");
-                }
-              }}
-              className="w-full sm:w-auto"
+          {/* Revenue Node */}
+          <Card className="p-12 rounded-[48px] border-black/5 bg-white shadow-2xl shadow-black/[0.04] space-y-10">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-500/5 flex items-center justify-center text-emerald-600">
+                <IndianRupee className="w-7 h-7" />
+              </div>
+              <div>
+                <h2 className="text-3xl font-black text-black tracking-tight">Revenue Stream</h2>
+                <p className="text-[15px] font-medium text-black/40">Authorize direct commerce pathways</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-end">
+               <div className="md:col-span-8 space-y-4">
+                 <Label className="text-[11px] font-black uppercase tracking-[0.25em] text-black/30 ml-2">UPI Gateway Identifier</Label>
+                 <Input
+                   className="h-20 rounded-[32px] border-black/5 bg-black/[0.02] text-black font-bold focus:bg-white transition-all px-8 text-[17px] shadow-inner"
+                   value={upiId}
+                   onChange={(e) => setUpiId(e.target.value)}
+                   placeholder="yourname@upi or digital@merchant"
+                 />
+               </div>
+               <div className="md:col-span-4">
+                 <Button
+                   className="w-full h-20 rounded-[32px] bg-emerald-600 text-white px-10 font-black uppercase tracking-[0.15em] text-[12px] shadow-2xl shadow-emerald-600/20 hover:bg-emerald-700 transition-all hover:scale-[1.05]"
+                   onClick={async () => {
+                     try {
+                       await updateProfile({ upi_id: upiId.trim() });
+                       toast.success("Revenue identity established!");
+                     } catch (err) {
+                       toast.error("Deployment failed");
+                     }
+                   }}
+                 >
+                   Establish Route
+                 </Button>
+               </div>
+            </div>
+            <div className="bg-emerald-50/50 p-6 rounded-[32px] border border-emerald-100/50">
+               <p className="text-[13px] font-medium text-emerald-800 leading-relaxed">
+                  Activating this node initiates a secure QR matrix for all catalog assets. Customers can pay you directly with zero platform interception.
+               </p>
+            </div>
+          </Card>
+
+          {/* Connective Matrix */}
+          <Card className="p-12 rounded-[48px] border-black/5 bg-white shadow-2xl shadow-black/[0.04] space-y-12">
+             <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-blue-500/5 flex items-center justify-center text-blue-600">
+                  <AtSign className="w-7 h-7" />
+                </div>
+                <div>
+                  <h2 className="text-3xl font-black text-black tracking-tight">Connective Matrix</h2>
+                  <p className="text-[15px] font-medium text-black/40">Global network integration points</p>
+                </div>
+             </div>
+             
+             <div className="p-10 rounded-[40px] border border-black/5 bg-black/[0.01]">
+                <SocialLinksEditor socialLinks={socialLinks} onChange={setSocialLinks} />
+             </div>
+             
+             <div className="pt-10 flex border-t border-black/5">
+                <Button
+                  className="rounded-full bg-black text-white px-12 py-8 h-16 text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl transition-all hover:scale-[1.05]"
+                  onClick={async () => {
+                    try {
+                      await updateProfile({ social_links: socialLinks });
+                      toast.success("Global matrix live!");
+                    } catch (err) {
+                      toast.error("Matrix failure");
+                    }
+                  }}
+                >
+                  <Save className="w-6 h-6 mr-4" /> Sync Matrix
+                </Button>
+             </div>
+          </Card>
+
+          {/* Advanced Cluster Node */}
+          <Card className="p-12 rounded-[48px] border-black/5 bg-black/[0.02] shadow-none space-y-10 group overflow-hidden relative">
+            <div className="absolute bottom-0 right-0 w-64 h-64 bg-black/5 rounded-full blur-[100px] translate-y-32 translate-x-32" />
+            
+            <button
+              type="button"
+              onClick={() => setShowAdvancedProfile((current) => !current)}
+              className="flex w-full items-start justify-between gap-10 text-left relative z-10"
             >
-              <Save className="w-4 h-4 mr-2" /> Save Social Icons
-            </Button>
-          </div>
-        </Card>
+              <div>
+                <h2 className="text-3xl font-black text-black tracking-tight group-hover:text-primary transition-colors">
+                  Advanced Cluster
+                </h2>
+                <p className="text-black/30 text-[16px] font-medium mt-3 leading-relaxed max-lg:max-w-lg">
+                  Social proof metrics, secure notification nodes, and system-level account parameters.
+                </p>
+              </div>
+              <div className="w-16 h-16 rounded-full border border-black/10 bg-white flex items-center justify-center text-black shadow-2xl transition-all group-hover:scale-110 active:scale-90 shrink-0">
+                {showAdvancedProfile ? <ChevronUp className="w-7 h-7" /> : <ChevronDown className="w-7 h-7" />}
+              </div>
+            </button>
 
-        {/* Notification Preferences */}
-        <NotificationPreferences />
+            {showAdvancedProfile && (
+              <div className="space-y-12 border-t border-black/5 pt-12 animate-in fade-in slide-in-from-top-4 duration-700 relative z-10">
+                {/* Proof of Reach */}
+                <div className="space-y-10 p-12 rounded-[48px] bg-white border border-black/5 shadow-2xl shadow-black/[0.04] group/stats">
+                  <div className="flex items-center gap-5">
+                    <div className="w-14 h-14 rounded-2xl bg-purple-500/5 flex items-center justify-center text-purple-600 group-hover/stats:scale-110 transition-transform">
+                      <Users2 className="w-8 h-8" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-black text-black">Proof of Reach</h3>
+                      <p className="text-[15px] font-medium text-black/40">Verified authority metrics</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
+                    {["ig_followers", "tiktok_followers", "fb_likes", "youtube_subs"].map((field) => (
+                      <div key={field} className="space-y-4">
+                        <Label className="text-[11px] font-black uppercase tracking-[0.2em] text-black/30 ml-2">
+                          {field.replace(/_/g, " ")}
+                        </Label>
+                        <Input
+                          className="h-16 rounded-[28px] border-black/5 bg-black/[0.02] text-black font-bold focus:bg-white transition-all px-8 text-[16px] shadow-inner"
+                          value={socialStats[field as keyof typeof socialStats]}
+                          onChange={(e) => setSocialStats(s => ({ ...s, [field]: e.target.value }))}
+                          placeholder="e.g. 1.2M or 50K+"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <Button
+                    className="h-16 rounded-full bg-black text-white px-12 text-[11px] font-black uppercase tracking-[0.2em] transition-all hover:scale-[1.05] shadow-2xl"
+                    onClick={async () => {
+                      try {
+                        await updateProfile({ social_stats: socialStats });
+                        toast.success("Identity authority broadcasted!");
+                      } catch (err) {
+                        toast.error("Transmission error");
+                      }
+                    }}
+                  >
+                    Broadcast Stats
+                  </Button>
+                </div>
 
-        {/* Creator Metrics Settings */}
-        <Card className="p-4 md:p-6 space-y-4">
-          <div>
-            <h2 className="text-base md:text-lg font-heading font-semibold text-foreground flex items-center gap-2">
-              <Zap className="w-5 h-5 text-primary" />
-              Engagement Metrics
-            </h2>
-            <p className="text-muted-foreground text-xs md:text-sm mt-1">
-              Add your engagement rate and average views to attract more bookings
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label className="text-xs">Engagement Rate</Label>
-              <Input
-                value={creatorMetrics.engagement_rate}
-                onChange={(e) => setCreatorMetrics(s => ({ ...s, engagement_rate: e.target.value }))}
-                placeholder="e.g. 5.2%"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs">Avg. Views</Label>
-              <Input
-                value={creatorMetrics.avg_views}
-                onChange={(e) => setCreatorMetrics(s => ({ ...s, avg_views: e.target.value }))}
-                placeholder="e.g. 100K"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs">Monthly Reach</Label>
-              <Input
-                value={creatorMetrics.reach}
-                onChange={(e) => setCreatorMetrics(s => ({ ...s, reach: e.target.value }))}
-                placeholder="e.g. 1.5M"
-              />
-            </div>
-          </div>
-          <Button
-            size="sm"
-            onClick={async () => {
-              try {
-                await updateProfile({ creator_metrics: creatorMetrics });
-                toast.success("Metrics updated!");
-              } catch (err) {
-                toast.error(err instanceof Error ? err.message : "Failed to save metrics");
-              }
-            }}
-            className="w-full sm:w-auto"
-          >
-            <Save className="w-4 h-4 mr-2" /> Save Metrics
-          </Button>
-        </Card>
+                <NotificationPreferences />
 
-        {/* Account Info */}
-        <Card className="p-4 md:p-6 space-y-4">
-          <div>
-            <h2 className="text-base md:text-lg font-heading font-semibold text-foreground">Account Info</h2>
-            <p className="text-muted-foreground text-xs md:text-sm">Your account details</p>
-          </div>
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between py-2 border-b border-border gap-2">
-              <span className="text-muted-foreground shrink-0">Email</span>
-              <span className="text-foreground truncate text-right">{user.email}</span>
-            </div>
-            <div className="flex justify-between py-2 border-b border-border">
-              <span className="text-muted-foreground">Role</span>
-              <span className={`font-medium ${user.role === "admin" ? "text-primary" : "text-foreground"}`}>
-                {user.role === "admin" ? "Administrator" : "User"}
-              </span>
-            </div>
-            <div className="flex justify-between py-2 border-b border-border">
-              <span className="text-muted-foreground">Member since</span>
-              <span className="text-foreground">
-                {user.created_at ? new Date(user.created_at).toLocaleDateString() : "Unknown"}
-              </span>
-            </div>
-          </div>
-        </Card>
-      </div>
+                {/* Engagement Grid */}
+                <div className="space-y-10 p-12 rounded-[48px] bg-white border border-black/5 shadow-2xl shadow-black/[0.04] group/metrics">
+                  <div className="flex items-center gap-5">
+                    <div className="w-14 h-14 rounded-2xl bg-amber-500/5 flex items-center justify-center text-amber-600 group-hover/metrics:scale-110 transition-transform">
+                      <Zap className="w-8 h-8" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-black text-black">Engagement Node</h3>
+                      <p className="text-[15px] font-medium text-black/40">Real-time interaction analytics</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+                    {["engagement_rate", "avg_views", "reach"].map((field) => (
+                      <div key={field} className="space-y-4">
+                        <Label className="text-[11px] font-black uppercase tracking-[0.2em] text-black/30 ml-2">
+                          {field.replace(/_/g, " ")}
+                        </Label>
+                        <Input
+                          className="h-16 rounded-[28px] border-black/5 bg-black/[0.02] text-black font-bold focus:bg-white transition-all px-8 text-[16px] shadow-inner"
+                          value={creatorMetrics[field as keyof typeof creatorMetrics]}
+                          onChange={(e) => setCreatorMetrics(s => ({ ...s, [field]: e.target.value }))}
+                          placeholder="e.g. 5.2%"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <Button
+                    className="h-16 rounded-full bg-black text-white px-12 text-[11px] font-black uppercase tracking-[0.2em] transition-all hover:scale-[1.05] shadow-2xl"
+                    onClick={async () => {
+                      try {
+                        await updateProfile({ creator_metrics: creatorMetrics });
+                        toast.success("Heatmap updated!");
+                      } catch (err) {
+                        toast.error("System error");
+                      }
+                    }}
+                  >
+                    Heatmap Update
+                  </Button>
+                </div>
 
-      {/* Live mobile preview - desktop sidebar */}
-      <div className="hidden xl:block w-80 shrink-0 self-start sticky top-6 z-30">
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <Smartphone className="w-4 h-4 text-muted-foreground" />
-            <Label className="text-base font-heading font-semibold">Live Preview</Label>
+                {/* Identity Metadata */}
+                <div className="p-12 rounded-[48px] bg-white border border-black/5 shadow-2xl shadow-black/[0.04] space-y-10">
+                  <div>
+                    <h3 className="text-2xl font-black text-black">Identity Metadata</h3>
+                    <p className="text-[15px] font-medium text-black/40">System-level node parameters</p>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 text-[16px]">
+                    <div className="flex justify-between items-center p-8 rounded-[32px] bg-black/[0.02] border border-black/5">
+                      <span className="font-black text-black/40 uppercase tracking-[0.25em] text-[11px]">Primary Email Node</span>
+                      <span className="font-black text-black text-[17px]">{user.email}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-8 rounded-[32px] bg-black/[0.02] border border-black/5">
+                      <span className="font-black text-black/40 uppercase tracking-[0.25em] text-[11px]">Access Authorization</span>
+                      <span className={cn("font-black px-6 py-2 rounded-full text-[11px] uppercase tracking-widest", user.role === "admin" ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20" : "bg-black/10 text-black")}>
+                        {user.role === "admin" ? "Master Authority" : "Verified User"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center p-8 rounded-[32px] bg-black/[0.02] border border-black/5">
+                      <span className="font-black text-black/40 uppercase tracking-[0.25em] text-[11px]">Node Lifecycle Start</span>
+                      <span className="font-black text-black text-[17px]">
+                        {user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : "Pending"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </Card>
+        </div>
+
+        {/* Right Sidebar: Sticky Orbit Preview */}
+        <div className="hidden lg:block lg:col-span-4 shrink-0 self-start sticky top-12 z-30">
+          <div className="bg-white border border-black/5 rounded-[48px] p-10 shadow-2xl shadow-black/[0.06] relative overflow-hidden h-[calc(100vh-140px)] flex flex-col group/preview-sidebar">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-[60px] translate-x-1/2 -translate-y-1/2" />
+            
+            <div className="relative z-10 flex-1 flex flex-col h-full">
+              <div className="flex items-center justify-between mb-10">
+                <div className="min-w-0">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-600">Visual Orbit</p>
+                  <p className="text-[17px] font-black truncate text-black mt-1 tracking-tight">@{username || user.username}</p>
+                </div>
+                <Button
+                   type="button"
+                   variant="outline"
+                   className="h-10 px-6 rounded-full text-[10px] font-black uppercase tracking-widest border-black/10 hover:bg-black text-white bg-white hover:text-white transition-all shadow-lg"
+                   onClick={() => navigate("/dashboard/appearance")}
+                 >
+                   Studio
+                 </Button>
+              </div>
+
+              <div className="relative group/orbit flex flex-col gap-6 flex-1 overflow-y-auto no-scrollbar scrollbar-hide rounded-[32px] bg-black/[0.01] p-6 border border-black/5 shadow-inner">
+                <div className="absolute -inset-10 bg-primary/5 blur-[100px] rounded-full opacity-0 group-hover/orbit:opacity-100 transition-opacity duration-1000" />
+                <div className="relative transform origin-top transition-all duration-1000 ease-[cubic-bezier(0.23,1,0.32,1)] flex-1 hover:scale-[1.03]">
+                  <ProfilePreview
+                    settings={settings}
+                    user={{...user, name, username, bio, social_links: socialLinks, social_stats: socialStats}}
+                    links={previewLinks}
+                    creatorMetrics={creatorMetrics}
+                    compact
+                  />
+                </div>
+              </div>
+
+              <div className="relative pt-10 mt-8 border-t border-black/5 flex flex-col gap-4">
+                 <div className="flex items-center gap-4">
+                    <a
+                      href={profileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 inline-flex items-center justify-center gap-3 rounded-3xl h-16 bg-black/[0.03] hover:bg-black/5 text-black text-[11px] font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95"
+                    >
+                      <ExternalLink className="w-5 h-5 opacity-40" /> View Node
+                    </a>
+                    <Button
+                      onClick={copyProfileLink}
+                      className="flex-1 gap-3 rounded-3xl h-16 bg-black text-white text-[11px] font-black uppercase tracking-widest transition-all shadow-2xl hover:shadow-black/30 hover:scale-[1.05] active:scale-95 border-none"
+                    >
+                      <Copy className="w-5 h-5" /> Copy URI
+                    </Button>
+                 </div>
+              </div>
+            </div>
           </div>
-          <ProfilePreview
-            settings={settings}
-            user={previewUser}
-            links={previewLinks}
-            creatorMetrics={creatorMetrics}
-          />
         </div>
       </div>
 
-      {/* Mobile/tablet preview overlay */}
+      {/* Mobile Visual Overlay */}
       {showPreview && (
-        <div className="fixed inset-0 z-50 bg-background/95 xl:hidden flex items-center justify-center p-4">
-          <div className="relative w-full max-w-sm">
+        <div className="fixed inset-0 z-[100] bg-[#F0F2F5]/98 lg:hidden flex items-center justify-center p-8 animate-in fade-in zoom-in-95 duration-500 backdrop-blur-3xl">
+          <div className="relative w-full max-w-sm flex flex-col gap-10">
+            <div className="w-full flex items-center justify-between gap-6">
+              <div className="flex items-center gap-5 min-w-0">
+                <div className="w-16 h-16 rounded-[24px] bg-emerald-500 text-white shadow-2xl shadow-emerald-500/30 flex items-center justify-center">
+                  <Smartphone className="w-8 h-8" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[11px] font-black uppercase tracking-[0.3em] text-black">Visual Node</p>
+                  <p className="text-[18px] font-black text-black/30 truncate tracking-tight">@{username || user.username}</p>
+                </div>
+              </div>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-16 w-16 rounded-full bg-white shadow-2xl hover:bg-black hover:text-white transition-all active:scale-90"
+                onClick={() => setShowPreview(false)}
+              >
+                <X className="w-7 h-7" />
+              </Button>
+            </div>
+
+            <div className="bg-white rounded-[56px] p-8 shadow-2xl shadow-black/10 overflow-hidden border border-black/5">
+               <ProfilePreview
+                 settings={settings}
+                 user={{...user, name, username, bio, social_links: socialLinks, social_stats: socialStats}}
+                 links={previewLinks}
+                 creatorMetrics={creatorMetrics}
+                 compact
+               />
+            </div>
+
+            <div className="flex flex-col w-full gap-5">
+              <a
+                href={profileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-4 rounded-3xl h-20 bg-white border border-black/5 text-black text-[13px] font-black uppercase tracking-[0.2em] shadow-2xl flex-1"
+              >
+                <ExternalLink className="w-6 h-6" /> Open Node
+              </a>
+              <Button
+                onClick={() => {
+                  void copyProfileLink();
+                  setShowPreview(false);
+                }}
+                className="gap-4 rounded-3xl h-20 bg-black text-white text-[13px] font-black uppercase tracking-[0.2em] shadow-2xl flex-1"
+              >
+                <Copy className="w-6 h-6" /> Copy URI
+              </Button>
+            </div>
+            
             <Button
-              size="icon"
-              variant="ghost"
-              className="absolute -top-12 right-0 h-10 w-10"
-              onClick={() => setShowPreview(false)}
+               variant="ghost" 
+               className="text-[11px] font-black uppercase tracking-[0.25em] text-black/40 hover:text-primary transition-colors py-4"
+               onClick={() => {
+                 navigate("/dashboard/appearance");
+                 setShowPreview(false);
+               }}
             >
-              <X className="w-5 h-5" />
+               Refine Aesthetic in Design Studio
             </Button>
-            <ProfilePreview
-              settings={settings}
-              user={previewUser}
-              links={previewLinks}
-              creatorMetrics={creatorMetrics}
-            />
           </div>
         </div>
       )}

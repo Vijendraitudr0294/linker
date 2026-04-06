@@ -26,7 +26,9 @@ dist-ssr
 # Local environment/secrets
 .env
 .env.*
+.env.production
 !.env.example
+!.env.production.template
 
 # Local Codex metadata
 .codex/

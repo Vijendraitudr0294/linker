@@ -46,7 +46,7 @@ const NotificationPreferences = () => {
     setLoading(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ notification_prefs: prefs as any })
+      .update({ notification_prefs: prefs })
       .eq("user_id", user.id);
     setLoading(false);
     if (error) {

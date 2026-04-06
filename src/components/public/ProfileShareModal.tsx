@@ -151,7 +151,7 @@ const ProfileShareModal = ({ isOpen, onClose, profileName, username, avatarUrl, 
             {/* Join CTA */}
             <div className="px-5 py-4 border-t border-gray-100">
               <p className="text-sm font-bold text-gray-900">
-                Join {profileName} on LinkVertex
+                Join {profileName} on BIOTRA
               </p>
               <p className="text-xs text-gray-500 mt-0.5">
                 Get your own free link page trusted by creators worldwide.

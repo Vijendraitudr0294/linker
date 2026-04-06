@@ -102,7 +102,7 @@ const HelpCenter = () => {
       <div className="not-prose glass rounded-2xl p-8 text-center mt-10">
         <Mail className="w-8 h-8 text-primary mx-auto mb-3" />
         <h3 className="font-heading font-bold text-foreground mb-2">Still need help?</h3>
-        <p className="text-sm text-muted-foreground mb-1">Email us at <span className="text-primary">support@linkvertex.com</span></p>
+        <p className="text-sm text-muted-foreground mb-1">Email us at <span className="text-primary">support@BIOTRA.com</span></p>
         <p className="text-xs text-muted-foreground">We typically respond within 24 hours.</p>
       </div>
     </InfoPageLayout>

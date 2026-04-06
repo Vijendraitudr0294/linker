@@ -46,7 +46,7 @@ const ForgotPassword = () => {
             <Zap className="w-4 h-4 text-primary-foreground" />
           </div>
           <span className="text-xl font-heading font-bold text-foreground">
-            Link<span className="text-gradient">Vertex</span>
+            BIOTRA
           </span>
         </div>
 

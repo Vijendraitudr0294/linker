@@ -32,10 +32,10 @@ const CookiePolicy = () => (
     <p>We believe in privacy-first analytics. Our built-in analytics track page views and link clicks without using any third-party cookies or tracking scripts.</p>
 
     <h2>Managing Cookies</h2>
-    <p>You can control cookies through your browser settings. Note that disabling essential cookies may affect the functionality of LinkVertex.</p>
+    <p>You can control cookies through your browser settings. Note that disabling essential cookies may affect the functionality of BIOTRA.</p>
 
     <h2>Contact</h2>
-    <p>Questions about our cookie practices? Email us at privacy@linkvertex.com.</p>
+    <p>Questions about our cookie practices? Email us at privacy@BIOTRA.com.</p>
   </InfoPageLayout>
 );
 

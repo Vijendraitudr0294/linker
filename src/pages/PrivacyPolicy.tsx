@@ -1,7 +1,7 @@
 import InfoPageLayout from "@/components/InfoPageLayout";
 
 const PrivacyPolicy = () => (
-  <InfoPageLayout title="Privacy Policy" subtitle="Your privacy is important to us." lastUpdated="March 1, 2026">
+  <InfoPageLayout title="Privacy Policy" subtitle="Your privacy is important to us." lastUpdated="March 29, 2026">
     <h2>1. Information We Collect</h2>
     <p>We collect information you provide directly, such as when you create an account, update your profile, or contact us. This includes:</p>
     <ul>
@@ -28,7 +28,7 @@ const PrivacyPolicy = () => (
       <li>With your consent or at your direction</li>
       <li>With service providers who assist in our operations</li>
       <li>To comply with legal obligations</li>
-      <li>To protect the rights and safety of LinkVertex and our users</li>
+      <li>To protect the rights and safety of BIOTRA and our users</li>
     </ul>
 
     <h2>4. Data Security</h2>
@@ -41,7 +41,7 @@ const PrivacyPolicy = () => (
     <p>We use essential cookies to maintain your session and preferences. We do not use third-party tracking cookies or advertising cookies. See our Cookie Policy for more details.</p>
 
     <h2>7. Contact Us</h2>
-    <p>If you have questions about this Privacy Policy, please contact us at privacy@linkvertex.com.</p>
+    <p>If you have questions about this Privacy Policy, please contact us at privacy@biotra.ai.</p>
   </InfoPageLayout>
 );
 

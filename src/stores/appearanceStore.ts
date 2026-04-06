@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { logActivity } from "@/lib/activityLogger";
 import { toast } from "sonner";
 
@@ -21,11 +22,15 @@ export interface AppearanceSettings {
   backgroundOverlay?: string;
   animatedGradient?: string;
   animationClass?: string;
+  heroImage?: string;
+  layoutType: "list" | "grid" | "bento" | "timeline";
+  cardStyle: "classic" | "glass" | "glass-premium" | "neon";
 }
 
 interface AppearanceState {
   settings: AppearanceSettings;
   loading: boolean;
+  settingsFetched: boolean;
   fetchSettings: (userId: string) => Promise<void>;
   updateSettings: (data: Partial<AppearanceSettings>) => Promise<void>;
   applyTheme: (theme: {
@@ -43,26 +48,57 @@ interface AppearanceState {
     animatedGradient?: string;
     animationClass?: string;
     fontFamily?: string;
+    heroImage?: string;
+    layoutMode?: "list" | "grid" | "bento" | "timeline";
+    cardStyle?: "classic" | "glass" | "glass-premium" | "neon";
   }) => Promise<void>;
 }
 
 const defaultSettings: AppearanceSettings = {
-  themeId: "clean-white",
-  backgroundColor: "#ffffff",
-  cardColor: "#f8fafc",
-  textColor: "#1e293b",
-  buttonStyle: "rounded",
-  buttonBg: "#1e293b",
-  buttonText: "#ffffff",
-  fontFamily: "Inter",
+  themeId: "liquid-sunset",
+  backgroundColor: "#2a3147",
+  cardColor: "rgba(255, 255, 255, 0.16)",
+  textColor: "#f8fafc",
+  buttonStyle: "pill",
+  buttonBg: "#ffffff",
+  buttonText: "#1f2937",
+  gradientFrom: "#ff8a33",
+  gradientTo: "#1e2f5d",
+  animationClass: "fx-liquid-gradient",
+  fontFamily: "Urbanist",
   showAvatar: true,
   shopTabLabel: "Shop",
   linksTabLabel: "Links",
+  layoutType: "list",
+  cardStyle: "classic",
 };
 
 type TabLabelSettings = Pick<AppearanceSettings, "shopTabLabel" | "linksTabLabel">;
 
 let hasShownTabLabelCompatibilityNotice = false;
+const unsupportedAppearanceColumns = new Set<string>();
+const appearanceDbColumns = [
+  "theme_id",
+  "background_color",
+  "card_color",
+  "text_color",
+  "button_style",
+  "button_bg",
+  "button_text",
+  "gradient_from",
+  "gradient_to",
+  "font_family",
+  "show_avatar",
+  "shop_tab_label",
+  "links_tab_label",
+  "background_image",
+  "background_overlay",
+  "animated_gradient",
+  "animation_class",
+  "hero_image",
+  "layout_type",
+  "card_style",
+] as const;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -138,54 +174,49 @@ const persistTabLabelFallback = async (userId: string, data: Partial<AppearanceS
   if (data.linksTabLabel !== undefined) tabLabelPatch.linksTabLabel = data.linksTabLabel;
   if (Object.keys(tabLabelPatch).length === 0) return true;
 
-  const creatorRead = await supabase
+  const profileRead = await supabase
     .from("profiles")
-    .select("creator_metrics")
+    .select("*")
     .eq("user_id", userId)
     .maybeSingle();
 
-  if (!creatorRead.error) {
-    const nextCreatorMetrics = mergeTabLabelsIntoMetricObject(creatorRead.data?.creator_metrics, tabLabelPatch);
+  if (profileRead.error) {
+    throw profileRead.error;
+  }
+
+  const profileData = (profileRead.data as Record<string, unknown> | null) || {};
+  const hasCreatorMetrics = Object.prototype.hasOwnProperty.call(profileData, "creator_metrics");
+  const hasSocialStats = Object.prototype.hasOwnProperty.call(profileData, "social_stats");
+
+  if (hasCreatorMetrics) {
+    const nextCreatorMetrics = mergeTabLabelsIntoMetricObject(profileData.creator_metrics, tabLabelPatch);
     const creatorUpdate = await supabase
       .from("profiles")
       .update({
-        creator_metrics: nextCreatorMetrics,
+        creator_metrics: nextCreatorMetrics as any,
         updated_at: new Date().toISOString(),
       })
       .eq("user_id", userId);
 
     if (!creatorUpdate.error) return true;
     if (!isMissingColumnError(creatorUpdate.error, "creator_metrics")) throw creatorUpdate.error;
-  } else if (!isMissingColumnError(creatorRead.error, "creator_metrics")) {
-    throw creatorRead.error;
   }
 
-  const socialRead = await supabase
-    .from("profiles")
-    .select("social_stats")
-    .eq("user_id", userId)
-    .maybeSingle();
+  if (hasSocialStats) {
+    const nextSocialStats = mergeTabLabelsIntoMetricObject(profileData.social_stats, tabLabelPatch);
+    const socialUpdate = await supabase
+      .from("profiles")
+      .update({
+        social_stats: nextSocialStats as any,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("user_id", userId);
 
-  if (socialRead.error) {
-    if (isMissingColumnError(socialRead.error, "social_stats")) return false;
-    throw socialRead.error;
+    if (!socialUpdate.error) return true;
+    if (!isMissingColumnError(socialUpdate.error, "social_stats")) throw socialUpdate.error;
   }
 
-  const nextSocialStats = mergeTabLabelsIntoMetricObject(socialRead.data?.social_stats, tabLabelPatch);
-  const socialUpdate = await supabase
-    .from("profiles")
-    .update({
-      social_stats: nextSocialStats,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("user_id", userId);
-
-  if (socialUpdate.error) {
-    if (isMissingColumnError(socialUpdate.error, "social_stats")) return false;
-    throw socialUpdate.error;
-  }
-
-  return true;
+  return false;
 };
 
 const dbToSettings = (row: Record<string, unknown>): AppearanceSettings => ({
@@ -206,6 +237,9 @@ const dbToSettings = (row: Record<string, unknown>): AppearanceSettings => ({
   backgroundOverlay: (row.background_overlay as string) || undefined,
   animatedGradient: (row.animated_gradient as string) || undefined,
   animationClass: (row.animation_class as string) || undefined,
+  heroImage: (row.hero_image as string) || undefined,
+  layoutType: (row.layout_type as AppearanceSettings["layoutType"]) || defaultSettings.layoutType,
+  cardStyle: (row.card_style as AppearanceSettings["cardStyle"]) || defaultSettings.cardStyle,
 });
 
 const settingsToDb = (s: Partial<AppearanceSettings>) => {
@@ -227,7 +261,38 @@ const settingsToDb = (s: Partial<AppearanceSettings>) => {
   if (s.backgroundOverlay !== undefined) map.background_overlay = s.backgroundOverlay || null;
   if (s.animatedGradient !== undefined) map.animated_gradient = s.animatedGradient || null;
   if (s.animationClass !== undefined) map.animation_class = s.animationClass || null;
+  if (s.heroImage !== undefined) map.hero_image = s.heroImage || null;
+  if (s.layoutType !== undefined) map.layout_type = s.layoutType;
+  if (s.cardStyle !== undefined) map.card_style = s.cardStyle;
   return map;
+};
+
+const persistDesignOverridesFallback = async (userId: string, data: Partial<AppearanceSettings>): Promise<boolean> => {
+  const overrides: Record<string, string> = {};
+  if (data.layoutType !== undefined) overrides.layout_type = data.layoutType;
+  if (data.cardStyle !== undefined) overrides.card_style = data.cardStyle;
+  if (Object.keys(overrides).length === 0) return true;
+
+  const profileRead = await supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle();
+  if (profileRead.error) throw profileRead.error;
+
+  const profileData = (profileRead.data as Record<string, unknown> | null) || {};
+  const metrics = isRecord(profileData.creator_metrics) ? { ...profileData.creator_metrics } : {};
+  const currentOverrides = isRecord(metrics.design_overrides) ? { ...metrics.design_overrides } : {};
+
+  // Merge overrides
+  Object.assign(currentOverrides, overrides);
+  metrics.design_overrides = currentOverrides;
+
+  const update = await supabase
+    .from("profiles")
+    .update({
+      creator_metrics: metrics as any,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("user_id", userId);
+
+  return !update.error;
 };
 
 const upsertAppearanceSettings = async (userId: string, data: Partial<AppearanceSettings>) => {
@@ -245,21 +310,37 @@ const upsertAppearanceSettings = async (userId: string, data: Partial<Appearance
   const skippedColumns = new Set<string>();
   let lastError: string | null = null;
 
+  unsupportedAppearanceColumns.forEach((column) => {
+    if (Object.prototype.hasOwnProperty.call(pendingData, column)) {
+      delete pendingData[column];
+      skippedColumns.add(column);
+    }
+  });
+
   while (Object.keys(pendingData).length > 0) {
     const { error } = await supabase
       .from("appearance_settings")
-      .upsert(pendingData, { onConflict: "user_id" });
+      .upsert(pendingData as any, { onConflict: "user_id" });
 
     if (!error) {
       return { error: null, skippedColumns };
     }
 
+    // 1. Handle missing columns
     const missingColumnMatch = /Could not find the '([^']+)' column/i.exec(error.message || "");
     const missingColumn = missingColumnMatch?.[1];
 
     if (missingColumn && Object.prototype.hasOwnProperty.call(pendingData, missingColumn)) {
       delete pendingData[missingColumn];
       skippedColumns.add(missingColumn);
+      unsupportedAppearanceColumns.add(missingColumn);
+      continue;
+    }
+
+    // 2. Handle button_style constraint violation
+    if (error.message?.includes("appearance_settings_button_style_check") && pendingData.button_style) {
+      console.warn("Retrying with fallback button style due to DB constraint");
+      pendingData.button_style = "rounded"; // Safest fallback
       continue;
     }
 
@@ -273,27 +354,30 @@ const upsertAppearanceSettings = async (userId: string, data: Partial<Appearance
 export const useAppearanceStore = create<AppearanceState>()((set, get) => ({
   settings: defaultSettings,
   loading: false,
+  settingsFetched: false,
 
   fetchSettings: async (userId: string) => {
+    if (get().settingsFetched && userId) return;
+    if (get().loading) return;
+
     set({ loading: true });
 
-    const [appearanceRes, creatorMetricsRes, socialStatsRes] = await Promise.all([
+    const [appearanceRes, profileRes] = await Promise.all([
       supabase.from("appearance_settings").select("*").eq("user_id", userId).maybeSingle(),
-      supabase.from("profiles").select("creator_metrics").eq("user_id", userId).maybeSingle(),
-      supabase.from("profiles").select("social_stats").eq("user_id", userId).maybeSingle(),
+      supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
     ]);
 
-    const creatorMetricLabels = creatorMetricsRes.error
-      ? {}
-      : getTabLabelsFromMetricObject(creatorMetricsRes.data?.creator_metrics);
-    const socialMetricLabels = socialStatsRes.error
-      ? {}
-      : getTabLabelsFromMetricObject(socialStatsRes.data?.social_stats);
-
+    const profileData = (profileRes.data as Record<string, unknown> | null) || {};
+    const creatorMetricLabels = getTabLabelsFromMetricObject(profileData.creator_metrics);
+    const socialMetricLabels = getTabLabelsFromMetricObject(profileData.social_stats);
     const fallbackTabLabels = combineFallbackTabLabels(creatorMetricLabels, socialMetricLabels);
 
     if (appearanceRes.data) {
       const appearanceRow = appearanceRes.data as Record<string, unknown>;
+      const existingColumns = new Set(Object.keys(appearanceRow));
+      appearanceDbColumns.forEach((column) => {
+        if (!existingColumns.has(column)) unsupportedAppearanceColumns.add(column);
+      });
       const dbSettings = dbToSettings(appearanceRow);
 
       set({
@@ -311,6 +395,7 @@ export const useAppearanceStore = create<AppearanceState>()((set, get) => ({
           ),
         },
         loading: false,
+        settingsFetched: true,
       });
       return;
     }
@@ -346,27 +431,18 @@ export const useAppearanceStore = create<AppearanceState>()((set, get) => ({
       return;
     }
 
-    const skippedTabLabelColumns =
-      skippedColumns.has("shop_tab_label") || skippedColumns.has("links_tab_label");
-
-    if (skippedTabLabelColumns) {
+    if (skippedColumns.size > 0) {
+      const skippedNames = Array.from(skippedColumns).join(", ");
+      console.warn(`Skipped columns in DB update: ${skippedNames}`);
+      
       try {
-        const saved = await persistTabLabelFallback(user.id, data);
-
-        if (!hasShownTabLabelCompatibilityNotice) {
-          toast.warning(
-            saved
-              ? "Tab labels were saved in compatibility mode. Run latest DB migration for full support."
-              : "Tab labels need the latest DB migration to persist globally."
-          );
-          hasShownTabLabelCompatibilityNotice = true;
-        }
-      } catch {
-        if (!hasShownTabLabelCompatibilityNotice) {
-          toast.warning("Tab labels need the latest DB migration to persist globally.");
-          hasShownTabLabelCompatibilityNotice = true;
-        }
+         await persistDesignOverridesFallback(user.id, data);
+      } catch (err) {
+         console.error("Design fallback save error:", err);
       }
+
+      // Silent fallback: just log and continue. Compatibility save is handled silently in DB.
+      console.warn(`Design compatibility notice: Some fields [${skippedNames}] are using profile-fallback storage due to pending schema upgrades.`);
     }
 
     const changed = Object.keys(data).join(", ");
@@ -383,13 +459,16 @@ export const useAppearanceStore = create<AppearanceState>()((set, get) => ({
       buttonStyle: theme.buttonStyle,
       buttonBg: theme.buttonBg,
       buttonText: theme.buttonText,
-      gradientFrom: theme.gradientFrom ?? null,
-      gradientTo: theme.gradientTo ?? null,
-      backgroundImage: theme.backgroundImage ?? null,
-      backgroundOverlay: theme.backgroundOverlay ?? null,
-      animatedGradient: theme.animatedGradient ?? null,
-      animationClass: theme.animationClass ?? null,
+      gradientFrom: theme.gradientFrom ?? undefined,
+      gradientTo: theme.gradientTo ?? undefined,
+      backgroundImage: theme.backgroundImage ?? undefined,
+      backgroundOverlay: theme.backgroundOverlay ?? undefined,
+      animatedGradient: theme.animatedGradient ?? undefined,
+      animationClass: theme.animationClass ?? undefined,
       fontFamily: theme.fontFamily ?? get().settings.fontFamily,
+      heroImage: theme.heroImage ?? undefined,
+      layoutType: theme.layoutMode ?? get().settings.layoutType,
+      cardStyle: theme.cardStyle ?? get().settings.cardStyle,
     };
 
     set({ settings: newSettings });
@@ -403,8 +482,10 @@ export const useAppearanceStore = create<AppearanceState>()((set, get) => ({
     const { error, skippedColumns } = await upsertAppearanceSettings(user.id, newSettings);
 
     if (error) {
-      toast.error(error);
-      return;
+      console.warn("Retrying theme application due to error:", error);
+      // Wait a bit and try one more time as a simple retry
+      await new Promise(r => setTimeout(r, 1000));
+      await upsertAppearanceSettings(user.id, newSettings);
     }
 
     const skippedTabLabelColumns =

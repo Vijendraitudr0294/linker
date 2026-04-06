@@ -18,9 +18,11 @@ import {
   Play,
   Code,
   MapPin,
+  DollarSign,
+  Smartphone,
   type LucideIcon,
 } from "lucide-react";
-import type { SocialPlatform } from "@/stores/linksStore";
+import { type SocialPlatform } from "@/types/links";
 
 const platformIcons: Record<SocialPlatform, LucideIcon> = {
   instagram: Instagram,
@@ -46,6 +48,29 @@ const platformIcons: Record<SocialPlatform, LucideIcon> = {
   "video-embed": Play,
   "website-embed": Code,
   "google-maps": MapPin,
+  "apple-music": Music2,
+  "soundcloud": Music2,
+  "audiomack": Music2,
+  "substack": Link2,
+  "typeform": Link2,
+  "gofundme": Link2,
+  "kick": Play,
+  "kickstarter": Link2,
+  "mixcloud": Music2,
+  "tidal": Music2,
+  "tunein": Music2,
+  "bandsintown": Calendar,
+  "seated": Calendar,
+  "songkick": Calendar,
+  "airbnb": MapPin,
+  "behance": Camera,
+  "imgur": Camera,
+  "laylo": Link2,
+  "matterport": Link2,
+  shopmy: Link2,
+  "tip-jar": DollarSign,
+  appstore: Smartphone,
+  playstore: Smartphone,
   other: Link2,
 };
 
@@ -59,7 +84,10 @@ export const SocialIcon = ({ platform, className = "w-4 h-4" }: SocialIconProps)
   return <Icon className={className} />;
 };
 
-export const EMBED_PLATFORMS: SocialPlatform[] = ["video-embed", "website-embed", "google-maps"];
+export const EMBED_PLATFORMS: SocialPlatform[] = [
+  "video-embed", "website-embed", "google-maps", "spotify", "apple-music", 
+  "soundcloud", "audiomack", "substack", "typeform", "calendly", "calcom"
+];
 
 export const isEmbedPlatform = (platform: SocialPlatform) => EMBED_PLATFORMS.includes(platform);
 
@@ -68,8 +96,12 @@ export const platformOptions: { value: SocialPlatform; label: string }[] = [
   { value: "video-embed", label: "Video Embed" },
   { value: "website-embed", label: "Website Embed" },
   { value: "google-maps", label: "Google Maps" },
-  { value: "googlemeet", label: "Google Meet" },
-  { value: "zoom", label: "Zoom" },
+  { value: "spotify", label: "Spotify" },
+  { value: "apple-music", label: "Apple Music" },
+  { value: "soundcloud", label: "SoundCloud" },
+  { value: "audiomack", label: "Audiomack" },
+  { value: "substack", label: "Substack" },
+  { value: "typeform", label: "Typeform" },
   { value: "calendly", label: "Calendly" },
   { value: "calcom", label: "Cal.com" },
   { value: "instagram", label: "Instagram" },
@@ -79,7 +111,6 @@ export const platformOptions: { value: SocialPlatform; label: string }[] = [
   { value: "facebook", label: "Facebook" },
   { value: "linkedin", label: "LinkedIn" },
   { value: "github", label: "GitHub" },
-  { value: "spotify", label: "Spotify" },
   { value: "twitch", label: "Twitch" },
   { value: "discord", label: "Discord" },
   { value: "snapchat", label: "Snapchat" },
@@ -87,5 +118,7 @@ export const platformOptions: { value: SocialPlatform; label: string }[] = [
   { value: "whatsapp", label: "WhatsApp" },
   { value: "telegram", label: "Telegram" },
   { value: "email", label: "Email" },
+  { value: "appstore", label: "App Store" },
+  { value: "playstore", label: "Google Play" },
   { value: "other", label: "Other" },
 ];

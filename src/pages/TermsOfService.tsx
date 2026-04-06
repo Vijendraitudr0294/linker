@@ -1,12 +1,12 @@
 import InfoPageLayout from "@/components/InfoPageLayout";
 
 const TermsOfService = () => (
-  <InfoPageLayout title="Terms of Service" subtitle="Please read these terms carefully before using LinkVertex." lastUpdated="March 1, 2026">
+  <InfoPageLayout title="Terms of Service" subtitle="Please read these terms carefully before using BIOTRA." lastUpdated="March 29, 2026">
     <h2>1. Acceptance of Terms</h2>
-    <p>By accessing or using LinkVertex, you agree to be bound by these Terms of Service. If you do not agree, please do not use our services.</p>
+    <p>By accessing or using BIOTRA, you agree to be bound by these Terms of Service. If you do not agree, please do not use our services.</p>
 
     <h2>2. Description of Service</h2>
-    <p>LinkVertex provides a free link-in-bio platform that allows users to create personalized pages with links, product catalogs, contact forms, and analytics. All core features are provided free of charge.</p>
+    <p>BIOTRA provides a free link-in-bio platform that allows users to create personalized pages with links, product catalogs, contact forms, and analytics. All core features are provided free of charge.</p>
 
     <h2>3. User Accounts</h2>
     <p>To use certain features, you must create an account. You are responsible for:</p>
@@ -18,7 +18,7 @@ const TermsOfService = () => (
     </ul>
 
     <h2>4. User Content</h2>
-    <p>You retain ownership of content you create on LinkVertex. By posting content, you grant us a non-exclusive, worldwide license to display, distribute, and promote your content as part of the service. You are solely responsible for your content and must not post anything that:</p>
+    <p>You retain ownership of content you create on BIOTRA. By posting content, you grant us a non-exclusive, worldwide license to display, distribute, and promote your content as part of the service. You are solely responsible for your content and must not post anything that:</p>
     <ul>
       <li>Violates any law or regulation</li>
       <li>Infringes on intellectual property rights</li>
@@ -28,7 +28,7 @@ const TermsOfService = () => (
     </ul>
 
     <h2>5. Prohibited Uses</h2>
-    <p>You agree not to use LinkVertex to:</p>
+    <p>You agree not to use BIOTRA to:</p>
     <ul>
       <li>Engage in any illegal activity</li>
       <li>Distribute malware or phishing content</li>
@@ -41,16 +41,16 @@ const TermsOfService = () => (
     <p>We reserve the right to suspend or terminate your account at any time for violations of these terms, with or without notice. You may delete your account at any time through your settings.</p>
 
     <h2>7. Disclaimer of Warranties</h2>
-    <p>LinkVertex is provided "as is" without warranties of any kind, either express or implied. We do not guarantee that the service will be uninterrupted, secure, or error-free.</p>
+    <p>BIOTRA is provided "as is" without warranties of any kind, either express or implied. We do not guarantee that the service will be uninterrupted, secure, or error-free.</p>
 
     <h2>8. Limitation of Liability</h2>
-    <p>To the maximum extent permitted by law, LinkVertex shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the service.</p>
+    <p>To the maximum extent permitted by law, BIOTRA shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the service.</p>
 
     <h2>9. Changes to Terms</h2>
     <p>We may update these terms from time to time. We will notify you of significant changes via email or through the service. Continued use after changes constitutes acceptance.</p>
 
     <h2>10. Contact</h2>
-    <p>For questions about these Terms of Service, contact us at legal@linkvertex.com.</p>
+    <p>For questions about these Terms of Service, contact us at legal@biotra.ai.</p>
   </InfoPageLayout>
 );
 

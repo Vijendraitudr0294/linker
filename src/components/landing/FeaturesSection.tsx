@@ -1,112 +1,140 @@
-import { motion, useScroll, useTransform } from "framer-motion";
-import { Palette, BarChart3, Sparkles, Link2, Zap, ShieldCheck, ShoppingBag, MessageCircle } from "lucide-react";
-import analyticsPreview from "@/assets/analytics-preview.jpg";
-import categoriesImg from "@/assets/categories-illustration.jpg";
-
-const features = [
-  { icon: Link2, title: "Unlimited Links", description: "Add as many links as you want. Social media, websites, portfolios — all in one place." },
-  { icon: Palette, title: "60+ Themes", description: "Modern, neon, gradient, minimal — find your vibe and make it yours." },
-  { icon: ShoppingBag, title: "Built-in Shop", description: "Sell products, take orders, manage inventory. Your mini-store, zero setup fees." },
-  { icon: BarChart3, title: "Real Analytics", description: "Track views, clicks, and conversions. Know what's working with beautiful charts." },
-  { icon: Sparkles, title: "AI-Powered", description: "AI generates your bio, picks your theme, and orders your links for max engagement." },
-  { icon: MessageCircle, title: "Contact Form", description: "Let visitors message you directly. Get notified instantly. No third-party tools." },
-  { icon: Zap, title: "Lightning Fast", description: "Sub-second load times globally. Speed = more conversions. Period." },
-  { icon: ShieldCheck, title: "Private & Secure", description: "Your data stays yours. GDPR compliant. Enterprise-grade security." },
-];
+import { motion } from "framer-motion";
+import { 
+  Palette, 
+  BarChart3, 
+  Sparkles, 
+  Link2, 
+  Zap, 
+  ShieldCheck, 
+  ShoppingBag, 
+  MessageCircle,
+  ArrowRight,
+  Layout,
+  Globe,
+  Lock
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import analyticsPreview from "@/assets/analytics_dashboard_preview.png";
 
 const FeaturesSection = () => {
   return (
-    <section id="features" className="py-20 relative overflow-hidden bg-background">
-      {/* Dynamic Background */}
-      <div className="absolute inset-0 bg-mesh opacity-30" />
-      <div className="glow-orb glow-orb-primary w-[400px] h-[400px] top-40 -right-40 sm:-right-80 opacity-20" />
-      <div className="glow-orb glow-orb-gold w-[300px] h-[300px] bottom-60 -left-60 sm:-left-60 opacity-15" />
-
-      <div className="container mx-auto px-4 relative z-10">
+    <section id="features" className="py-20 lg:py-32 relative overflow-hidden bg-background">
+      <div className="container max-w-[1200px] mx-auto px-6 relative z-10">
+        
         <motion.div
-          className="text-center mb-16 sm:mb-20"
-          initial={{ opacity: 0, y: 30 }}
+          className="max-w-[800px] mb-16 lg:mb-24"
+          initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          transition={{ duration: 0.5 }}
         >
-          <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs sm:text-sm font-black text-primary uppercase tracking-[0.3em] mb-6">
-            Everything Unlimited 🔥
+          <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-[11px] font-semibold tracking-wider text-primary uppercase mb-6">
+            Everything Unlocked
           </span>
-          <h2 className="text-[2.75rem] leading-[1.05] sm:text-6xl lg:text-8xl font-heading font-black mb-6 px-4 tracking-tighter">
-            The full toolkit.<br />
-            <span className="text-gradient">Zero paywalls.</span>
+          <h2 className="text-[32px] sm:text-[40px] font-semibold text-foreground mb-6 tracking-tight leading-tight">
+            The full stack. <span className="text-secondary italic">Zero paywalls.</span>
           </h2>
-          <p className="text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto px-6 font-medium leading-relaxed">
-            Stop paying $15/mo for basic features. We give you
-            everything Linktree Pro does, but <span className="text-foreground font-bold">actually free.</span>
+          <p className="text-base sm:text-lg text-muted-foreground font-normal leading-relaxed max-w-[540px]">
+            Stop paying monthly for basic features. We provide every tool you need to scale, 
+            <span className="text-foreground font-medium underline decoration-primary/30 underline-offset-4"> entirely free.</span>
           </p>
         </motion.div>
 
-        {/* Dynamic Bento-Lite Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-7xl mx-auto">
-          {features.map((feature, i) => (
+        {/* Premium Bento Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-6">
+          
+          {/* Shop Feature - Large */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="md:col-span-6 lg:col-span-8 rounded-3xl bg-white/[0.02] border border-white/5 p-8 lg:p-12 relative overflow-hidden group min-h-[400px] flex flex-col justify-end"
+          >
+            <div className="absolute top-0 right-0 w-1/2 h-full opacity-10 group-hover:opacity-20 transition-opacity">
+              <div className="absolute inset-0 bg-primary/20 blur-[100px] rounded-full translate-x-1/2 -translate-y-1/2" />
+            </div>
+            
+            <div className="relative z-10">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
+                <ShoppingBag className="w-5 h-5 text-primary" />
+              </div>
+              <h3 className="text-2xl font-semibold text-foreground mb-4 tracking-tight">Built-in Storefront</h3>
+              <p className="text-[15px] text-muted-foreground font-normal leading-relaxed max-w-[340px]">
+                Sell physical goods or digital downloads without ever leaving your bio link. Zero transaction fees from our end.
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Analytics - Medium */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="md:col-span-6 lg:col-span-4 rounded-3xl bg-white/[0.02] border border-white/5 p-8 relative overflow-hidden group min-h-[400px] flex flex-col"
+          >
+            <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center mb-6">
+              <BarChart3 className="w-5 h-5 text-secondary" />
+            </div>
+            <h3 className="text-xl font-semibold text-foreground mb-4 tracking-tight">Real-time Analytics</h3>
+            <p className="text-[14px] text-muted-foreground font-normal leading-relaxed mb-8">
+              Know exactly where your audience is coming from and what content converts.
+            </p>
+            <div className="mt-auto relative rounded-2xl overflow-hidden border border-white/5 grayscale group-hover:grayscale-0 transition-all duration-700">
+               <img src={analyticsPreview} alt="analytics" className="w-full h-auto" />
+            </div>
+          </motion.div>
+
+          {/* Small Features Row */}
+          {[
+            { icon: Palette, title: "Pro Themes", desc: "60+ designer styles ready to go.", color: "text-orange-400", bg: "bg-orange-400/10" },
+            { icon: Sparkles, title: "AI Writer", desc: "Instant high-converting bios.", color: "text-purple-400", bg: "bg-purple-400/10" },
+            { icon: Globe, title: "Custom Domains", desc: "Connect your own .com easily.", color: "text-emerald-400", bg: "bg-emerald-400/10" }
+          ].map((feat, idx) => (
             <motion.div
-              key={feature.title}
-              className="group relative p-8 rounded-[2rem] glass card-hover overflow-hidden border border-white/5 hover:border-primary/40 flex flex-col items-center text-center sm:items-start sm:text-left"
-              initial={{ opacity: 0, y: 30 }}
+              key={feat.title}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.05 }}
+              transition={{ delay: 0.2 + idx * 0.1 }}
+              className="md:col-span-2 lg:col-span-4 rounded-3xl bg-white/[0.02] border border-white/5 p-8 group hover:border-white/10 transition-colors"
             >
-              {/* Inner Glow Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-
-              <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 shadow-[0_0_20px_rgba(var(--primary),0.1)]">
-                <feature.icon className="w-7 h-7 text-primary" />
+              <div className={`w-10 h-10 rounded-xl ${feat.bg} flex items-center justify-center mb-6`}>
+                <feat.icon className={`w-5 h-5 ${feat.color}`} />
               </div>
-              <h3 className="relative text-xl sm:text-2xl font-heading font-black mb-3 text-foreground tracking-tight group-hover:text-primary transition-colors duration-300">
-                {feature.title}
-              </h3>
-              <p className="relative text-sm sm:text-base text-muted-foreground leading-relaxed font-medium">
-                {feature.description}
-              </p>
+              <h3 className="text-lg font-semibold text-foreground mb-2 tracking-tight">{feat.title}</h3>
+              <p className="text-[14px] text-muted-foreground font-normal leading-relaxed">{feat.desc}</p>
             </motion.div>
           ))}
-        </div>
 
-        {/* Analytics Showcase - High Impact */}
-        <motion.div
-          className="mt-20 sm:mt-24 max-w-6xl mx-auto"
-          initial={{ opacity: 0, y: 60 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.9, ease: "easeOut" }}
-        >
-          <div className="relative rounded-[2.5rem] sm:rounded-[4rem] overflow-hidden glass border border-white/10 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.5)] group">
-            <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-primary/10 via-transparent to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-            <div className="p-8 sm:p-16 flex flex-col lg:flex-row items-center gap-12">
-              <div className="lg:w-1/2 text-center lg:text-left">
-                <span className="text-xs sm:text-sm font-black text-accent uppercase tracking-[0.3em] mb-4 block">Big Brain Mode 🧠</span>
-                <h3 className="text-[2rem] sm:text-5xl lg:text-6xl font-heading font-black text-foreground mb-6 leading-[1.05] tracking-tight">
-                  Analytics that <span className="text-gradient">hit different.</span>
-                </h3>
-                <p className="text-base sm:text-lg text-muted-foreground font-medium mb-8 leading-relaxed px-4 lg:px-0">
-                  See where your traffic hits, which links are 🔥, and where you're losing views. Real-time data, not delayed reports.
-                </p>
-                <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
-                  {["Live Tracking", "Referral Source", "Click Maps"].map(tag => (
-                    <span key={tag} className="px-4 py-2 rounded-xl glass-strong text-xs sm:text-sm font-bold border border-white/10">{tag}</span>
-                  ))}
-                </div>
-              </div>
-              <div className="lg:w-1/2 relative group-hover:scale-[1.03] transition-transform duration-1000 ease-out">
-                <div className="absolute -inset-10 bg-primary/20 rounded-full blur-[80px] opacity-40 group-hover:opacity-60 transition-opacity" />
-                <img
-                  src={analyticsPreview}
-                  alt="Analytics dashboard"
-                  className="relative rounded-2xl sm:rounded-3xl shadow-2xl border border-white/5"
-                  loading="lazy"
-                />
-              </div>
+          {/* Final Large Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.5 }}
+            className="md:col-span-6 lg:col-span-12 rounded-3xl bg-[linear-gradient(135deg,rgba(250,168,25,0.05),rgba(0,121,255,0.02))] border border-white/5 p-8 lg:p-12 flex flex-col md:flex-row items-center justify-between gap-12"
+          >
+            <div className="max-w-[440px]">
+              <h3 className="text-2xl font-semibold text-foreground mb-4 tracking-tight">Unlimited Everything</h3>
+              <p className="text-[15px] text-muted-foreground font-normal leading-relaxed mb-6">
+                Links, themes, analytics, inventory. We don't believe in limits—your growth shouldn't have a price tag.
+              </p>
+              <Button variant="link" className="p-0 h-auto text-primary text-[13px] font-semibold gap-2 hover:gap-3 transition-all">
+                Claim your free link <ArrowRight className="w-4 h-4" />
+              </Button>
             </div>
-          </div>
-        </motion.div>
+            
+            <div className="flex items-center gap-4">
+              {[Link2, Zap, ShieldCheck, Lock].map((Icon, i) => (
+                <div key={i} className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center shadow-xl">
+                  <Icon className="w-6 h-6 lg:w-8 lg:h-8 text-primary/40" />
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+        </div>
       </div>
     </section>
   );

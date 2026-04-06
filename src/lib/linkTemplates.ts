@@ -1,4 +1,4 @@
-import type { SocialPlatform } from "@/stores/linksStore";
+import { type SocialPlatform } from "@/types/links";
 
 export type LinkTemplate = {
   id: string;

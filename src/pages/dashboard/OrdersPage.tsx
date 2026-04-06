@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Package, Trash2, Mail, Phone, Clock, Loader2, Hash, Palette } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface Order {
   id: string;
@@ -101,23 +102,30 @@ const OrdersPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 mt-4">
         <div>
-          <h1 className="text-2xl font-heading font-bold text-foreground">Orders</h1>
-          <p className="text-muted-foreground text-sm mt-1">Manage incoming catalog orders</p>
+          <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-600 mb-2">Fulfillment Center</h4>
+          <h1 className="text-3xl md:text-5xl font-black tracking-tight flex items-baseline gap-3">
+            Order <span className="font-script text-primary text-2xl lowercase opacity-80">flow</span>
+          </h1>
         </div>
-        <Select value={filter} onValueChange={setFilter}>
-          <SelectTrigger className="w-36">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All ({orders.length})</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="confirmed">Confirmed</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="cancelled">Cancelled</SelectItem>
-          </SelectContent>
-        </Select>
+        
+        <div className="flex items-center gap-2 bg-black/5 w-fit p-1.5 rounded-full overflow-x-auto no-scrollbar scrollbar-hide">
+          {["all", "pending", "confirmed", "completed", "cancelled"].map((s) => (
+             <Button
+                key={s}
+                variant={filter === s ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setFilter(s)}
+                className={cn(
+                  "rounded-full text-[11px] font-black uppercase tracking-widest h-9 px-5 transition-all",
+                  filter === s ? "bg-white text-primary shadow-md" : "text-black/40 hover:text-black/60"
+                )}
+             >
+                {s} {s === "all" ? `(${orders.length})` : ""}
+             </Button>
+          ))}
+        </div>
       </div>
 
       {filtered.length === 0 ? (
@@ -126,9 +134,10 @@ const OrdersPage = () => {
           <p className="text-muted-foreground">No orders {filter !== "all" ? `with status "${filter}"` : "yet"}</p>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {filtered.map((order) => (
-            <Card key={order.id} className="p-4">
+            <Card key={order.id} className="p-5 bg-background border-black/5 shadow-xl shadow-black/[0.01] hover:border-emerald-500/30 transition-all duration-500 rounded-[28px] overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0 space-y-2">
                   <div className="flex items-center gap-2 flex-wrap">

@@ -19,36 +19,26 @@ import {
 } from "@/components/ui/select";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useAppearanceStore, type AppearanceSettings } from "@/stores/appearanceStore";
-import { useLinksStore } from "@/stores/linksStore";
+import { useLinks, useLinkMutations } from "@/hooks/useLinksApi";
 import { useAuthStore } from "@/stores/authStore";
 import { usePlatformStore } from "@/stores/platformStore";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
-  Check,
-  ArrowRight,
   Edit3,
   X,
-  Plus,
-  Trash2,
-  Sparkles,
-  Upload,
   Loader2,
   Search,
   Eye,
-  ImageIcon,
   Heart,
-  Expand,
-  Wand2,
   Palette,
-  Link2,
-  Type,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import ProfilePreview from "./ProfilePreview";
+import { type SocialPlatform } from "@/types/links";
 
-const FAVORITES_KEY = "linkvertex_template_favorites";
+const FAVORITES_KEY = "BIOTRA_template_favorites";
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 const useFavorites = () => {
@@ -134,6 +124,7 @@ const categoryPreviewImages: Record<string, string[]> = {
 };
 
 const getTemplatePreviewImage = (template: NicheTemplate, idx: number) => {
+  if (template.theme.backgroundImage) return template.theme.backgroundImage;
   const categoryImages = categoryPreviewImages[template.category];
   if (categoryImages?.length) return categoryImages[idx % categoryImages.length];
   return `https://picsum.photos/seed/${encodeURIComponent(template.id)}/1200/1600`;
@@ -141,51 +132,51 @@ const getTemplatePreviewImage = (template: NicheTemplate, idx: number) => {
 
 const CARD_VARIANTS = [
   {
-    shell: "rounded-[2.5rem]",
-    previewHeight: "h-[14rem]",
-    phone: "right-3 bottom-3 w-[52%] h-[88%] rounded-[1.4rem]",
-    overlay: "bg-black/25 group-hover:bg-black/10",
-    tag: "bg-fuchsia-500/15 text-fuchsia-200 border-fuchsia-300/30",
+    shell: "rounded-xl",
+    previewHeight: "h-[10rem]",
+    phone: "right-2.5 bottom-2 w-[50%] h-[85%] rounded-[1rem]",
+    overlay: "bg-black/20 group-hover:bg-black/8",
+    tag: "bg-fuchsia-500/10 text-fuchsia-200 border-fuchsia-300/20",
   },
   {
-    shell: "rounded-[2.2rem]",
-    previewHeight: "h-[15rem]",
-    phone: "left-3 bottom-3 w-[48%] h-[84%] rounded-[1.6rem]",
-    overlay: "bg-slate-900/30 group-hover:bg-slate-900/15",
-    tag: "bg-cyan-500/15 text-cyan-200 border-cyan-300/30",
+    shell: "rounded-xl",
+    previewHeight: "h-[11rem]",
+    phone: "left-2.5 bottom-2 w-[45%] h-[80%] rounded-[1.2rem]",
+    overlay: "bg-slate-900/25 group-hover:bg-slate-900/12",
+    tag: "bg-cyan-500/10 text-cyan-200 border-cyan-300/20",
   },
   {
-    shell: "rounded-[2.8rem]",
-    previewHeight: "h-[13rem]",
-    phone: "right-6 bottom-2 w-[46%] h-[90%] rounded-[1.8rem]",
-    overlay: "bg-amber-900/20 group-hover:bg-amber-900/10",
-    tag: "bg-amber-500/15 text-amber-100 border-amber-300/35",
+    shell: "rounded-xl",
+    previewHeight: "h-[9rem]",
+    phone: "right-5 bottom-1.5 w-[42%] h-[88%] rounded-[1.4rem]",
+    overlay: "bg-amber-900/15 group-hover:bg-amber-900/8",
+    tag: "bg-amber-500/10 text-amber-100 border-amber-300/25",
   },
   {
-    shell: "rounded-[2.3rem]",
-    previewHeight: "h-[14.5rem]",
-    phone: "right-2 bottom-4 w-[50%] h-[82%] rounded-[1.3rem]",
-    overlay: "bg-indigo-900/25 group-hover:bg-indigo-900/10",
-    tag: "bg-indigo-500/15 text-indigo-100 border-indigo-300/35",
+    shell: "rounded-xl",
+    previewHeight: "h-[10.5rem]",
+    phone: "right-1.5 bottom-3 w-[48%] h-[78%] rounded-[1rem]",
+    overlay: "bg-indigo-900/20 group-hover:bg-indigo-1000/8",
+    tag: "bg-indigo-500/10 text-indigo-100 border-indigo-300/25",
   },
 ];
 
 const getCardVariant = (idx: number) => CARD_VARIANTS[idx % CARD_VARIANTS.length];
 const NicheTemplates = () => {
-  const { settings, updateSettings } = useAppearanceStore();
-  const { addLink } = useLinksStore();
   const { updateProfile, user } = useAuthStore();
+  const { settings, updateSettings } = useAppearanceStore();
+  const { data: links = [] } = useLinks(user?.user_id);
+  const { addLink } = useLinkMutations(user?.user_id);
   const platformSettings = usePlatformStore((s) => s.settings);
   const platformInitialized = usePlatformStore((s) => s.initialized);
   const fetchPlatformSettings = usePlatformStore((s) => s.fetchSettings);
-  const links = useLinksStore((s) => s.links);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showFavorites, setShowFavorites] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [editingTemplate, setEditingTemplate] = useState<string | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<NicheTemplate | null>(null);
   const [customBio, setCustomBio] = useState("");
-  const [customLinks, setCustomLinks] = useState<{ title: string; url: string }[]>([]);
+  const [customLinks, setCustomLinks] = useState<{ title: string; url: string; icon?: string }[]>([]);
   const [generatingBg, setGeneratingBg] = useState(false);
   const [generatingAvatar, setGeneratingAvatar] = useState(false);
   const [bgPrompt, setBgPrompt] = useState("");
@@ -288,6 +279,10 @@ const NicheTemplates = () => {
   };
 
   const handleAIGenerate = async (type: "bg" | "avatar") => {
+    if (!user) {
+      toast.error("Please log in to use AI generation");
+      return;
+    }
     const prompt = type === "bg" ? bgPrompt : avatarPrompt;
     if (!prompt.trim()) return;
     if (type === "bg") setGeneratingBg(true);
@@ -312,7 +307,8 @@ const NicheTemplates = () => {
         setAvatarPrompt("");
       }
       toast.success(`AI ${type} generated!`);
-    } catch {
+    } catch (err) {
+      console.error(err);
       toast.error("AI failed");
     } finally {
       if (type === "bg") setGeneratingBg(false);
@@ -323,7 +319,9 @@ const NicheTemplates = () => {
   const applyTemplate = async (template: NicheTemplate, isEdited = false) => {
     setApplying(template.id);
     try {
-      const bgImage = isEdited && customBgUrl ? customBgUrl : template.theme.backgroundImage;
+      const idx = displayTemplates.findIndex((t) => t.id === template.id);
+      const galleryFallback = getTemplatePreviewImage(template, idx !== -1 ? idx : 0);
+      const bgImage = isEdited && customBgUrl ? customBgUrl : (template.theme.backgroundImage || galleryFallback);
       
       // Update Appearance
       await updateSettings({
@@ -340,7 +338,9 @@ const NicheTemplates = () => {
         backgroundOverlay: template.theme.backgroundOverlay || null,
         fontFamily: template.theme.fontFamily || "Inter",
         animatedGradient: template.theme.animatedGradient || null,
-        animationClass: template.theme.animationClass || null
+        animationClass: template.theme.animationClass || null,
+        layoutType: template.theme.layoutMode || "list",
+        cardStyle: template.theme.cardStyle || "classic"
       });
 
       // Update Profile Info
@@ -350,11 +350,27 @@ const NicheTemplates = () => {
 
       // Add Links (Template links act as a starting point)
       const linksToAdd = isEdited ? customLinks : template.defaultLinks;
-      const filteredLinks = linksToAdd.filter((l) => l.title && l.url);
       
       // We process links sequentially to avoid store conflicts
-      for (const link of filteredLinks) {
-        await addLink(link.title, link.url);
+      // Clear existing links to avoid duplicates, or filter them
+      const existingLinks = links; // Use destructured 'links'
+      const templateLinksToAdd = linksToAdd.filter(tl => 
+        !existingLinks.some(el => el.url === tl.url && el.title === tl.title)
+      );
+
+      for (const link of templateLinksToAdd) {
+        try {
+          // Map icon to platform, handling special layout tags like video/article
+          let platform: string = (link as { icon?: string }).icon || "website";
+          if (platform === "video" || platform === "article") {
+            platform = `website|${platform}`;
+          }
+          
+          await addLink.mutateAsync({ title: link.title, url: link.url, platform: platform as SocialPlatform }); 
+        } catch (linkError) {
+          console.warn(`Template link [${link.title}] could not be added:`, linkError);
+          // Non-blocking: ensure the main theme application completes
+        }
       }
 
       toast.success(`${template.name} applied successfully! 🎉`);
@@ -368,43 +384,38 @@ const NicheTemplates = () => {
     }
   };
 
-  const getPreviewSettings = (template: NicheTemplate): AppearanceSettings => ({
-    themeId: template.id,
-    backgroundColor: template.theme.backgroundColor,
-    cardColor: template.theme.cardColor,
-    textColor: template.theme.textColor,
-    buttonBg: template.theme.buttonBg,
-    buttonText: template.theme.buttonText,
-    buttonStyle: template.theme.buttonStyle,
-    gradientFrom: template.theme.gradientFrom,
-    gradientTo: template.theme.gradientTo,
-    backgroundImage: template.theme.backgroundImage,
-    backgroundOverlay: template.theme.backgroundOverlay,
-    fontFamily: template.theme.fontFamily ?? "Inter",
-    animatedGradient: template.theme.animatedGradient,
-    animationClass: template.theme.animationClass,
-    showAvatar: true,
-  });
+  const getPreviewSettings = (template: NicheTemplate): AppearanceSettings => {
+    const idx = displayTemplates.findIndex((t) => t.id === template.id);
+    const galleryFallback = getTemplatePreviewImage(template, idx !== -1 ? idx : 0);
+
+    return {
+      themeId: template.id,
+      backgroundColor: template.theme.backgroundColor,
+      cardColor: template.theme.cardColor,
+      textColor: template.theme.textColor,
+      buttonBg: template.theme.buttonBg,
+      buttonText: template.theme.buttonText,
+      buttonStyle: template.theme.buttonStyle,
+      gradientFrom: template.theme.gradientFrom,
+      gradientTo: template.theme.gradientTo,
+      backgroundImage: template.theme.backgroundImage || galleryFallback,
+      backgroundOverlay: template.theme.backgroundOverlay,
+      fontFamily: template.theme.fontFamily ?? "Inter",
+      animatedGradient: template.theme.animatedGradient,
+      animationClass: template.theme.animationClass,
+      heroImage: template.theme.heroImage,
+      showAvatar: true,
+      shopTabLabel: "Shop",
+      linksTabLabel: "Links",
+      layoutType: template.theme.layoutMode || "list",
+      cardStyle: template.theme.cardStyle || "classic"
+    };
+  };
 
   const previewLinks = links.filter((l) => l.enabled).slice(0, 4).map((l) => ({ id: l.id, title: l.title, platform: l.platform }));
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-primary/5 border border-primary/10 p-6">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary/40 blur-[20px] animate-blob-slow" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-purple-500/40 blur-[25px] animate-blob-slow [animation-delay:-5s]" />
-        <div className="absolute top-[30%] left-[20%] w-[40%] h-[40%] rounded-full bg-blue-500/30 blur-[22px] animate-blob-slow [animation-delay:-10s]" />
-        <div className="absolute bottom-[20%] right-[30%] w-[45%] h-[45%] rounded-full bg-pink-500/35 blur-[22px] animate-blob-slow [animation-delay:-15s]" />
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-1.5">
-            <Palette className="w-5 h-5 text-primary" />
-            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-primary">Template Gallery</h2>
-          </div>
-          <p className="text-xs text-muted-foreground font-medium">World-top designs for your digital identity.</p>
-        </div>
-      </div>
-
+    <div className="space-y-6 pt-2">
       {/* Filters - Added Dropdown for easier selection as requested */}
       <div className="sticky top-0 z-30 space-y-4 py-4 bg-background/80 backdrop-blur-md border-b border-border/10">
         <div className="flex flex-col sm:flex-row gap-4 items-end sm:items-center">
@@ -538,7 +549,11 @@ const NicheTemplates = () => {
                       <ProfilePreview
                         settings={getPreviewSettings(template)}
                         user={user}
-                        links={template.defaultLinks.map((l, i) => ({ id: `demo-${i}`, title: l.title, platform: 'website' }))}
+                        links={template.defaultLinks.map((l, i) => {
+                          let platform = l.icon || "website";
+                          if (platform === "video" || platform === "article") platform = `website|${platform}`;
+                          return { id: `demo-${i}`, title: l.title, platform };
+                        })}
                         showSocialIcons={false}
                         compact={false}
                         noFrame={true}
@@ -548,14 +563,14 @@ const NicheTemplates = () => {
                 </div>
 
                 {/* Info Area */}
-                <div className="p-5 space-y-3">
+                <div className="p-4 space-y-2.5">
                   <div className="flex justify-between items-start gap-4">
-                    <div className="space-y-1">
-                      <h3 className="font-bold text-sm tracking-tight text-foreground">{template.name}</h3>
-                      <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">{template.category}</p>
+                    <div className="space-y-0.5">
+                      <h3 className="font-bold text-[13px] tracking-tight text-foreground">{template.name}</h3>
+                      <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest">{template.category}</p>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => startEditing(template)} className="h-8 w-8 rounded-full border border-border/50 hover:bg-primary/10">
-                      <Edit3 className="w-4 h-4" />
+                    <Button variant="ghost" size="icon" onClick={() => startEditing(template)} className="h-7 w-7 rounded-lg border border-border/50 hover:bg-primary/10">
+                      <Edit3 className="w-3.5 h-3.5" />
                     </Button>
                   </div>
 
@@ -564,20 +579,20 @@ const NicheTemplates = () => {
                       disabled={!!applying}
                       onClick={() => applyTemplate(template)} 
                       className={cn(
-                        "flex-1 h-11 rounded-xl text-[11px] font-bold uppercase tracking-wider shadow-lg transition-all", 
-                        isSelected ? "bg-emerald-500 hover:bg-emerald-600 text-white" : "bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20"
+                        "flex-1 h-9 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-md transition-all", 
+                        isSelected ? "bg-emerald-500 hover:bg-emerald-600 text-white" : "bg-orange-500 hover:bg-orange-600 text-white"
                       )}
                     >
                       {applying === template.id ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : isSelected ? (
-                        "Applied"
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                       ) : isSelected ? (
+                        "Live"
                       ) : (
-                        "Apply Layout"
+                        "Apply"
                       )}
                     </Button>
-                    <Button variant="secondary" size="icon" onClick={() => setPreviewTemplate(template)} className="h-11 w-11 rounded-xl bg-secondary/50 hover:bg-secondary border border-border/40">
-                      <Eye className="w-4 h-4" />
+                    <Button variant="secondary" size="icon" onClick={() => setPreviewTemplate(template)} className="h-9 w-9 rounded-lg bg-secondary/50 hover:bg-secondary border border-border/40">
+                      <Eye className="w-3.5 h-3.5" />
                     </Button>
                   </div>
                 </div>

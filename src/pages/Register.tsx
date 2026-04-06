@@ -8,6 +8,7 @@ import {
   EyeOff,
   ArrowRight,
   Sparkles,
+  Zap
 } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { toast } from "sonner";
@@ -45,115 +46,148 @@ const Register = () => {
     setLoading(false);
 
     if (result.success) {
-      toast.success("Account created! Welcome to LinkVertex.");
-      navigate("/dashboard");
+      toast.success("Account created! Welcome to BIOTRA.");
+      navigate("/welcome");
     } else {
       toast.error(result.error || "Registration failed");
     }
   };
 
   return (
-    <div className="min-h-screen lg:h-screen lg:overflow-hidden grid lg:grid-cols-2 bg-background">
-      <div className="relative hidden lg:flex overflow-hidden bg-gradient-to-br from-orange-500 via-primary to-amber-500 p-10 items-center">
-        <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_20%_20%,#ffffff_0%,transparent_42%),radial-gradient(circle_at_86%_80%,#fef08a_0%,transparent_38%)]" />
+    <div className="min-h-screen grid lg:grid-cols-2 bg-[#040406] text-white selection:bg-primary/30 selection:text-white">
+      {/* Left panel - PREMIUM DARK AESTHETIC */}
+      <div className="relative hidden lg:flex overflow-hidden bg-black/40 p-16 items-center">
+        <style>{`
+          .gradient-glow-1 { background: radial-gradient(circle, #f25f30 0%, transparent 70%); }
+          .gradient-glow-2 { background: radial-gradient(circle, #0079FF 0%, transparent 70%); }
+          .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        `}</style>
+        
+        <div className="absolute -top-[10%] -right-[10%] w-[80%] h-[80%] gradient-glow-1 opacity-20 blur-[120px] pointer-events-none" />
+        <div className="absolute -bottom-[10%] -left-[10%] w-[60%] h-[60%] gradient-glow-2 opacity-15 blur-[100px] pointer-events-none" />
+        <div className="absolute inset-0 grid-pattern opacity-5 pointer-events-none" />
 
         <motion.div
-          initial={reduceMotion ? false : { opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55 }}
-          className="relative z-10 w-full max-w-xl text-primary-foreground"
+          initial={reduceMotion ? false : { opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="relative z-10 w-full max-w-xl"
         >
-          <Link to="/" className="inline-flex items-center gap-2 mb-5 rounded-full border border-white/30 px-4 py-2 text-sm font-semibold backdrop-blur-md">
-            <Sparkles className="w-4 h-4" />
-            LinkVertex
+          <Link
+            to="/"
+            className="inline-flex items-center gap-3 mb-10 group"
+          >
+            <div className="w-10 h-10 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-2xl shadow-primary/5 group-hover:scale-110 transition-transform duration-500">
+               <Sparkles className="w-6 h-6 text-primary" />
+            </div>
+            <span className="text-2xl font-black tracking-tighter text-foreground leading-none">
+               BIOTRA
+            </span>
           </Link>
 
-          <h2 className="text-4xl font-heading font-semibold leading-tight mb-4">
-            Start sharing in minutes.
+          <h2 className="text-[56px] font-black leading-[0.9] mb-6 tracking-tighter">
+            Join the <br /> 
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary italic">high-performance</span>
+            <br /> movement.
           </h2>
-          <p className="text-primary-foreground/85 text-lg max-w-md">
-            Build your page, add links, sell products, and turn attention into action.
+          <p className="text-muted-foreground text-lg mb-12 max-w-md font-medium leading-relaxed">
+            The platform built for creators who demand more from their digital real estate. Simple setup, limitless scale.
           </p>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="rounded-[32px] glass-card p-6 group hover:border-primary/30 transition-all duration-500">
+              <Sparkles className="w-6 h-6 mb-3 text-primary" />
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-30 mb-1">Impact</p>
+              <p className="text-[15px] font-black text-foreground">Premium Design</p>
+            </div>
+            <div className="rounded-[32px] glass-card p-6 group hover:border-blue-500/30 transition-all duration-500">
+              <Zap className="w-6 h-6 mb-3 text-blue-500" />
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-30 mb-1">Speed</p>
+              <p className="text-[15px] font-black text-foreground">Instant Sync</p>
+            </div>
+          </div>
         </motion.div>
       </div>
 
-      <div className="relative flex items-center justify-center p-5 sm:p-8 lg:p-8 bg-[radial-gradient(circle_at_10%_20%,hsl(var(--primary)/0.08),transparent_35%),radial-gradient(circle_at_90%_80%,hsl(var(--accent)/0.12),transparent_40%)]">
+      {/* Right panel - form */}
+      <div className="flex items-center justify-center p-8 sm:p-20 relative overflow-hidden bg-[#040406]">
+        <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] gradient-glow-2 opacity-[0.05] pointer-events-none" />
         <motion.div
-          initial={reduceMotion ? false : { opacity: 0, x: 18 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.45, delay: 0.08 }}
-          className="w-full max-w-sm space-y-5"
+          initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full max-w-sm space-y-8 relative z-10"
         >
-          <div className="lg:hidden mb-2">
-            <Link to="/" className="inline-flex items-center gap-2 text-foreground">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-xl font-heading font-bold">LinkVertex</span>
+          <div className="lg:hidden mb-8">
+            <Link to="/" className="inline-flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center">
+                 <Sparkles className="w-6 h-6 text-primary" />
+              </div>
+              <span className="text-2xl font-black tracking-tighter">BIOTRA</span>
             </Link>
           </div>
 
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-heading font-semibold text-foreground">Create your account</h1>
-            <p className="text-muted-foreground mt-1 text-sm">Get started for free, no credit card required</p>
+          <div className="space-y-2">
+            <h1 className="text-[40px] font-black tracking-tighter text-foreground leading-none">Apply for access</h1>
+            <p className="text-muted-foreground font-medium text-[15px]">Create your hub in less than 60 seconds.</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-3.5">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full name</Label>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="name" className="text-[11px] font-black uppercase tracking-widest text-muted-foreground/60 ml-0.5">Creator Identity</Label>
               <Input
                 id="name"
                 type="text"
-                placeholder="Your name"
+                placeholder="Alex Biotra"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="h-12 transition-all duration-200 focus-visible:ring-primary/50"
+                className="h-14 rounded-2xl bg-white/[0.03] border-white/10 px-5 text-sm font-semibold transition-all duration-300 focus:bg-white/[0.05] focus:border-primary/40 focus:ring-0"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-[11px] font-black uppercase tracking-widest text-muted-foreground/60 ml-0.5">Email Hub</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="alex@vertex.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="h-12 transition-all duration-200 focus-visible:ring-primary/50"
+                className="h-14 rounded-2xl bg-white/[0.03] border-white/10 px-5 text-sm font-semibold transition-all duration-300 focus:bg-white/[0.05] focus:border-primary/40 focus:ring-0"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="password" className="text-[11px] font-black uppercase tracking-widest text-muted-foreground/60 ml-0.5">Secure Key</Label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="........"
+                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="h-12 pr-10 transition-all duration-200 focus-visible:ring-primary/50"
+                  className="h-14 rounded-2xl bg-white/[0.03] border-white/10 px-5 text-sm font-semibold transition-all duration-300 focus:bg-white/[0.05] focus:border-primary/40 focus:ring-0"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-5 top-1/2 -translate-y-1/2 text-muted-foreground/40 hover:text-foreground transition-colors"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-              <p className="text-xs text-muted-foreground">Must be at least 6 characters</p>
             </div>
-            <Button type="submit" className="w-full h-11 text-base" disabled={loading}>
-              {loading ? "Creating account..." : "Create account"}
-              {!loading && <ArrowRight className="w-4 h-4 ml-2" />}
+            <Button type="submit" className="w-full h-14 text-base font-black rounded-2xl bg-primary text-white shadow-2xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all mt-4" disabled={loading}>
+              {loading ? "Provisioning..." : "Initialize Hub"}
+              {!loading && <ArrowRight className="w-5 h-5 ml-2" />}
             </Button>
           </form>
 
-          <p className="text-center text-sm text-muted-foreground">
-            Already have an account?{" "}
-            <Link to="/login" className="text-foreground font-medium hover:underline">
-              Sign in
+          <p className="text-center text-[13px] font-bold text-muted-foreground pt-4">
+            Already a member?{" "}
+            <Link to="/login" className="text-primary hover:text-primary/80 underline underline-offset-4 decoration-2 decoration-primary/20">
+              Enter terminal
             </Link>
           </p>
         </motion.div>

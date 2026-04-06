@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuthStore } from "@/stores/authStore";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import {
   Shield, Users, Eye, MousePointerClick, ShoppingBag, MessageCircle,
   Ban, Trash2, UserCheck, Search, TrendingUp, Activity, Package,
@@ -15,6 +17,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { format, subDays, startOfDay, formatDistanceToNow } from "date-fns";
+import type { Tables } from "@/integrations/supabase/types";
 
 interface UserRow {
   id: string;
@@ -55,6 +58,19 @@ interface TemplateUsage {
   count: number;
 }
 
+type ProfileSummaryRow = Pick<
+  Tables<"profiles">,
+  "id" | "user_id" | "name" | "email" | "username" | "role" | "status" | "created_at" | "last_login_at"
+>;
+type ActivityLogRow = Pick<Tables<"user_activity_logs">, "id" | "user_id" | "action" | "details" | "created_at">;
+type ThemeIdRow = Pick<Tables<"appearance_settings">, "theme_id">;
+type RecentOrder = Tables<"catalog_orders"> & {
+  catalog_items?: { title?: string | null; price?: number | null } | null;
+  total_amount?: number | null;
+  amount?: number | null;
+  price?: number | null;
+};
+
 const AdminPage = () => {
   const user = useAuthStore((s) => s.user);
   const navigate = useNavigate();
@@ -70,7 +86,7 @@ const AdminPage = () => {
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
   const [templateUsage, setTemplateUsage] = useState<TemplateUsage[]>([]);
-  const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
 
   useEffect(() => {
     if (user?.role === "superadmin") fetchAll();
@@ -79,7 +95,7 @@ const AdminPage = () => {
   const fetchAll = async () => {
     setLoading(true);
     const [usersRes, viewsRes, linksRes, ordersRes, msgsRes, catalogRes, analyticsRes, viewsFullRes, ordersFullRes, logsRes, appearanceRes, recentOrdersRes] = await Promise.all([
-      (supabase.from("profiles") as any).select("id, user_id, name, email, username, role, status, created_at, last_login_at"),
+      supabase.from("profiles").select("id, user_id, name, email, username, role, status, created_at, last_login_at"),
       supabase.from("profile_views").select("id", { count: "exact", head: true }),
       supabase.from("links").select("clicks"),
       supabase.from("catalog_orders").select("id", { count: "exact", head: true }),
@@ -88,18 +104,18 @@ const AdminPage = () => {
       supabase.from("catalog_analytics").select("event_type"),
       supabase.from("profile_views").select("created_at"),
       supabase.from("catalog_orders").select("created_at"),
-      (supabase.from("user_activity_logs") as any).select("id, user_id, action, details, created_at").order("created_at", { ascending: false }).limit(50),
+      supabase.from("user_activity_logs").select("id, user_id, action, details, created_at").order("created_at", { ascending: false }).limit(50),
       supabase.from("appearance_settings").select("theme_id"),
       supabase.from("catalog_orders").select("*, catalog_items(title)").order("created_at", { ascending: false }).limit(10),
     ]);
 
-    if (usersRes.data) setUsers(usersRes.data as UserRow[]);
-    if (logsRes.data) setActivityLogs(logsRes.data as ActivityLog[]);
-    if (recentOrdersRes.data) setRecentOrders(recentOrdersRes.data);
+    if (usersRes.data) setUsers(usersRes.data as ProfileSummaryRow[]);
+    if (logsRes.data) setActivityLogs(logsRes.data as ActivityLogRow[]);
+    if (recentOrdersRes.data) setRecentOrders(recentOrdersRes.data as RecentOrder[]);
 
     // Calculate template usage
     const themeCounts: Record<string, number> = {};
-    (appearanceRes.data || []).forEach((row: any) => {
+    (appearanceRes.data || []).forEach((row: ThemeIdRow) => {
       const tid = row.theme_id || "default";
       themeCounts[tid] = (themeCounts[tid] || 0) + 1;
     });
@@ -108,9 +124,9 @@ const AdminPage = () => {
       .sort((a, b) => b.count - a.count);
     setTemplateUsage(sortedUsage);
 
-    const totalClicks = (linksRes.data || []).reduce((sum, l) => sum + ((l as { clicks: number }).clicks || 0), 0);
-    const catalogViews = (analyticsRes.data || []).filter((a) => (a as { event_type: string }).event_type === "view").length;
-    const catalogClicks = (analyticsRes.data || []).filter((a) => (a as { event_type: string }).event_type === "click").length;
+    const totalClicks = (linksRes.data || []).reduce((sum, linkRow) => sum + (linkRow.clicks || 0), 0);
+    const catalogViews = (analyticsRes.data || []).filter((eventRow) => eventRow.event_type === "view").length;
+    const catalogClicks = (analyticsRes.data || []).filter((eventRow) => eventRow.event_type === "click").length;
 
     setKpis({
       totalUsers: usersRes.data?.length || 0,
@@ -129,8 +145,8 @@ const AdminPage = () => {
       const day = startOfDay(subDays(new Date(), i));
       const dayEnd = startOfDay(subDays(new Date(), i - 1));
       const dayStr = format(day, "MMM dd");
-      const viewCount = (viewsFullRes.data || []).filter((v) => { const d = new Date((v as { created_at: string }).created_at); return d >= day && d < dayEnd; }).length;
-      const orderCount = (ordersFullRes.data || []).filter((o) => { const d = new Date((o as { created_at: string }).created_at); return d >= day && d < dayEnd; }).length;
+      const viewCount = (viewsFullRes.data || []).filter((viewRow) => { const d = new Date(viewRow.created_at); return d >= day && d < dayEnd; }).length;
+      const orderCount = (ordersFullRes.data || []).filter((orderRow) => { const d = new Date(orderRow.created_at); return d >= day && d < dayEnd; }).length;
       points.push({ date: dayStr, views: viewCount, clicks: 0, orders: orderCount });
     }
     setChartData(points);
@@ -219,7 +235,7 @@ const AdminPage = () => {
   const selectableCount = filteredUsers.filter((u) => u.user_id !== user.user_id).length;
   const allSelected = selectableCount > 0 && selectedUsers.size === selectableCount;
 
-  const resolveOrderAmount = (order: any) => {
+  const resolveOrderAmount = (order: RecentOrder) => {
     const quantity = Number(order?.quantity ?? 1);
     const directAmount = Number(order?.total_amount ?? order?.amount ?? order?.price ?? 0);
     if (Number.isFinite(directAmount) && directAmount > 0) return directAmount;
@@ -256,194 +272,190 @@ const AdminPage = () => {
   };
 
   return (
-    <div className="space-y-8 p-4 md:p-8 max-w-[1600px] mx-auto">
-      {/* Premium Header */}
-      <div className="relative overflow-hidden rounded-[2.5rem] bg-foreground p-8 md:p-12 text-background shadow-2xl">
-        <div className="absolute top-[-20%] right-[-10%] w-96 h-96 rounded-full bg-primary/20 blur-[80px]" />
-        <div className="absolute bottom-[-20%] left-[-10%] w-80 h-80 rounded-full bg-accent/20 blur-[60px]" />
-        
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center backdrop-blur-md border border-white/10">
-                <Shield className="w-6 h-6 text-primary" />
-              </div>
-              <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tighter">Super Admin</h1>
-            </div>
-            <p className="text-sm md:text-lg opacity-60 font-medium">Platform Command Center · Monitoring {kpis.totalUsers} Active Digital Identities</p>
+    <div className="p-6 md:p-12 space-y-10 bg-[#F0F2F5] min-h-screen text-[#1D1D1F]">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap');
+        .font-script { font-family: 'Dancing Script', cursive; }
+        .gradient-blur-1 { background: radial-gradient(circle, #D1FAE5 0%, transparent 70%); }
+        .gradient-blur-2 { background: radial-gradient(circle, #DBEAFE 0%, transparent 70%); }
+      `}</style>
+      
+      {/* Background Glows */}
+      <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+         <div className="absolute top-0 right-0 w-[1000px] h-[1000px] gradient-blur-1 opacity-40 -translate-y-1/2 translate-x-1/2" />
+         <div className="absolute bottom-0 left-0 w-[800px] h-[800px] gradient-blur-2 opacity-30 translate-y-1/3 -translate-x-1/3" />
+      </div>
+
+      {/* Normalized Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-10 p-10 rounded-[40px] bg-white border border-black/5 shadow-2xl shadow-black/[0.02]">
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-black/5 bg-black/5 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600 mb-4">
+            <Shield className="w-3.5 h-3.5" />
+            Super Admin
           </div>
-          
-          <div className="flex items-center gap-4">
-            <Button onClick={fetchAll} disabled={loading} className="h-14 px-8 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/10 text-white font-bold uppercase tracking-widest text-xs backdrop-blur-md">
-              {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Activity className="w-4 h-4 mr-2" />}
-              Refresh Data
-            </Button>
-          </div>
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight flex items-baseline gap-3 text-black">
+            Global command <span className="font-script text-primary text-2xl lowercase opacity-80">center</span>
+          </h1>
+          <p className="mt-2 max-w-2xl text-[14px] font-medium text-black/50">
+            Enterprise orchestration node • <span className="text-black font-black tabular-nums">{kpis.totalUsers}</span> Active Identities
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button 
+            className="rounded-full bg-black text-white hover:bg-black/90 px-8 py-6 h-12 text-[11px] font-black uppercase tracking-widest shadow-xl transition-all hover:scale-[1.05] active:scale-95"
+            onClick={fetchAll} 
+            disabled={loading}
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Activity className="w-4 h-4 mr-2" />}
+            Refresh Node
+          </Button>
         </div>
       </div>
 
-      {/* KPI Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-        {kpiCards.map((kpi, i) => (
-          <motion.div
-            key={kpi.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
-            className="group relative rounded-[2rem] border border-border bg-card p-6 md:p-8 hover:border-primary/40 transition-all duration-500 shadow-sm hover:shadow-xl"
-          >
-            <div className={`absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity`}>
-              <kpi.icon className={`w-16 h-16 ${kpi.color}`} />
-            </div>
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-muted/50 ${kpi.color}`}>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        {kpiCards.map((kpi) => (
+          <Card key={kpi.label} className="p-8 rounded-[32px] border-black/5 bg-white relative overflow-hidden group hover:shadow-2xl hover:shadow-black/5 transition-all duration-500">
+             <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+             <div className="relative z-10">
+               <div className="flex items-center justify-between mb-6">
+                <div className={cn("p-3 rounded-2xl bg-black/5 flex items-center justify-center transition-transform duration-500 group-hover:rotate-6", kpi.color)}>
                   <kpi.icon className="w-5 h-5" />
                 </div>
               </div>
-              <p className="text-3xl md:text-4xl font-black text-foreground tracking-tighter mb-1">
-                {loading ? "—" : kpi.value.toLocaleString()}
-              </p>
-              <p className="text-[10px] md:text-xs text-muted-foreground font-black uppercase tracking-[0.2em]">{kpi.label}</p>
+              <div>
+                <p className="text-3xl font-black tracking-tighter text-black tabular-nums leading-none">
+                  {loading ? "-" : kpi.value.toLocaleString()}
+                </p>
+                <p className="text-[10px] font-black text-black/30 uppercase tracking-[0.2em] mt-3">{kpi.label}</p>
+              </div>
             </div>
-          </motion.div>
+          </Card>
         ))}
       </div>
 
-      {/* Performance Charts & Template Usage */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Chart */}
-        <div className="lg:col-span-2 rounded-[2.5rem] border border-border bg-card p-6 md:p-10 shadow-sm">
-          <div className="flex items-center justify-between mb-8">
-            <h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
-              <TrendingUp className="w-6 h-6 text-primary" /> Growth Analytics
-            </h3>
-            <div className="flex gap-4">
-              <span className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-primary" /> Views</span>
-              <span className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-accent" /> Clicks</span>
+        <Card className="lg:col-span-2 p-10 rounded-[40px] border-black/5 bg-white shadow-2xl shadow-black/[0.02]">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+            <div className="flex flex-col gap-1">
+              <h3 className="text-xl font-black flex items-center gap-3 text-black tracking-tight">
+                <TrendingUp className="w-6 h-6 text-primary" /> Growth Analytics
+              </h3>
+              <p className="text-[13px] font-medium text-black/40">Node expansion metrics across the network</p>
+            </div>
+            <div className="flex gap-6">
+              <span className="text-[10px] uppercase font-black text-black/30 tracking-[0.2em] flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-primary shadow-sm" /> Views</span>
+              <span className="text-[10px] uppercase font-black text-black/30 tracking-[0.2em] flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-accent shadow-sm" /> Clicks</span>
             </div>
           </div>
-          <div className="h-64 md:h-80">
+          <div className="h-[350px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="vG" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.15} />
                     <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                   </linearGradient>
-                  <linearGradient id="cG" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="hsl(var(--accent))" stopOpacity={0} />
-                  </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} vertical={false} />
-                <XAxis dataKey="date" tick={{ fontSize: 10, fontWeight: 700, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} dy={10} />
-                <YAxis tick={{ fontSize: 10, fontWeight: 700, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: 'hsl(var(--border))', strokeWidth: 2 }} />
-                <Area type="monotone" dataKey="views" stroke="hsl(var(--primary))" fill="url(#vG)" strokeWidth={4} />
-                <Area type="monotone" dataKey="clicks" stroke="hsl(var(--accent))" fill="url(#cG)" strokeWidth={4} />
+                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.05} vertical={false} />
+                <XAxis dataKey="date" tick={{ fontSize: 10, fontWeight: 700 }} axisLine={false} tickLine={false} dy={10} />
+                <YAxis tick={{ fontSize: 10, fontWeight: 700 }} axisLine={false} tickLine={false} dx={-10} />
+                <Tooltip contentStyle={tooltipStyle} />
+                <Area type="monotone" dataKey="views" stroke="hsl(var(--primary))" fill="url(#vG)" strokeWidth={4} animationDuration={1500} />
+                <Area type="monotone" dataKey="clicks" stroke="hsl(var(--accent))" strokeWidth={4} fillOpacity={0} animationDuration={2000} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </Card>
 
         {/* Template Popularity */}
-        <div className="rounded-[2.5rem] border border-border bg-card p-6 md:p-10 shadow-sm flex flex-col">
-          <h3 className="text-xl font-black uppercase tracking-tight mb-8 flex items-center gap-3">
-            <Palette className="w-6 h-6 text-accent" /> Popular Themes
-          </h3>
-          <div className="flex-1 space-y-4">
-            {templateUsage.slice(0, 5).map((theme, i) => (
-              <div key={theme.id} className="relative group">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-lg bg-muted flex items-center justify-center text-[10px] text-muted-foreground">{i + 1}</span>
-                    {theme.id.charAt(0).toUpperCase() + theme.id.slice(1).replace(/-/g, ' ')}
-                  </span>
-                  <span className="text-xs font-black text-primary">{theme.count} Users</span>
+        <Card className="p-10 rounded-[40px] border-black/5 bg-white shadow-2xl shadow-black/[0.02] flex flex-col">
+          <div className="flex flex-col gap-1 mb-8">
+            <h3 className="text-xl font-black mb-1 flex items-center gap-3 text-black tracking-tight">
+              <Palette className="w-6 h-6 text-accent" /> Intelligence
+            </h3>
+            <p className="text-[13px] font-medium text-black/40">Most frequent preset deployments</p>
+          </div>
+          <div className="flex-1 space-y-6">
+            {templateUsage.slice(0, 6).map((theme) => (
+              <div key={theme.id} className="space-y-3">
+                <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-[0.1em]">
+                  <span className="text-black/60">{theme.id.replace(/-/g, ' ')}</span>
+                  <span className="text-primary">{theme.count} Deployments</span>
                 </div>
-                <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
+                <div className="w-full h-2.5 bg-black/5 rounded-full overflow-hidden p-0.5">
                   <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: `${(theme.count / kpis.totalUsers) * 100}%` }}
-                    transition={{ duration: 1, delay: i * 0.1 }}
-                    className="h-full bg-gradient-to-r from-primary to-accent"
+                    animate={{ width: `${(theme.count / Math.max(...templateUsage.map(t => t.count), 1)) * 100}%` }}
+                    transition={{ duration: 1.5, ease: "easeOut" }}
+                    className="h-full bg-primary rounded-full shadow-sm"
                   />
                 </div>
               </div>
             ))}
-            {templateUsage.length === 0 && <p className="text-sm text-muted-foreground text-center py-12">No template data available</p>}
+            {templateUsage.length === 0 && <p className="text-sm text-black/40 text-center py-20 font-medium">Monitoring data pending...</p>}
           </div>
-          <Button variant="outline" className="mt-8 h-12 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border-border/50">Manage Template Library</Button>
-        </div>
+          <Button variant="ghost" size="sm" className="mt-8 w-full text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl h-11 hover:bg-black/5">See analytics matrix</Button>
+        </Card>
       </div>
 
       {/* User Management & Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-        <div className="lg:col-span-2 rounded-[2.5rem] border border-border bg-card overflow-hidden shadow-sm">
-          <div className="p-6 md:p-10 border-b border-border space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <h2 className="text-2xl font-black uppercase tracking-tight flex items-center gap-3">
-                <Users className="w-7 h-7 text-primary" /> Active Creators
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <Card className="lg:col-span-2 rounded-[40px] border-black/5 bg-white shadow-2xl shadow-black/[0.02] overflow-hidden">
+          <div className="p-10 border-b border-black/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div>
+              <h2 className="text-xl font-black flex items-center gap-3 text-black">
+                <Users className="w-6 h-6 text-primary" /> Network Identities
               </h2>
-              <div className="relative w-full sm:w-80">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input placeholder="Search creators by name or email..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-12 h-12 text-sm rounded-2xl bg-muted/30 border-none focus:ring-2 focus:ring-primary/20" />
-              </div>
+              <p className="text-[13px] font-medium text-black/40 mt-1">Manage global platform contributors</p>
             </div>
-
-            {selectedUsers.size > 0 && (
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3 p-4 rounded-2xl bg-foreground text-background">
-                <span className="text-sm font-black uppercase tracking-widest ml-2">{selectedUsers.size} Users Selected</span>
-                <div className="flex gap-2 ml-auto">
-                  <Button size="sm" className="h-10 px-4 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 font-black uppercase tracking-widest text-[10px]" onClick={() => bulkAction("freeze")}><Ban className="w-3.5 h-3.5 mr-2" /> Freeze</Button>
-                  <Button size="sm" variant="destructive" className="h-10 px-4 rounded-xl font-black uppercase tracking-widest text-[10px]" onClick={() => bulkAction("delete")}><Trash2 className="w-3.5 h-3.5 mr-2" /> Delete</Button>
-                </div>
-              </motion.div>
-            )}
+            <div className="relative w-full sm:w-80">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-black/20" />
+              <Input placeholder="Search global registry..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-11 h-12 rounded-2xl border-black/5 bg-black/[0.02] text-[13px] font-medium focus:bg-white transition-all" />
+            </div>
           </div>
 
-          <div className="overflow-x-auto no-scrollbar">
-            <table className="w-full">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
               <thead>
-                <tr className="bg-muted/30">
-                  <th className="px-6 py-4 text-left"><Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} /></th>
-                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground text-left">Creator</th>
-                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground text-left">Status</th>
-                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground text-left">Role</th>
-                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground text-right">Actions</th>
+                <tr className="bg-black/[0.01] border-b border-black/5">
+                  <th className="px-8 py-5 text-left"><Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} className="rounded-md" /></th>
+                  <th className="px-2 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-black/30 text-left">Identity</th>
+                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-black/30 text-left">Internal Status</th>
+                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-black/30 text-left">Access Role</th>
+                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-black/30 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border/50">
+              <tbody className="divide-y divide-black/5">
                 {filteredUsers.map((u) => (
-                  <tr key={u.id} className="hover:bg-muted/20 transition-colors group">
-                    <td className="px-6 py-5">
-                      {u.user_id !== user.user_id && <Checkbox checked={selectedUsers.has(u.user_id)} onCheckedChange={() => toggleSelect(u.user_id)} />}
+                  <tr key={u.id} className="hover:bg-black/[0.01] transition-colors group">
+                    <td className="px-8 py-6">
+                      {u.user_id !== user.user_id && <Checkbox checked={selectedUsers.has(u.user_id)} onCheckedChange={() => toggleSelect(u.user_id)} className="rounded-md" />}
                     </td>
-                    <td className="px-6 py-5">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center font-black text-primary text-xs border border-border/50">
+                    <td className="px-2 py-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-2xl bg-black/5 flex items-center justify-center font-black text-primary text-[11px] shadow-sm transition-transform group-hover:scale-110">
                           {u.name?.[0] || u.username?.[0] || "?"}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-bold text-foreground truncate">{u.name || "Anonymous"}</p>
-                          <p className="text-[10px] text-muted-foreground truncate">@{u.username}</p>
+                          <p className="text-[14px] font-black text-black truncate leading-tight">{u.name || "Anonymous"}</p>
+                          <p className="text-[11px] font-medium text-black/30 truncate mt-0.5">@{u.username}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-5">
-                      <Badge variant={u.status === "active" ? "outline" : "destructive"} className="text-[9px] font-black uppercase tracking-widest rounded-lg px-2.5 py-1">
-                        {u.status === "active" ? "Active" : "Frozen"}
+                    <td className="px-6 py-6 font-medium">
+                      <Badge variant={u.status === "active" ? "secondary" : "destructive"} className={cn("text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full", u.status === "active" ? "bg-emerald-500/10 text-emerald-600 border-none" : "bg-rose-500/10 text-rose-600 border-none")}>
+                        {u.status === "active" ? "Operational" : "Frozen"}
                       </Badge>
                     </td>
-                    <td className="px-6 py-5">
-                      <span className="text-[10px] font-black uppercase tracking-widest opacity-60">{u.role}</span>
+                    <td className="px-6 py-6 text-[11px] font-black uppercase tracking-[0.1em] text-black/40">
+                      {u.role}
                     </td>
-                    <td className="px-6 py-5 text-right">
-                      <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                         <Button size="icon" variant="ghost" className="h-9 w-9 rounded-xl hover:bg-primary/10 hover:text-primary transition-all" onClick={() => navigate(`/dashboard/admin/user/${u.user_id}`)}><Pencil className="w-4 h-4" /></Button>
-                         <Button size="icon" variant="ghost" className="h-9 w-9 rounded-xl hover:bg-destructive/10 hover:text-destructive" onClick={() => handleStatusChange(u.user_id, u.status === "active" ? "blocked" : "active")}><Ban className="w-4 h-4" /></Button>
-                         <Button size="icon" variant="ghost" className="h-9 w-9 rounded-xl" onClick={() => window.open(`/p/${u.username}`, "_blank")}><Globe className="w-4 h-4" /></Button>
+                    <td className="px-8 py-6 text-right">
+                      <div className="flex justify-end gap-2">
+                         <Button size="icon" variant="ghost" className="h-9 w-9 rounded-xl hover:bg-black/5" onClick={() => navigate(`/dashboard/admin/user/${u.user_id}`)}><Pencil className="w-4 h-4 opacity-40" /></Button>
+                         <Button size="icon" variant="ghost" className="h-9 w-9 rounded-xl hover:bg-black/5" onClick={() => handleStatusChange(u.user_id, u.status === "active" ? "blocked" : "active")}><Ban className="w-4 h-4 opacity-40" /></Button>
                       </div>
                     </td>
                   </tr>
@@ -451,66 +463,57 @@ const AdminPage = () => {
               </tbody>
             </table>
           </div>
-        </div>
+        </Card>
 
         {/* Global Activity Feed */}
-        <div className="rounded-[2.5rem] border border-border bg-card p-6 md:p-10 shadow-sm flex flex-col">
-          <h3 className="text-xl font-black uppercase tracking-tight mb-8 flex items-center gap-3">
-             <Activity className="w-6 h-6 text-primary" /> Live Stream
+        <Card className="p-10 rounded-[40px] border-black/5 bg-white shadow-2xl shadow-black/[0.02] flex flex-col">
+          <h3 className="text-xl font-black mb-10 flex items-center gap-3 text-black tracking-tight">
+             <Activity className="w-6 h-6 text-primary" /> Pulse Feed
           </h3>
-          <div className="flex-1 space-y-6 overflow-y-auto no-scrollbar pr-2">
+          <div className="flex-1 space-y-8 overflow-y-auto max-h-[600px] pr-4 scrollbar-hide">
             {activityLogs.map((log) => (
-              <div key={log.id} className="relative pl-8 before:absolute before:left-[11px] before:top-8 before:bottom-[-24px] before:w-[2px] before:bg-border last:before:hidden">
-                <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
-                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-bold leading-none">
+              <div key={log.id} className="relative pl-8 border-l-2 border-primary/10 pb-8 last:pb-0">
+                <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-white border-4 border-primary shadow-sm" />
+                <div className="space-y-2">
+                  <p className="text-[13px] font-black leading-snug">
                     <span className="text-primary">{getUserName(log.user_id)}</span> 
-                    <span className="text-muted-foreground font-medium"> performed </span>
-                    <span className="uppercase text-[10px] font-black tracking-widest opacity-80">{log.action}</span>
+                    <span className="text-black/40 font-medium"> {log.action}</span>
                   </p>
-                  <p className="text-[10px] text-muted-foreground leading-tight italic break-words">{log.details || "No data provided"}</p>
-                  <p className="text-[9px] text-muted-foreground/60 font-black uppercase tracking-tighter">{formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}</p>
+                  <p className="text-[12px] text-black/60 font-medium leading-relaxed italic pr-2">{log.details}</p>
+                  <p className="text-[10px] font-black text-black/20 uppercase tracking-widest">{formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}</p>
                 </div>
               </div>
             ))}
-            {activityLogs.length === 0 && <p className="text-sm text-muted-foreground text-center py-12">Waiting for first signal...</p>}
           </div>
-        </div>
+        </Card>
+      </div>
       </div>
 
-      {/* Robust Transactional Overview */}
-      <div className="rounded-[2.5rem] border border-border bg-card p-6 md:p-10 shadow-sm overflow-hidden">
-        <h3 className="text-xl font-black uppercase tracking-tight mb-6 flex items-center gap-3">
-           <ShoppingBag className="w-6 h-6 text-primary" /> Platform Transactions
+      {/* Transactional Overview */}
+      <Card className="p-10 rounded-[40px] border-black/5 bg-white shadow-2xl shadow-black/[0.02]">
+        <h3 className="text-xl font-black mb-10 flex items-center gap-3 text-black tracking-tight">
+           <ShoppingBag className="w-6 h-6 text-primary" /> Recent Transactions
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {recentOrders.map((order, i) => (
-            <motion.div 
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {recentOrders.map((order) => (
+            <div 
               key={order.id}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.05 }}
-              className="p-5 rounded-[1.5rem] border border-border/50 bg-muted/20 hover:bg-muted/40 transition-all group"
+              className="group p-6 rounded-[32px] border border-black/5 bg-black/[0.01] transition-all duration-500 hover:bg-white hover:shadow-2xl hover:shadow-black/5 hover:-translate-y-1"
             >
-              <div className="flex items-center justify-between mb-3">
-                <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest bg-background">#{order.id.slice(0,8)}</Badge>
-                <span className="text-[10px] font-black uppercase tracking-tighter opacity-40">{formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}</span>
+              <div className="flex items-center justify-between mb-4">
+                <Badge variant="outline" className="text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1 bg-white border-black/5">#{order.id.slice(0,8)}</Badge>
+                <span className="text-[10px] font-black text-black/20 uppercase tracking-widest">{formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}</span>
               </div>
-              <p className="text-sm font-black mb-1 truncate">{order.catalog_items?.title || "Unknown Item"}</p>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                   <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">{order.customer_name?.[0] || "?"}</div>
-                   <span className="text-xs font-medium opacity-60">{order.customer_name}</span>
-                </div>
-                <span className="text-lg font-black text-primary">${resolveOrderAmount(order)}</span>
+              <p className="text-[15px] font-black text-black mb-4 truncate leading-tight group-hover:text-primary transition-colors">{order.catalog_items?.title || "Unknown Item"}</p>
+              <div className="flex items-center justify-between border-t border-black/5 pt-4">
+                 <span className="text-[11px] font-black text-black/30 uppercase tracking-widest">{order.customer_name?.split(' ')[0]}</span>
+                 <span className="text-lg font-black text-black tabular-nums">${resolveOrderAmount(order)}</span>
               </div>
-            </motion.div>
+            </div>
           ))}
-          {recentOrders.length === 0 && <div className="col-span-full py-12 text-center text-sm text-muted-foreground">No transactions recorded yet.</div>}
+          {recentOrders.length === 0 && <div className="col-span-full py-24 text-center text-sm font-medium text-black/20 uppercase tracking-widest">No nodes found in transaction history.</div>}
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

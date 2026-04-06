@@ -99,7 +99,7 @@ const StarryBackground = memo(({
       };
     };
 
-    let startTime = performance.now();
+    const startTime = performance.now();
 
     const draw = (now: number) => {
       const elapsed = now - startTime;
@@ -165,11 +165,24 @@ const StarryBackground = memo(({
       animRef.current = requestAnimationFrame(draw);
     };
 
-    animRef.current = requestAnimationFrame(draw);
+    const observer = new IntersectionObserver(([entry]) => {
+      const isVisible = entry.isIntersecting;
+      if (isVisible) {
+        if (!animRef.current) {
+          animRef.current = requestAnimationFrame(draw);
+        }
+      } else {
+        if (animRef.current) {
+          cancelAnimationFrame(animRef.current);
+          animRef.current = 0;
+        }
+      }
+    }, { threshold: 0.01 });
+
+    observer.observe(canvas);
 
     const resizeObserver = new ResizeObserver(() => {
       resize();
-      // Redistribute stars on resize
       const nw = canvas.offsetWidth;
       const nh = canvas.offsetHeight;
       starsRef.current = starsRef.current.map((s) => ({
@@ -181,8 +194,9 @@ const StarryBackground = memo(({
     resizeObserver.observe(canvas);
 
     return () => {
-      cancelAnimationFrame(animRef.current);
+      if (animRef.current) cancelAnimationFrame(animRef.current);
       resizeObserver.disconnect();
+      observer.disconnect();
     };
   }, [starCount, starColor, shootingStarInterval, bgFill]);
 

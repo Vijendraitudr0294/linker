@@ -108,76 +108,6 @@ export const MOCK_SERVICES: Record<string, MockService[]> = {
       category: "Main Course",
       item_type: "food",
       tags: ["Premium"]
-    },
-    {
-      title: "Tiramisu",
-      description: "Traditional espresso-soaked ladyfingers and mascarpone.",
-      price: 12,
-      price_label: "",
-      image_url: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=800&q=80",
-      category: "Desserts",
-      item_type: "food",
-      tags: ["Sweet"]
-    },
-    {
-      title: "Chocolate Lava Cake",
-      description: "Warm chocolate cake with a molten center and vanilla gelato.",
-      price: 12,
-      price_label: "",
-      image_url: "https://images.unsplash.com/photo-1624353365286-3f8d62daad51?w=800&q=80",
-      category: "Desserts",
-      item_type: "food",
-      tags: ["Hot"]
-    },
-    {
-      title: "Craft Cocktails",
-      description: "Ask your server for our seasonal selection.",
-      price: 16,
-      price_label: "",
-      image_url: "https://images.unsplash.com/photo-1536935338788-846bb9981813?w=800&q=80",
-      category: "Beverages",
-      item_type: "food",
-      tags: ["Artisanal"]
-    },
-    {
-      title: "Espresso Martini",
-      description: "Fresh pulled espresso, vodka, and coffee liqueur.",
-      price: 15,
-      price_label: "",
-      image_url: "https://images.unsplash.com/photo-1545696911-c967f6312480?w=800&q=80",
-      category: "Beverages",
-      item_type: "food",
-      tags: ["Popular"]
-    },
-    {
-      title: "Mushroom Risotto",
-      description: "Arborio rice with wild mushrooms and truffle oil.",
-      price: 24,
-      price_label: "",
-      image_url: "https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=800&q=80",
-      category: "Main Course",
-      item_type: "food",
-      tags: ["Vegetarian"]
-    },
-    {
-      title: "Seafood Paella",
-      description: "Saffron rice with shrimp, mussels, and clams.",
-      price: 36,
-      price_label: "",
-      image_url: "https://images.unsplash.com/photo-1534080564607-6e792040139b?w=800&q=80",
-      category: "Main Course",
-      item_type: "food",
-      tags: ["For Two"]
-    },
-    {
-      title: "Prosciutto Pizza",
-      description: "Arugula, prosciutto di parma, and buffalo mozzarella.",
-      price: 22,
-      price_label: "",
-      image_url: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=80",
-      category: "Pizza",
-      item_type: "food",
-      tags: ["Italian"]
     }
   ],
   "Yoga Instructor": [
@@ -284,94 +214,6 @@ export const MOCK_SERVICES: Record<string, MockService[]> = {
       duration: "45 min",
       schedule: "Friday 5:30 PM",
       location: "Zen Room"
-    },
-    {
-      title: "Restorative Yoga",
-      description: "Supported poses with props for ultimate relaxation.",
-      price: 30,
-      price_label: "/session",
-      image_url: "https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=800&q=80",
-      category: "Group Classes",
-      item_type: "service",
-      tags: ["Healing"],
-      duration: "75 min",
-      schedule: "Friday 7:00 PM",
-      location: "Studio 2"
-    },
-    {
-      title: "Yoga for Athletes",
-      description: "Targeted stretching for runners, cyclists, and team sports.",
-      price: 20,
-      price_label: "/session",
-      image_url: "https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?w=800&q=80",
-      category: "Specialized",
-      item_type: "service",
-      tags: ["Performance"],
-      duration: "60 min",
-      schedule: "Saturday 12:00 PM",
-      location: "Gym Area"
-    },
-    {
-      title: "Monthly Unlimited Membership",
-      description: "Full access to all group classes and meditation sessions.",
-      price: 150,
-      price_label: "/month",
-      image_url: "https://images.unsplash.com/photo-1510894347713-fc3ad6cb03a8?w=800&q=80",
-      category: "Memberships",
-      item_type: "service",
-      tags: ["Best Value"],
-      duration: "30 days",
-      schedule: "Flexible",
-      location: "All Areas"
-    },
-    {
-      title: "Yoga Retreat Weekend",
-      description: "All-inclusive mountain retreat with organic meals.",
-      price: 499,
-      price_label: "/event",
-      image_url: "https://images.unsplash.com/photo-1545208393-596371BA9a3c?w=800&q=80",
-      category: "Events",
-      item_type: "service",
-      tags: ["Luxury", "Travel"],
-      duration: "3 days",
-      schedule: "Next: June 15-17",
-      location: "Mountain Peak"
-    },
-    {
-      title: "Workshop: Arm Balances",
-      description: "Master the art of balancing on your hands.",
-      price: 45,
-      price_label: "/event",
-      image_url: "https://images.unsplash.com/photo-1506126279646-a697353d3166?w=800&q=80",
-      category: "Events",
-      item_type: "service",
-      tags: ["Skill Building"],
-      duration: "3 hours",
-      schedule: "June 25th",
-      location: "Studio 1"
-    },
-    {
-      title: "Digital Yoga Course",
-      description: "Lifetime access to 10 pre-recorded flow videos.",
-      price: 89,
-      price_label: "(Lifetime)",
-      image_url: "https://images.unsplash.com/photo-1536640712247-c575a133400b?w=800&q=80",
-      category: "Digital",
-      item_type: "digital",
-      tags: ["On-demand"]
-    },
-    {
-      title: "Chair Yoga for Seniors",
-      description: "Accessible yoga designed for mobility and balance.",
-      price: 15,
-      price_label: "/session",
-      image_url: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80",
-      category: "Group Classes",
-      item_type: "service",
-      tags: ["Accessible"],
-      duration: "45 min",
-      schedule: "Tue/Thu 11:00 AM",
-      location: "Community Center"
     }
   ],
   "Gym Instructor": [
@@ -478,94 +320,6 @@ export const MOCK_SERVICES: Record<string, MockService[]> = {
       duration: "60 min",
       schedule: "Wed/Fri 7:00 PM",
       location: "Ring Area"
-    },
-    {
-      title: "Kettlebell Conditioning",
-      description: "Full-body functional strength using kettlebells.",
-      price: 25,
-      price_label: "/session",
-      image_url: "https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=800&q=80",
-      category: "Classes",
-      item_type: "service",
-      tags: ["Functional"],
-      duration: "45 min",
-      schedule: "Monday 5:00 PM",
-      location: "Functional Room"
-    },
-    {
-      title: "Mobility & Recovery",
-      description: "Foam rolling, dynamic stretching, and trigger point release.",
-      price: 20,
-      price_label: "/session",
-      image_url: "https://images.unsplash.com/photo-1552196564-972b2049e2cf?w=800&q=80",
-      category: "Wellness",
-      item_type: "service",
-      tags: ["Longevity"],
-      duration: "45 min",
-      schedule: "Sunday 10:00 AM",
-      location: "Stretch Zone"
-    },
-    {
-      title: "10-Session PT Pack",
-      description: "Bundle and save on your personal training sessions.",
-      price: 550,
-      price_label: "/package",
-      image_url: "https://images.unsplash.com/photo-1554344728-77ad90d6ed3d?w=800&q=80",
-      category: "Packages",
-      item_type: "service",
-      tags: ["Save 15%"],
-      duration: "10 Hours",
-      schedule: "Variable",
-      location: "Main Gym"
-    },
-    {
-      title: "Home Workout Masterclass",
-      description: "No equipment? No problem. Complete home gym guide.",
-      price: 49,
-      price_label: "/digital",
-      image_url: "https://images.unsplash.com/photo-1594882645126-14020914d58d?w=800&q=80",
-      category: "Digital",
-      item_type: "digital",
-      tags: ["Self-paced"]
-    },
-    {
-      title: "Corporate Wellness Class",
-      description: "On-site group training for your employees.",
-      price: 150,
-      price_label: "/class",
-      image_url: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=800&q=80",
-      category: "Specialized",
-      item_type: "service",
-      tags: ["Business"],
-      duration: "60 min",
-      schedule: "Booking Required",
-      location: "Your Office"
-    },
-    {
-      title: "Body Fat Analysis",
-      description: "Bio-electrical impedance scale measurement and review.",
-      price: 15,
-      price_label: "/test",
-      image_url: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=800&q=80",
-      category: "Wellness",
-      item_type: "service",
-      tags: ["Metrics"],
-      duration: "15 min",
-      schedule: "Drop-in",
-      location: "Office"
-    },
-    {
-      title: "Competition Prep",
-      description: "Specialized coaching for bodybuilding/bikini competitions.",
-      price: 199,
-      price_label: "/month",
-      image_url: "https://images.unsplash.com/photo-1532029837206-abbe2b7620e3?w=800&q=80",
-      category: "Specialized",
-      item_type: "service",
-      tags: ["Pro Level"],
-      duration: "Monthly",
-      schedule: "Daily Monitoring",
-      location: "Hybrid"
     }
   ],
   "School Teacher": [
@@ -672,117 +426,6 @@ export const MOCK_SERVICES: Record<string, MockService[]> = {
       duration: "Daily 1 hr",
       schedule: "Mon-Fri 3-6 PM",
       location: "Online Cafe"
-    },
-    {
-      title: "Geometry Crash Course",
-      description: "Intensive weekend covering proofs, area, and volume.",
-      price: 120,
-      price_label: "/weekend",
-      image_url: "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=800&q=80",
-      category: "Mathematics",
-      item_type: "service",
-      tags: ["Intensive"],
-      duration: "6 hours",
-      schedule: "Sat/Sun 9 AM - 12 PM",
-      location: "Main Hall"
-    },
-    {
-      title: "Digital Lesson Plan Template",
-      description: "Customizable high-impact layout for teachers.",
-      price: 15,
-      price_label: "/download",
-      image_url: "https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=800&q=80",
-      category: "Digital",
-      item_type: "digital",
-      tags: ["Bestseller"]
-    },
-    {
-      title: "Art History Lecture Series",
-      description: "Exploring the Renaissance to Modernism.",
-      price: 20,
-      price_label: "/session",
-      image_url: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=800&q=80",
-      category: "HASS",
-      item_type: "service",
-      tags: ["Culture"],
-      duration: "60 min",
-      schedule: "Friday 6:00 PM",
-      location: "Zoom"
-    },
-    {
-      title: "Essay Editing Service",
-      description: "Deep feedback on college application or school essays.",
-      price: 25,
-      price_label: "/essay",
-      image_url: "https://images.unsplash.com/photo-1519791883288-dc8bd696e667?w=800&q=80",
-      category: "Language Arts",
-      item_type: "service",
-      tags: ["Proofreading"]
-    },
-    {
-      title: "Biology Lab Prep",
-      description: "Live demonstration and walkthrough of next week's lab.",
-      price: 15,
-      price_label: "/session",
-      image_url: "https://images.unsplash.com/photo-1518152006812-edab29b069ac?w=800&q=80",
-      category: "Science",
-      item_type: "service",
-      tags: ["Prep"],
-      duration: "45 min",
-      schedule: "Sunday 7:00 PM",
-      location: "Online"
-    },
-    {
-      title: "Physics Problem Solving",
-      description: "Working through the trickiest kinematics and force problems.",
-      price: 45,
-      price_label: "/hour",
-      image_url: "https://images.unsplash.com/photo-1636466484202-cae99741c43a?w=800&q=80",
-      category: "Science",
-      item_type: "service",
-      tags: ["STEM"],
-      duration: "60 min",
-      schedule: "Thursday 4:00 PM",
-      location: "Online"
-    },
-    {
-      title: "Public Speaking for Kids",
-      description: "Build confidence and presentation skills.",
-      price: 30,
-      price_label: "/session",
-      image_url: "https://images.unsplash.com/photo-1475721027187-402ad2989a3b?w=800&q=80",
-      category: "HASS",
-      item_type: "service",
-      tags: ["Soft Skills"],
-      duration: "60 min",
-      schedule: "Wednesday 3:30 PM",
-      location: "Studio"
-    },
-    {
-      title: "Science Olympiad Coaching",
-      description: "Advanced prep for high school science competitions.",
-      price: 55,
-      price_label: "/hour",
-      image_url: "https://images.unsplash.com/photo-1547592115-38506821817d?w=800&q=80",
-      category: "Science",
-      item_type: "service",
-      tags: ["Advanced", "STEM"],
-      duration: "60 min",
-      schedule: "Tuesdays 5:00 PM",
-      location: "Online"
-    },
-    {
-      title: "US History Exam Prep",
-      description: "Comprehensive review for AP or final exams.",
-      price: 45,
-      price_label: "/hour",
-      image_url: "https://images.unsplash.com/photo-1509233725247-49e657c54213?w=800&q=80",
-      category: "HASS",
-      item_type: "service",
-      tags: ["Exam Prep"],
-      duration: "60 min",
-      schedule: "Mondays 4:00 PM",
-      location: "Library"
     }
   ],
   "Dance Teacher": [
@@ -889,88 +532,6 @@ export const MOCK_SERVICES: Record<string, MockService[]> = {
       duration: "45 min",
       schedule: "Sat 9:00 AM",
       location: "Classroom"
-    },
-    {
-      title: "Competition Team Prep",
-      description: "Intensive training for regional dance competitions.",
-      price: 150,
-      price_label: "/month",
-      image_url: "https://images.unsplash.com/photo-1508807526345-15e9b5f4eaff?w=800&q=80",
-      category: "Specialized",
-      item_type: "service",
-      tags: ["Elite"],
-      duration: "Weekly",
-      schedule: "Thu 5-8 PM",
-      location: "Main Floor"
-    },
-    {
-      title: "Dance Conditioning",
-      description: "Strength and flexibility for all dance styles.",
-      price: 15,
-      price_label: "/class",
-      image_url: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=800&q=80",
-      category: "Wellness",
-      item_type: "service",
-      tags: ["Cross-training"],
-      duration: "60 min",
-      schedule: "Sat 11:00 AM",
-      location: "Studio C"
-    },
-    {
-      title: "Choreography for Music Video",
-      description: "Custom routines for artists and creators.",
-      price: 200,
-      price_label: "/routine",
-      image_url: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&q=80",
-      category: "Private",
-      item_type: "service",
-      tags: ["Commercial"]
-    },
-    {
-      title: "10-Class Dance Pass",
-      description: "Flexibility to attend any open group class.",
-      price: 180,
-      price_label: "/pack",
-      image_url: "https://images.unsplash.com/photo-1504609813442-a8924e83f73e?w=800&q=80",
-      category: "Memberships",
-      item_type: "service",
-      tags: ["Savings"]
-    },
-    {
-      title: "Virtual Private Lesson",
-      description: "Real-time feedback via high-quality video stream.",
-      price: 60,
-      price_label: "/session",
-      image_url: "https://images.unsplash.com/photo-1534367507873-d2d7e24c79d2?w=800&q=80",
-      category: "Private",
-      item_type: "service",
-      tags: ["Online"],
-      duration: "60 min",
-      schedule: "Custom",
-      location: "Zoom"
-    },
-    {
-      title: "Digital Choreography Notes",
-      description: "PDF breakdown of 5 popular routines.",
-      price: 25,
-      price_label: "/bundle",
-      image_url: "https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?w=800&q=80",
-      category: "Digital",
-      item_type: "digital",
-      tags: ["Education"]
-    },
-    {
-      title: "Improvisation Flow",
-      description: "Unlock your individual movement quality.",
-      price: 20,
-      price_label: "/class",
-      image_url: "https://images.unsplash.com/photo-1551327170-07bf26f1a8c0?w=800&q=80",
-      category: "Group Classes",
-      item_type: "service",
-      tags: ["Artistic"],
-      duration: "60 min",
-      schedule: "Sunday 2:00 PM",
-      location: "Studio A"
     }
   ],
   "Real Estate": [
@@ -1063,79 +624,6 @@ export const MOCK_SERVICES: Record<string, MockService[]> = {
       category: "Services",
       item_type: "service",
       tags: ["Design"]
-    },
-    {
-      title: "Relocation Guide PDF",
-      description: "Complete guide to schools, neighborhoods, and amenities.",
-      price: 0,
-      price_label: "Free Download",
-      image_url: "https://images.unsplash.com/photo-1517502884422-41eaead166d4?w=800&q=80",
-      category: "Digital",
-      item_type: "digital",
-      tags: ["Newcomers"]
-    },
-    {
-      title: "Industrial Warehouse Space",
-      description: "10,000 sq ft with loading docks and office mezzanine.",
-      price: 12,
-      price_label: "/sq ft /year",
-      image_url: "https://images.unsplash.com/photo-1586528116311-ad86d525908b?w=800&q=80",
-      category: "Commercial",
-      item_type: "physical",
-      tags: ["Logistics"],
-      location: "Portside District"
-    },
-    {
-      title: "First-Time Buyer eBook",
-      description: "100 pages of tips for navigating the current market.",
-      price: 19,
-      price_label: "/digital",
-      image_url: "https://images.unsplash.com/photo-1450101496173-eb4ae511983b?w=800&q=80",
-      category: "Digital",
-      item_type: "digital",
-      tags: ["Education"]
-    },
-    {
-      title: "Open House VIP Tour",
-      description: "Early access and private showing of new listings.",
-      price: 0,
-      price_label: "Registration Required",
-      image_url: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80",
-      category: "Events",
-      item_type: "service",
-      tags: ["Priority"],
-      schedule: "Saturdays 9 AM"
-    },
-    {
-      title: "Luxury Penthouse",
-      description: "Floor-to-ceiling glass, 360 views, private elevator.",
-      price: 2400000,
-      price_label: "Exclusive",
-      image_url: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=80",
-      category: "Listings",
-      item_type: "physical",
-      tags: ["Ultra-Luxury"],
-      location: "The Sky Palace"
-    },
-    {
-      title: "Rental Tenant Screening",
-      description: "Comprehensive background and credit checks for landlords.",
-      price: 35,
-      price_label: "/applicant",
-      image_url: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&q=80",
-      category: "Services",
-      item_type: "service",
-      tags: ["Security"]
-    },
-    {
-      title: "Closing Day Support",
-      description: "Professional representation at the final walkthrough.",
-      price: 500,
-      price_label: "/closing",
-      image_url: "https://images.unsplash.com/photo-1560520653-9e0e4c89eb11?w=800&q=80",
-      category: "Services",
-      item_type: "service",
-      tags: ["Peace of Mind"]
     }
   ],
   "Beautician": [
@@ -1233,82 +721,6 @@ export const MOCK_SERVICES: Record<string, MockService[]> = {
       item_type: "service",
       tags: ["Wedding"],
       duration: "90 min"
-    },
-    {
-      title: "Gel Polish Removal",
-      description: "Safe and gentle removal to maintain nail health.",
-      price: 15,
-      price_label: "",
-      image_url: "https://images.unsplash.com/photo-1632345031435-8727f6897d53?w=800&q=80",
-      category: "Nails",
-      item_type: "service",
-      tags: ["Add-on"],
-      duration: "20 min"
-    },
-    {
-      title: "Keratin Smoothing Treatment",
-      description: "Eliminate frizz and add intense shine for 3 months.",
-      price: 250,
-      price_label: "Starting at",
-      image_url: "https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1?w=800&q=80",
-      category: "Hair",
-      item_type: "service",
-      tags: ["Smoothing"],
-      duration: "3 hours"
-    },
-    {
-      title: "Anti-Aging Serum",
-      description: "Our house-made peptide complex for nightly use.",
-      price: 55,
-      price_label: "/bottle",
-      image_url: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800&q=80",
-      category: "Retail Products",
-      item_type: "physical",
-      tags: ["Bestseller"]
-    },
-    {
-      title: "Dermaplaning",
-      description: "Removal of peach fuzz and dead skin for instant glow.",
-      price: 75,
-      price_label: "",
-      image_url: "https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=800&q=80",
-      category: "Skincare",
-      item_type: "service",
-      tags: ["Instant Glow"],
-      duration: "45 min"
-    },
-    {
-      title: "Men's Classic Cut",
-      description: "Fade or clipper cut with style and straight razor finish.",
-      price: 45,
-      price_label: "",
-      image_url: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&q=80",
-      category: "Hair",
-      item_type: "service",
-      tags: ["Men"],
-      duration: "45 min"
-    },
-    {
-      title: "Lash Lift & Tint",
-      description: "Natural curve and color for your real lashes.",
-      price: 90,
-      price_label: "",
-      image_url: "https://images.unsplash.com/photo-1583001809072-79038fc6617a?w=800&q=80",
-      category: "Eyes",
-      item_type: "service",
-      tags: ["Natural"],
-      duration: "60 min"
-    },
-    {
-      title: "Express Pedicure",
-      description: "Quick refresh: clean, shape, and fresh polish.",
-      price: 25,
-      price_label: "",
-      image_url: "https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=800&q=80",
-      category: "Nails",
-      item_type: "service",
-      tags: ["Quick"],
-      duration: "30 min"
     }
   ],
   "Yacht & Car Rental": [
@@ -1399,83 +811,6 @@ export const MOCK_SERVICES: Record<string, MockService[]> = {
       item_type: "boat",
       tags: ["Exciting", "Solo/Pair"],
       location: "Beach Club"
-    },
-    {
-      title: "Range Rover Autobiography",
-      description: "The go-anywhere luxury SUV.",
-      price: 350,
-      price_label: "/day",
-      image_url: "https://images.unsplash.com/photo-1621245802103-68f70f5e1f0e?w=800&q=80",
-      category: "Luxury SUVs",
-      item_type: "car",
-      tags: ["Comfort", "Offroad"],
-      duration: "24 Hours"
-    },
-    {
-      title: "Deep Sea Fishing Charter",
-      description: "Fully equipped for big game fishing with local guide.",
-      price: 1200,
-      price_label: "/day",
-      image_url: "https://images.unsplash.com/photo-1534431969213-9a4f4d2f00a5?w=800&q=80",
-      category: "Boats",
-      item_type: "boat",
-      tags: ["Fishing", "Guided"],
-      duration: "8 Hours"
-    },
-    {
-      title: "Tesla Model S Plaid",
-      description: "Insane acceleration. The future of high-performance driving.",
-      price: 400,
-      price_label: "/day",
-      image_url: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&q=80",
-      category: "Exotic Cars",
-      item_type: "car",
-      tags: ["Electric", "Fast"],
-      duration: "24 Hours"
-    },
-    {
-      title: "Sunset Cruise Packet",
-      description: "Inclusive champagne and appetizers for up to 6 people.",
-      price: 600,
-      price_label: "/event",
-      image_url: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80",
-      category: "Yachts",
-      item_type: "boat",
-      tags: ["Romantic", "Inclusive"],
-      duration: "3 Hours"
-    },
-    {
-      title: "Overland Jeep Wrangler",
-      description: "Fully kitted for camping and mountain trails.",
-      price: 200,
-      price_label: "/day",
-      image_url: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&q=80",
-      category: "Luxury SUVs",
-      item_type: "car",
-      tags: ["Adventure", "Camping"],
-      duration: "Min 2 days"
-    },
-    {
-      title: "Vespa Primavera 150",
-      description: "Stylish city cruising in Italian elegance.",
-      price: 80,
-      price_label: "/day",
-      image_url: "https://images.unsplash.com/photo-1531737212413-66258071e626?w=800&q=80",
-      category: "Other",
-      item_type: "car",
-      tags: ["City", "Agile"],
-      location: "Downtown Office"
-    },
-    {
-      title: "Professional Captain Hire",
-      description: "Experienced licensed captain for your private vessel.",
-      price: 300,
-      price_label: "/day",
-      image_url: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800&q=80",
-      category: "Services",
-      item_type: "service",
-      tags: ["Safety", "Licensed"],
-      duration: "8 Hours"
     }
   ],
   "Digital Creator": [
@@ -1500,7 +835,7 @@ export const MOCK_SERVICES: Record<string, MockService[]> = {
       tags: ["Photography", "Edit"]
     },
     {
-      title: "Limited Edition 'Vertex' Tee",
+      title: "Limited Edition 'BIOTRA' Tee",
       description: "Ultra-soft heavyweight cotton oversized tee with custom embroidery.",
       price: 45,
       price_label: "",
@@ -1519,6 +854,46 @@ export const MOCK_SERVICES: Record<string, MockService[]> = {
       item_type: "social",
       tags: ["Embed", "Collaboration"],
       external_url: "https://instagram.com/p/C_abc123"
+    },
+    {
+      title: "Brand Partnership eBook",
+      description: "The ultimate guide to landing your first $5k brand deal as a micro-influencer.",
+      price: 49,
+      price_label: "",
+      image_url: "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&q=80",
+      category: "Digital Products",
+      item_type: "digital",
+      tags: ["Business", "Monetization"]
+    },
+    {
+      title: "Creator Discord Access",
+      description: "Join our private community of 500+ top-tier creators for daily networking.",
+      price: 15,
+      price_label: "/month",
+      image_url: "https://images.unsplash.com/photo-1614680376593-902f74cf0d41?w=800&q=80",
+      category: "Community",
+      item_type: "service",
+      tags: ["Networking", "Discord"]
+    },
+    {
+      title: "Custom LUTS Pack",
+      description: "Cinema-grade color grading presets for your travel vlogs and short films.",
+      price: 35,
+      price_label: "",
+      image_url: "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=800&q=80",
+      category: "Digital Products",
+      item_type: "digital",
+      tags: ["Editing", "Video"]
+    },
+    {
+      title: "Podcast Guest Slot",
+      description: "Feature your story on the 'BIOTRA Vision' podcast series reaching 50k+ listeners.",
+      price: 250,
+      price_label: "/episode",
+      image_url: "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=800&q=80",
+      category: "Services",
+      item_type: "service",
+      tags: ["Exposure", "Podcast"]
     }
   ]
 };

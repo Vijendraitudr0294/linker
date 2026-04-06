@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Trash2, GripVertical } from "lucide-react";
 import { SocialIcon, platformOptions } from "@/components/SocialIcon";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { SocialPlatform } from "@/stores/linksStore";
+import { type SocialPlatform } from "@/types/links";
 
 export interface SocialLinkConfig {
   platform: string;

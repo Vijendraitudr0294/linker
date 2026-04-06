@@ -56,18 +56,27 @@ export function computePalette(appearance: ProfileAppearance): ProfilePalette {
 // ── Background Style ──
 
 export function computeBgStyle(appearance: ProfileAppearance): React.CSSProperties {
-  const style: React.CSSProperties = { fontFamily: appearance.font_family };
+  const style: React.CSSProperties = { 
+    fontFamily: appearance.font_family,
+    minHeight: '100%',
+    width: '100%',
+  };
 
-  if (appearance.animated_gradient) {
+  // Priority: Image > Animated Gradient > Static Gradient > Solid Color
+  if (appearance.background_image) {
+    const imageUrl = appearance.background_image;
+    const overlay = appearance.background_overlay || "rgba(0,0,0,0.3)";
+    style.backgroundImage = `linear-gradient(${overlay}, ${overlay}), url("${imageUrl}")`;
+    style.backgroundSize = "cover";
+    style.backgroundPosition = "center";
+    style.backgroundRepeat = "no-repeat";
+    // Also set a fallback color to avoid white flashes
+    style.backgroundColor = appearance.background_color || "#0f172a";
+  } else if (appearance.animated_gradient) {
     style.background = appearance.animated_gradient;
   } else if (appearance.gradient_from && appearance.gradient_to) {
     style.background = `linear-gradient(135deg, ${appearance.gradient_from}, ${appearance.gradient_to})`;
   } else {
-    style.backgroundColor = appearance.background_color;
-  }
-
-  // Always ensure a base color behind images/overlays if no gradient is present
-  if (appearance.background_image && !appearance.animated_gradient && !appearance.gradient_from) {
     style.backgroundColor = appearance.background_color;
   }
 
@@ -88,21 +97,44 @@ export function getLinkButtonClasses(buttonStyle: ButtonStyleType): string {
   }
 }
 
+export function getContrastColor(hexColor: string): string {
+  if (!hexColor || !hexColor.startsWith("#")) return "#ffffff";
+  let r = 0, g = 0, b = 0;
+  try {
+    if (hexColor.length === 4) {
+      r = parseInt(hexColor[1] + hexColor[1], 16);
+      g = parseInt(hexColor[2] + hexColor[2], 16);
+      b = parseInt(hexColor[3] + hexColor[3], 16);
+    } else if (hexColor.length >= 7) {
+      r = parseInt(hexColor.slice(1, 3), 16);
+      g = parseInt(hexColor.slice(3, 5), 16);
+      b = parseInt(hexColor.slice(5, 7), 16);
+    }
+  } catch {
+    return "#ffffff";
+  }
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= 128 ? "#0f172a" : "#ffffff";
+}
+
 export function getLinkButtonStyle(
   buttonStyle: ButtonStyleType,
   btnBg: string,
-  btnText: string
+  btnText: string,
+  extra: React.CSSProperties = {}
 ): React.CSSProperties {
   const isOutline = buttonStyle === "outline";
   const isShadow = buttonStyle === "shadow";
+  const autoColor = getContrastColor(btnBg);
 
   return {
     backgroundColor: isOutline ? "transparent" : btnBg,
-    color: isOutline ? btnBg : btnText,
+    color: isOutline ? btnBg : autoColor,
     boxShadow: isShadow
       ? `0 8px 24px -4px ${btnBg}60`
       : `0 6px 14px -3px ${btnBg}30`,
     border: isOutline ? `2px solid ${btnBg}` : "none",
+    ...extra
   };
 }
 
@@ -124,4 +156,21 @@ export function getFooterColor(appearance: ProfileAppearance): string {
     return "rgba(255,255,255,0.4)";
   }
   return `${appearance.text_color}60`;
+}
+
+export function getCardClasses(cardStyle: string = "classic", additional?: string): string {
+  const isGlass = cardStyle === "glass";
+  const isGlassPremium = cardStyle === "glass-premium";
+  const isNeon = cardStyle === "neon";
+
+  const classes = [
+    "relative rounded-[18px] border transition-all duration-300",
+    isGlass ? "glass-subtle backdrop-blur-md" : "",
+    isGlassPremium ? "glass-premium" : "",
+    isNeon ? "neon-border shadow-[0_0_15px_rgba(255,255,255,0.05)]" : "",
+    "hover:-translate-y-1 hover:shadow-2xl",
+    additional || ""
+  ].filter(Boolean).join(" ");
+
+  return classes;
 }

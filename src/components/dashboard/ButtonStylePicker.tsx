@@ -21,9 +21,8 @@ const styles: { value: ButtonStyleOption; label: string; preview: string }[] = [
 
 const ButtonStylePicker = ({ currentStyle, onSelect, buttonBg, buttonText }: ButtonStylePickerProps) => {
   return (
-    <div className="space-y-3">
-      <Label className="text-base font-heading font-semibold">Button Style</Label>
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
         {styles.map((s) => {
           const isSelected = currentStyle === s.value;
           const isOutline = s.value === "outline";
@@ -33,23 +32,23 @@ const ButtonStylePicker = ({ currentStyle, onSelect, buttonBg, buttonText }: But
               key={s.value}
               onClick={() => onSelect(s.value)}
               className={cn(
-                "flex flex-col items-center gap-2.5 p-3.5 rounded-2xl border-2 transition-all",
+                "flex flex-col items-center gap-2.5 p-2 rounded-xl border-2 transition-all group",
                 isSelected ? "border-primary bg-primary/5 shadow-sm" : "border-border/40 bg-card/40 hover:border-primary/30"
               )}
             >
               {/* Mini button preview */}
               <div
-                className={cn("w-full h-10 flex items-center justify-center text-[11px] font-bold transition-all px-2", s.preview)}
+                className={cn("w-full h-8 flex items-center justify-center text-[10px] font-bold transition-all px-2 shadow-sm group-hover:scale-105 duration-300", s.preview)}
                 style={{
                   backgroundColor: isOutline ? "transparent" : buttonBg,
                   color: isOutline ? buttonBg : buttonText,
-                  border: isOutline ? `2px solid ${buttonBg}` : "none",
-                  boxShadow: isShadow ? `0 6px 16px -3px ${buttonBg}60` : "none",
+                  border: isOutline ? `1.5px solid ${buttonBg}` : "none",
+                  boxShadow: isShadow ? `0 4px 10px -2px ${buttonBg}40` : "none",
                 }}
               >
-                Link
+                Style
               </div>
-              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{s.label}</span>
+              <span className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-[0.1em]">{s.label}</span>
             </button>
           );
         })}

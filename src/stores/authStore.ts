@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { supabase } from "@/integrations/supabase/client";
 import { logActivity } from "@/lib/activityLogger";
 import type { User } from "@supabase/supabase-js";
+import type { Json } from "@/integrations/supabase/types";
 
 export interface SocialLinkConfig {
   platform: string;
@@ -65,6 +66,14 @@ const isDuplicateUsernameError = (message?: string, details?: string) =>
   Boolean(details && details.includes("(username)")) ||
   Boolean(message && /username/i.test(message) && /duplicate|already/i.test(message));
 
+const parseStringRecord = (value: Json | null | undefined): Record<string, string> => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return Object.entries(value as Record<string, Json>).reduce<Record<string, string>>((acc, [key, raw]) => {
+    if (typeof raw === "string") acc[key] = raw;
+    return acc;
+  }, {});
+};
+
 export const useAuthStore = create<AuthState>()((set, get) => ({
   user: null,
   supabaseUser: null,
@@ -72,28 +81,43 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   loading: true,
 
   initialize: async () => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
+    try {
+      // 1. Fetch initial session first to avoid token refresh deadlocks
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error("Supabase session error:", error);
+        if (error.message?.includes("refresh_token_not_found") || error.message?.includes("Invalid Refresh Token")) {
+          await supabase.auth.signOut();
+        }
+        set({ loading: false });
+      } else if (session?.user) {
         set({ supabaseUser: session.user, isAuthenticated: true });
-        setTimeout(async () => {
-          const profile = await get().fetchProfile(session.user.id);
-          set({ user: profile, loading: false });
-        }, 0);
+        const profile = await get().fetchProfile(session.user.id);
+        set({ user: profile, loading: false });
       } else {
-        set({ user: null, supabaseUser: null, isAuthenticated: false, loading: false });
+        set({ loading: false });
       }
-    });
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) {
-      set({ supabaseUser: session.user, isAuthenticated: true });
-      const profile = await get().fetchProfile(session.user.id);
-      set({ user: profile, loading: false });
-    } else {
+      // 2. Setup auth state listener AFTER initial session is resolved
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+        if (currentSession?.user) {
+          set({ supabaseUser: currentSession.user, isAuthenticated: true });
+          
+          if (event === "SIGNED_IN") {
+            const profile = await get().fetchProfile(currentSession.user.id);
+            set({ user: profile, loading: false });
+          }
+        } else {
+          set({ user: null, supabaseUser: null, isAuthenticated: false, loading: false });
+        }
+      });
+
+      void subscription;
+    } catch (err) {
+      console.error("Auth initialization failed:", err);
       set({ loading: false });
     }
-
-    void subscription;
   },
 
   fetchProfile: async (userId: string) => {
@@ -117,11 +141,18 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       created_at: data.created_at,
       social_links: (data as Record<string, unknown>).social_links as SocialLinkConfig[] || [],
       upi_id: (data as Record<string, unknown>).upi_id as string || "",
-      social_stats: (data as Record<string, unknown>).social_stats as any || {
-        ig_followers: "", fb_likes: "", tiktok_followers: "", youtube_subs: ""
+      social_stats: {
+        ig_followers: "",
+        fb_likes: "",
+        tiktok_followers: "",
+        youtube_subs: "",
+        ...parseStringRecord(data.social_stats),
       },
-      creator_metrics: (data as Record<string, unknown>).creator_metrics as any || {
-        engagement_rate: "", avg_views: "", reach: ""
+      creator_metrics: {
+        engagement_rate: "",
+        avg_views: "",
+        reach: "",
+        ...parseStringRecord(data.creator_metrics),
       },
     };
 
@@ -143,7 +174,15 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
     let { data, error } = await signUpWithUsername(baseUsername);
 
-    if (error && isDuplicateUsernameError(error.message, (error as any).details)) {
+    const errorDetails =
+      typeof error === "object" &&
+      error !== null &&
+      "details" in error &&
+      typeof (error as { details?: unknown }).details === "string"
+        ? (error as { details?: string }).details
+        : undefined;
+
+    if (error && isDuplicateUsernameError(error.message, errorDetails)) {
       const fallbackUsername = `${baseUsername}${Math.floor(1000 + Math.random() * 9000)}`;
       ({ data, error } = await signUpWithUsername(fallbackUsername));
     }
@@ -151,13 +190,51 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     if (error) return { success: false, error: error.message };
 
     if (data.user) {
-      await supabase
+      // Optimize: Update and select in one round trip to avoid extra fetchProfile call
+      const { data: updatedProfile, error: updateError } = await supabase
         .from("profiles")
         .update({ name })
-        .eq("user_id", data.user.id);
-      const profile = await get().fetchProfile(data.user.id);
-      set({ user: profile, supabaseUser: data.user, isAuthenticated: true });
-      rememberLastProfileUsername(profile?.username);
+        .eq("user_id", data.user.id)
+        .select("*")
+        .single();
+
+      if (!updateError && updatedProfile) {
+        // reuse the logic from fetchProfile but with already fetched data
+        const profile: UserProfile = {
+          id: updatedProfile.id,
+          user_id: updatedProfile.user_id,
+          name: updatedProfile.name,
+          email: updatedProfile.email,
+          username: updatedProfile.username,
+          bio: updatedProfile.bio || "",
+          avatar_url: updatedProfile.avatar_url || "",
+          role: updatedProfile.role,
+          status: updatedProfile.status,
+          created_at: updatedProfile.created_at,
+          social_links: (updatedProfile as Record<string, unknown>).social_links as SocialLinkConfig[] || [],
+          upi_id: (updatedProfile as Record<string, unknown>).upi_id as string || "",
+          social_stats: {
+            ig_followers: "",
+            fb_likes: "",
+            tiktok_followers: "",
+            youtube_subs: "",
+            ...parseStringRecord(updatedProfile.social_stats),
+          },
+          creator_metrics: {
+            engagement_rate: "",
+            avg_views: "",
+            reach: "",
+            ...parseStringRecord(updatedProfile.creator_metrics),
+          },
+        };
+        set({ user: profile, supabaseUser: data.user, isAuthenticated: true });
+        rememberLastProfileUsername(profile.username);
+      } else {
+        // Fallback to separate fetch if update/select failed for some reason
+        const profile = await get().fetchProfile(data.user.id);
+        set({ user: profile, supabaseUser: data.user, isAuthenticated: true });
+        rememberLastProfileUsername(profile?.username);
+      }
     }
     return { success: true };
   },
@@ -165,16 +242,24 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   login: async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { success: false, error: error.message };
+    
     if (data.user) {
+      // Use maybeSingle to handle cases where profile might be missing temporarily
       const profile = await get().fetchProfile(data.user.id);
+      
       if (profile?.status === "blocked") {
         await supabase.auth.signOut();
         return { success: false, error: "Your account has been blocked" };
       }
+      
       set({ user: profile, supabaseUser: data.user, isAuthenticated: true });
       rememberLastProfileUsername(profile?.username);
-      (supabase.from("profiles") as any).update({ last_login_at: new Date().toISOString() }).eq("user_id", data.user.id).then(() => {});
-      (supabase.from("user_activity_logs") as any).insert({ user_id: data.user.id, action: "login", details: "User logged in" }).then(() => {});
+      
+      // Fire-and-forget background updates
+      Promise.all([
+        supabase.from("profiles").update({ last_login_at: new Date().toISOString() }).eq("user_id", data.user.id),
+        supabase.from("user_activity_logs").insert({ user_id: data.user.id, action: "login", details: "User logged in" })
+      ]).catch(err => console.error("Background login updates failed:", err));
     }
     return { success: true };
   },

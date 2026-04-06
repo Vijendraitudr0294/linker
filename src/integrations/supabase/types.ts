@@ -38,6 +38,10 @@ export type Database = {
           theme_id: string
           updated_at: string
           user_id: string
+          layout_type: string | null
+          card_style: string | null
+          section_spacing: string | null
+          card_blur: string | null
         }
         Insert: {
           animated_gradient?: string | null
@@ -62,6 +66,10 @@ export type Database = {
           theme_id?: string
           updated_at?: string
           user_id: string
+          layout_type?: string | null
+          card_style?: string | null
+          section_spacing?: string | null
+          card_blur?: string | null
         }
         Update: {
           animated_gradient?: string | null
@@ -86,6 +94,10 @@ export type Database = {
           theme_id?: string
           updated_at?: string
           user_id?: string
+          layout_type?: string | null
+          card_style?: string | null
+          section_spacing?: string | null
+          card_blur?: string | null
         }
         Relationships: []
       }

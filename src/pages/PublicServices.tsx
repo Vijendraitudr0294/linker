@@ -6,8 +6,12 @@ import { Zap, User, Clock, MapPin, Calendar, ArrowLeft, Phone, Mail, MessageCirc
 import { cn } from "@/lib/utils";
 import CatalogItemDetail from "@/components/public/CatalogItemDetail";
 import ContactForm from "@/components/public/ContactForm";
+import StudioContentGrid from "@/components/public/StudioContentGrid";
 import { usePlatformStore } from "@/stores/platformStore";
 import { resolveCategoryLabel, resolveItemCtaLabel, resolveItemTypeLabel } from "@/lib/commerceConfig";
+import { parseStudioProfileState } from "@/lib/publicStudio";
+import type { PostgrestError } from "@supabase/supabase-js";
+import type { Tables } from "@/integrations/supabase/types";
 
 interface ProfileData {
   name: string;
@@ -16,6 +20,9 @@ interface ProfileData {
   avatar_url: string;
   user_id: string;
   upi_id: string;
+  creator_metrics?: {
+    studio_state_json?: string;
+  };
 }
 
 interface AppearanceData {
@@ -51,6 +58,8 @@ interface ServiceItem {
   media?: { type: 'image' | 'video'; url: string }[];
 }
 
+type ProfileRow = Tables<"profiles">;
+
 const defaultAppearance: AppearanceData = {
   background_color: "#ffffff",
   text_color: "#1e293b",
@@ -83,8 +92,8 @@ const PublicServices = () => {
     const fetchData = async () => {
       if (!username) { setNotFound(true); setLoading(false); return; }
 
-      let profileData: any = null;
-      let error: any = null;
+      let profileData: ProfileRow | null = null;
+      let error: PostgrestError | null = null;
 
       if (username.toLowerCase() === "user") {
         const { data: sessionData } = await supabase.auth.getSession();
@@ -164,6 +173,7 @@ const PublicServices = () => {
         avatar_url: profileData.avatar_url || "",
         user_id: profileData.user_id,
         upi_id: (profileData as Record<string, unknown>).upi_id as string || "",
+        creator_metrics: (profileData.creator_metrics as ProfileData["creator_metrics"] | null) || {},
       });
 
       const [appearanceRes, catalogRes] = await Promise.all([
@@ -227,11 +237,25 @@ const PublicServices = () => {
     const hasFood = items.some((i) => i.item_type === "food");
     const hasServices = items.some((i) => i.item_type === "service");
     const pageType = hasFood && !hasServices ? "Menu" : hasServices && !hasFood ? "Services" : "Catalog";
-    document.title = `${profile.name} - ${pageType} | LinkVertex`;
-    return () => { document.title = "LinkVertex"; };
+    document.title = `${profile.name} - ${pageType} | BIOTRA`;
+    return () => { document.title = "BIOTRA"; };
   }, [profile, items]);
 
   const categories = useMemo(() => [...new Set(items.map((i) => i.category))], [items]);
+  const studioProfileState = useMemo(
+    () => parseStudioProfileState(profile?.creator_metrics),
+    [profile?.creator_metrics]
+  );
+  const studioCards = useMemo(
+    () => (studioProfileState?.items || []).filter((item) => item && item.title && item.url),
+    [studioProfileState]
+  );
+  const showStudioContent =
+    (studioProfileState?.pageMode || "hybrid") !== "links-only" &&
+    studioProfileState?.showSection !== false &&
+    studioCards.length > 0;
+  const studioSectionTitle = studioProfileState?.sectionTitle?.trim() || "Featured Content";
+  const studioSectionSubtitle = studioProfileState?.sectionSubtitle?.trim() || "";
   const itemTypes = useMemo(() => {
     const scoped = activeCategory ? items.filter((i) => i.category === activeCategory) : items;
     return [...new Set(scoped.map((i) => i.item_type).filter(Boolean))];
@@ -376,6 +400,32 @@ const PublicServices = () => {
             }}
           />
         </motion.div>
+
+        {showStudioContent && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.12 }}
+            className="space-y-3"
+          >
+            <StudioContentGrid
+              items={studioCards}
+              title={studioSectionTitle}
+              subtitle={studioSectionSubtitle}
+              sectionClassName="rounded-none border-0 bg-transparent p-0 shadow-none md:p-0"
+              titleClassName="tracking-[0.16em]"
+              subtitleClassName="text-sm"
+              surfaceColor="transparent"
+              sectionBorderColor="transparent"
+              borderColor={`${appearance.text_color}10`}
+              textColor={appearance.text_color}
+              subTextColor={`${appearance.text_color}A6`}
+              accentColor={appearance.button_bg}
+              cardBackgroundColor={`${appearance.button_bg}06`}
+              mediaBackgroundColor={`${appearance.button_bg}14`}
+            />
+          </motion.div>
+        )}
 
         {/* Category tabs */}
         {categories.length > 1 && (
@@ -613,7 +663,7 @@ const PublicServices = () => {
             View full profile →
           </Link>
           <Link to="/" className="hover:underline flex items-center gap-1 justify-center">
-            <Zap className="w-3 h-3" /> Made with LinkVertex
+            <Zap className="w-3 h-3" /> Made with BIOTRA
           </Link>
         </div>
       </div>

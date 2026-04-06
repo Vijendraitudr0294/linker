@@ -74,11 +74,11 @@ const CodeBlock = ({ code }: { code: string }) => {
 };
 
 const ApiDocs = () => (
-  <InfoPageLayout title="API Documentation" subtitle="Integrate with LinkVertex programmatically.">
+  <InfoPageLayout title="API Documentation" subtitle="Integrate with BIOTRA programmatically.">
     <div className="not-prose">
       <div className="glass rounded-2xl p-6 mb-8">
         <h3 className="font-heading font-bold text-foreground mb-2">Base URL</h3>
-        <CodeBlock code="https://linkvertex.com/api/v1" />
+        <CodeBlock code="https://BIOTRA.com/api/v1" />
         <p className="text-sm text-muted-foreground mt-3">All API endpoints are public and read-only unless otherwise specified. No authentication is required for public data.</p>
       </div>
 
@@ -109,7 +109,7 @@ const ApiDocs = () => (
       <div className="glass rounded-2xl p-6 mt-8 text-center">
         <Code className="w-8 h-8 text-primary mx-auto mb-3" />
         <h3 className="font-heading font-bold text-foreground mb-2">Need more?</h3>
-        <p className="text-sm text-muted-foreground">Full API documentation with webhooks and SDKs coming soon. Email api@linkvertex.com for early access.</p>
+        <p className="text-sm text-muted-foreground">Full API documentation with webhooks and SDKs coming soon. Email api@BIOTRA.com for early access.</p>
       </div>
     </div>
   </InfoPageLayout>

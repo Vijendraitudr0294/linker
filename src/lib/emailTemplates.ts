@@ -44,7 +44,7 @@ export const getOrderStatusEmailTemplate = (data: OrderTemplateData) => {
 <body>
   <div class="container">
     <div class="header">
-      <h1 style="margin: 0; font-size: 24px;">LinkVertex Booking</h1>
+      <h1 style="margin: 0; font-size: 24px;">BIOTRA Booking</h1>
       <div class="status-badge">${statusText[status]}</div>
     </div>
     <div class="content">
@@ -69,11 +69,11 @@ export const getOrderStatusEmailTemplate = (data: OrderTemplateData) => {
       <p>If you have any questions, please reach out to the provider at <a href="mailto:${supportEmail}">${supportEmail}</a>.</p>
       
       <div style="text-align: center;">
-        <a href="https://linkvertex.com/orders/${orderNumber}" class="btn">View Order Details</a>
+        <a href="https://BIOTRA.com/orders/${orderNumber}" class="btn">View Order Details</a>
       </div>
     </div>
     <div class="footer">
-      <p>&copy; 2026 LinkVertex Profile System. All rights reserved.</p>
+      <p>&copy; 2026 BIOTRA Profile System. All rights reserved.</p>
       <p>This is an automated notification. Please do not reply directly to this email.</p>
     </div>
   </div>
