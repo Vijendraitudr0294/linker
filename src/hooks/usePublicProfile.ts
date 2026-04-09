@@ -1,7 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
-import { defaultAppearance } from "@/pages/PublicProfile"; // Re-export from PublicProfile or copy
-import type { PostgrestError } from "@supabase/supabase-js";
 
 export const usePublicProfileQuery = (username: string | undefined) => {
   return useQuery({

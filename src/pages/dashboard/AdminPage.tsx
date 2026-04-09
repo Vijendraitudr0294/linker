@@ -18,6 +18,7 @@ import { motion } from "framer-motion";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { format, subDays, startOfDay, formatDistanceToNow } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
+import { isAdminUser } from "@/lib/authRoles";
 
 interface UserRow {
   id: string;
@@ -89,7 +90,7 @@ const AdminPage = () => {
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
 
   useEffect(() => {
-    if (user?.role === "superadmin") fetchAll();
+    if (isAdminUser(user)) fetchAll();
   }, [user]);
 
   const fetchAll = async () => {
@@ -224,7 +225,7 @@ const AdminPage = () => {
     setBulkLoading(false);
   };
 
-  if (!user || user.role !== "superadmin") return <Navigate to="/dashboard" replace />;
+  if (!isAdminUser(user)) return <Navigate to="/dashboard" replace />;
 
   const filteredUsers = users.filter((u) =>
     u.name.toLowerCase().includes(search.toLowerCase()) ||

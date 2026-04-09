@@ -94,17 +94,22 @@ const ContactForm = ({ profileUserId, textColor, buttonBg, buttonText, buttonSty
   if (sent) {
     return (
       <div
-        className="w-full p-6 text-center rounded-2xl border shadow-xl"
+        className={cn(
+          "w-full text-center border transition-all",
+          compact ? "p-4 rounded-xl border-2" : "p-6 rounded-2xl border-4"
+        )}
         style={{ 
           backgroundColor: cardBg || "#ffffff", 
           color: textColor, 
           borderColor: cardBorder || `${textColor}15`,
-          boxShadow: `0 10px 30px -10px ${buttonBg}20`
+          boxShadow: compact
+            ? `0 8px 20px -12px ${buttonBg}35`
+            : `8px 8px 0 0 rgba(0,0,0,1)`
         }}
       >
-        <Mail className="w-8 h-8 mx-auto mb-2 opacity-70" />
-        <p className="font-medium">Thanks! Your message has been sent.</p>
-        <button onClick={() => setSent(false)} className="text-sm underline mt-2 opacity-70">
+        <Mail className={cn("mx-auto mb-2 opacity-80", compact ? "w-6 h-6" : "w-8 h-8")} />
+        <p className={cn("font-black", compact ? "text-xs" : "text-sm uppercase tracking-[0.14em]")}>Message sent</p>
+        <button onClick={() => setSent(false)} className={cn("mt-2 font-bold underline opacity-70", compact ? "text-xs" : "text-sm")}>
           Send another
         </button>
       </div>
@@ -114,18 +119,25 @@ const ContactForm = ({ profileUserId, textColor, buttonBg, buttonText, buttonSty
   return (
     <form
       onSubmit={handleSubmit}
-      className={cn("w-full space-y-3 rounded-2xl border shadow-lg", compact ? "p-3" : "p-5")}
+      className={cn(
+        "w-full space-y-3 border",
+        compact ? "p-3 rounded-xl border-2" : "p-5 md:p-6 rounded-2xl border-4"
+      )}
       style={{ 
         backgroundColor: cardBg || "#ffffff", 
         color: textColor, 
         borderColor: cardBorder || `${textColor}15`,
-        boxShadow: `0 10px 30px -10px ${buttonBg}15`
+        boxShadow: compact
+          ? `0 8px 20px -12px ${buttonBg}35`
+          : `8px 8px 0 0 rgba(0,0,0,1)`
       }}
     >
-      <div className={cn("flex items-center gap-2 mb-1", compact && "mb-0.5")}>
-        <Mail className={cn("w-4 h-4", compact && "w-3 h-3")} />
-        <span className={cn("font-medium", compact ? "text-xs" : "text-sm")}>Contact Me</span>
+      <div className={cn("flex items-center gap-2", compact ? "mb-0.5" : "mb-2")}>
+        <Mail className={cn("opacity-80", compact ? "w-3 h-3" : "w-4 h-4")} />
+        <span className={cn(compact ? "text-xs font-bold" : "text-[11px] font-black uppercase tracking-[0.16em]")}>Send Message</span>
       </div>
+      {!compact && <p className="text-sm font-bold text-black/60 -mt-1 mb-1">Quick note and we will reply soon.</p>}
+      {!compact && <label className="text-[10px] font-black uppercase tracking-[0.14em] opacity-60">Name</label>}
       <input
         type="text"
         placeholder="Your name"
@@ -133,13 +145,14 @@ const ContactForm = ({ profileUserId, textColor, buttonBg, buttonText, buttonSty
         onChange={(e) => { setName(e.target.value); setErrors((p) => ({ ...p, name: "" })); }}
         className={cn(
           "w-full rounded-xl border focus:outline-none focus:ring-2 focus:ring-current/20 transition-colors",
-          compact ? "px-2.5 py-1.5 text-xs" : "px-3.5 py-2.5 text-sm",
+          compact ? "px-2.5 py-1.5 text-xs" : "h-12 px-3.5 text-sm font-bold",
           errors.name ? "border-red-400" : ""
         )}
         style={{ color: textColor, backgroundColor: inputBg || 'rgba(128,128,128,0.1)', borderColor: errors.name ? undefined : (inputBorder || `${textColor}20`) }}
         maxLength={100}
       />
       {errors.name && <p className="text-[10px] text-red-400">{errors.name}</p>}
+      {!compact && <label className="text-[10px] font-black uppercase tracking-[0.14em] opacity-60">Email</label>}
       <input
         type="email"
         placeholder="Your email"
@@ -147,13 +160,14 @@ const ContactForm = ({ profileUserId, textColor, buttonBg, buttonText, buttonSty
         onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: "" })); }}
         className={cn(
           "w-full rounded-xl border focus:outline-none focus:ring-2 focus:ring-current/20 transition-colors",
-          compact ? "px-2.5 py-1.5 text-xs" : "px-3.5 py-2.5 text-sm",
+          compact ? "px-2.5 py-1.5 text-xs" : "h-12 px-3.5 text-sm font-bold",
           errors.email ? "border-red-400" : ""
         )}
         style={{ color: textColor, backgroundColor: inputBg || 'rgba(128,128,128,0.1)', borderColor: errors.email ? undefined : (inputBorder || `${textColor}20`) }}
         maxLength={255}
       />
       {errors.email && <p className="text-[10px] text-red-400">{errors.email}</p>}
+      {!compact && <label className="text-[10px] font-black uppercase tracking-[0.14em] opacity-60">Message</label>}
       <textarea
         placeholder="Your message..."
         value={message}
@@ -161,7 +175,7 @@ const ContactForm = ({ profileUserId, textColor, buttonBg, buttonText, buttonSty
         rows={compact ? 2 : 3}
         className={cn(
           "w-full rounded-xl border focus:outline-none focus:ring-2 focus:ring-current/20 resize-none transition-colors",
-          compact ? "px-2.5 py-1.5 text-xs" : "px-3.5 py-2.5 text-sm",
+          compact ? "px-2.5 py-1.5 text-xs" : "px-3.5 py-2.5 text-sm font-medium",
           errors.message ? "border-red-400" : ""
         )}
         style={{ color: textColor, backgroundColor: inputBg || 'rgba(128,128,128,0.1)', borderColor: errors.message ? undefined : (inputBorder || `${textColor}20`) }}
@@ -172,13 +186,16 @@ const ContactForm = ({ profileUserId, textColor, buttonBg, buttonText, buttonSty
         type="submit"
         disabled={sending}
         className={cn(
-          "w-full font-semibold flex items-center justify-center gap-2 transition-all hover:opacity-90 disabled:opacity-50",
-          compact ? "py-2 px-3 text-xs" : "py-3 px-4 text-sm",
+          "w-full font-black uppercase tracking-[0.1em] flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50",
+          compact ? "py-3 px-3 text-[10px]" : "h-12 px-4 text-[12px] border-4 border-black shadow-[6px_6px_0_0_rgba(0,0,0,1)]",
           getBtnRadius()
         )}
-        style={{ backgroundColor: buttonBg, color: buttonText }}
+        style={{ 
+          backgroundColor: buttonBg, 
+          color: buttonText
+        }}
       >
-        {sending ? <Loader2 className={cn("animate-spin", compact ? "w-3 h-3" : "w-4 h-4")} /> : <Send className={cn(compact ? "w-3 h-3" : "w-4 h-4")} />}
+        {sending ? <Loader2 className={cn("animate-spin", compact ? "w-3.5 h-3.5" : "w-4.5 h-4.5")} /> : <Send className={cn(compact ? "w-3.5 h-3.5" : "w-4.5 h-4.5")} />}
         {sending ? "Sending..." : "Send Message"}
       </button>
     </form>

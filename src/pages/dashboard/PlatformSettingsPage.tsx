@@ -11,7 +11,7 @@ import { Navigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   Settings2, Globe, Key, ToggleRight, ShoppingBag, MessageCircle,
-  Users, BarChart3, Eye, EyeOff, Save, Sparkles, Mail, Bell, Plus, Trash2,
+  Users, BarChart3, Save, Sparkles, Mail, Bell, Plus, Trash2,
   Activity, Loader2,
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -27,12 +27,11 @@ import {
 import { parseCatalogCategory } from "@/lib/catalogCategory";
 import { readCatalogTaxonomy, writeCatalogTaxonomy, type CatalogTaxonomyCategory } from "@/lib/catalogTaxonomy";
 import { Textarea } from "@/components/ui/textarea";
+import { isAdminUser } from "@/lib/authRoles";
 
 const PlatformSettingsPage = () => {
   const user = useAuthStore((s) => s.user);
   const { settings, loading, fetchSettings, updateSettings } = usePlatformStore();
-  const [showApiKey, setShowApiKey] = useState(false);
-  const [localKey, setLocalKey] = useState("");
   const [checkoutStepLabels, setCheckoutStepLabels] = useState(DEFAULT_CHECKOUT_STEP_LABELS);
   const [ctaOverrides, setCtaOverrides] = useState<Record<string, string>>(DEFAULT_CTA_LABELS);
   const [categoryOverrides, setCategoryOverrides] = useState<Record<string, string>>({});
@@ -64,7 +63,6 @@ const PlatformSettingsPage = () => {
 
   useEffect(() => {
     if (settings) {
-      setLocalKey(settings.ai_api_key || "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");
       setCheckoutStepLabels(getCheckoutStepLabels(settings));
       setCtaOverrides(toStringRecord(settings.cta_label_overrides));
       setCategoryOverrides(toStringRecord(settings.category_label_overrides));
@@ -93,7 +91,7 @@ const PlatformSettingsPage = () => {
     void fetchCatalogMeta();
   }, []);
 
-  if (!user || user.role !== "superadmin") return <Navigate to="/dashboard" replace />;
+  if (!isAdminUser(user)) return <Navigate to="/dashboard" replace />;
 
   const handleToggle = async (key: string, value: boolean) => {
     const ok = await updateSettings({ [key]: value });
@@ -377,30 +375,13 @@ const PlatformSettingsPage = () => {
                 </div>
               </div>
               <p className="text-[13px] font-medium text-black/60 leading-relaxed">
-                Primary API gateway for Theme Generation and Wizard Insights. Supports Gemini and OpenRouter protocols.
+                Theme generation keys are now managed server-side only. This keeps provider credentials out of the browser and out of publicly-readable config rows.
               </p>
-              <div className="flex gap-3">
-                <div className="relative flex-1">
-                  <Input
-                    type={showApiKey ? "text" : "password"}
-                    value={localKey}
-                    onChange={(e) => setLocalKey(e.target.value)}
-                    placeholder="sk-... or AIza..."
-                    className="h-14 rounded-2xl border-black/5 bg-black/[0.02] text-black font-bold focus:bg-white transition-all px-6 pr-14"
-                  />
-                  <button
-                    onClick={() => setShowApiKey(!showApiKey)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-black/20 hover:text-primary transition-colors"
-                  >
-                    {showApiKey ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-                <Button 
-                  onClick={() => handleSaveField({ ai_api_key: localKey.trim() })}
-                  className="h-14 px-8 rounded-2xl bg-black text-white hover:bg-black/90 font-black uppercase tracking-widest text-[11px] shadow-lg"
-                >
-                  <Save className="w-4 h-4 mr-2" /> Sync
-                </Button>
+              <div className="rounded-[28px] border border-black/5 bg-black/[0.02] p-6 space-y-3">
+                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-black/30">Secure By Default</p>
+                <p className="text-[13px] font-medium text-black/60 leading-relaxed">
+                  Configure `LOVABLE_API_KEY`, `GEMINI_API_KEY`, or other provider secrets in the server or Supabase Edge Function environment instead of this admin UI.
+                </p>
               </div>
             </Card>
 

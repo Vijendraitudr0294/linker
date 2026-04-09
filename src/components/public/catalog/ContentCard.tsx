@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Newspaper, UtensilsCrossed, Video, Music, MessageSquare, Play, ExternalLink, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -11,6 +12,7 @@ interface ContentCardProps {
   cardBorder?: string;
   hasPhoto: boolean;
   buttonBg: string;
+  onView?: (id: string) => void;
   onClick: () => void;
   compact?: boolean;
 }
@@ -23,9 +25,31 @@ export const ContentCard = ({
   cardBorder,
   hasPhoto,
   buttonBg,
+  onView,
   onClick,
   compact = false
 }: ContentCardProps) => {
+  const cardRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!onView) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          onView(item.id);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (cardRef.current) {
+      observer.observe(cardRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [item.id, onView]);
   const kindMeta =
     item.kind === "news"
       ? { label: "Article", icon: Newspaper }
@@ -43,6 +67,7 @@ export const ContentCard = ({
 
   return (
     <motion.button
+      ref={cardRef}
       onClick={onClick}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { type SocialPlatform, type LinkItem } from "@/types/links";
 import { logActivity } from "@/lib/activityLogger";
+import { sendAnalyticsEvents } from "@/lib/analytics";
 
 export const useLinks = (userId: string | undefined) => {
   return useQuery({
@@ -183,16 +184,12 @@ export const useLinkMutations = (userId: string | undefined) => {
 
   const trackClick = useMutation({
     mutationFn: async (id: string) => {
-      // Phase 4 Event Analytics Tracking API replacement
-      try {
-        const res = await fetch('/api/v1/events', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ event_type: 'link_click', entity_id: id, user_id: userId })
-        });
-        if (!res.ok) throw new Error("Failed to track click");
-      } catch (err) {
-        // Fallback error silently as non-critical
+      const tracked = await sendAnalyticsEvents({
+        event_type: "link_click",
+        entity_id: id,
+        user_id: userId,
+      });
+      if (!tracked) {
         console.warn('Analytics API unavailable');
       }
       return id;

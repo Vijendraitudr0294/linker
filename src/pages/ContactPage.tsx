@@ -3,8 +3,35 @@ import RedesignedNavbar from "@/components/landing/redesign/RedesignedNavbar";
 import Footer from "@/components/landing/Footer";
 import { Mail, MessageCircle, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const ContactPage = () => {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+
+  const handleSubmit = () => {
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+    const trimmedMessage = message.trim();
+
+    if (!trimmedName || !trimmedEmail || !trimmedMessage) {
+      toast.error("Please complete your name, email, and message.");
+      return;
+    }
+
+    const subject = encodeURIComponent(`BIOTRA contact request from ${trimmedName}`);
+    const body = encodeURIComponent([
+      `Name: ${trimmedName}`,
+      `Email: ${trimmedEmail}`,
+      "",
+      trimmedMessage,
+    ].join("\n"));
+
+    window.location.href = `mailto:support@biotra.ai?subject=${subject}&body=${body}`;
+  };
+
   return (
     <div className="min-h-screen bg-[#08080a] text-white relative noise-overlay dark">
       <RedesignedNavbar />
@@ -59,18 +86,18 @@ const ContactPage = () => {
            >
               <div className="space-y-2">
                  <label className="text-xs font-black uppercase text-white/60 tracking-widest">Name</label>
-                 <input type="text" placeholder="Alex Volkov" className="w-full h-12 px-4 bg-white/[0.02] border border-white/5 rounded-xl text-sm font-bold text-foreground focus:outline-none focus:border-primary/50" />
+                 <input type="text" placeholder="Alex Volkov" value={name} onChange={(event) => setName(event.target.value)} className="w-full h-12 px-4 bg-white/[0.02] border border-white/5 rounded-xl text-sm font-bold text-foreground focus:outline-none focus:border-primary/50" />
               </div>
               <div className="space-y-2">
                  <label className="text-xs font-black uppercase text-white/60 tracking-widest">Email</label>
-                 <input type="email" placeholder="alex@creators.com" className="w-full h-12 px-4 bg-white/[0.02] border border-white/5 rounded-xl text-sm font-bold text-foreground focus:outline-none focus:border-primary/50" />
+                 <input type="email" placeholder="alex@creators.com" value={email} onChange={(event) => setEmail(event.target.value)} className="w-full h-12 px-4 bg-white/[0.02] border border-white/5 rounded-xl text-sm font-bold text-foreground focus:outline-none focus:border-primary/50" />
               </div>
               <div className="space-y-2">
                  <label className="text-xs font-black uppercase text-white/60 tracking-widest">Message</label>
-                 <textarea rows={4} placeholder="Tell us about your setup nodes..." className="w-full p-4 bg-white/[0.02] border border-white/5 rounded-xl text-sm font-bold text-foreground focus:outline-none focus:border-primary/50 rezise-none" />
+                 <textarea rows={4} placeholder="Tell us about your setup nodes..." value={message} onChange={(event) => setMessage(event.target.value)} className="w-full p-4 bg-white/[0.02] border border-white/5 rounded-xl text-sm font-bold text-foreground focus:outline-none focus:border-primary/50 rezise-none" />
               </div>
 
-              <Button className="w-full h-14 rounded-xl bg-gradient-to-r from-primary to-orange-500 text-white font-black uppercase tracking-widest shadow-xl shadow-primary/20 text-xs">Send Message</Button>
+              <Button onClick={handleSubmit} className="w-full h-14 rounded-xl bg-gradient-to-r from-primary to-orange-500 text-white font-black uppercase tracking-widest shadow-xl shadow-primary/20 text-xs">Send Message</Button>
            </motion.div>
 
         </div>

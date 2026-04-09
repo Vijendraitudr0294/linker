@@ -22,6 +22,7 @@ export interface ThemePreset {
   animatedGradient?: string;
   animationClass?: string;
   fontFamily?: string;
+  profileStyleVariant?: "default" | "music";
 }
 
 export type ThemeCategory = string;
@@ -288,6 +289,60 @@ export const themePresets: ThemePreset[] = [
     buttonText: "#f8fafc",
     fontFamily: "Inter",
   },
+  {
+    id: "retro-pop-yellow",
+    name: "Retro Pop Yellow",
+    category: "minimal",
+    backgroundStyle: "solid-bright",
+    animationPreset: "hover-scale",
+    cardStyle: "classic",
+    fontPair: "Outfit",
+    motionEngine: "CSS",
+    backgroundColor: "#FDE68A",
+    cardColor: "transparent",
+    textColor: "#000000",
+    buttonStyle: "square",
+    buttonBg: "#000000",
+    buttonText: "#FFFFFF",
+    fontFamily: "Outfit",
+    layoutMode: "brutalist" as any,
+  },
+  {
+    id: "retro-pop-blue",
+    name: "Retro Pop Blue",
+    category: "minimal",
+    backgroundStyle: "solid-bright",
+    animationPreset: "hover-scale",
+    cardStyle: "classic",
+    fontPair: "Outfit",
+    motionEngine: "CSS",
+    backgroundColor: "#BAE6FD",
+    cardColor: "transparent",
+    textColor: "#000000",
+    buttonStyle: "square",
+    buttonBg: "#000000",
+    buttonText: "#FFFFFF",
+    fontFamily: "Outfit",
+    layoutMode: "brutalist" as any,
+  },
+  {
+    id: "retro-pop-green",
+    name: "Retro Pop Green",
+    category: "minimal",
+    backgroundStyle: "solid-bright",
+    animationPreset: "hover-scale",
+    cardStyle: "classic",
+    fontPair: "Outfit",
+    motionEngine: "CSS",
+    backgroundColor: "#BBF7D0",
+    cardColor: "transparent",
+    textColor: "#000000",
+    buttonStyle: "square",
+    buttonBg: "#000000",
+    buttonText: "#FFFFFF",
+    fontFamily: "Outfit",
+    layoutMode: "brutalist" as any,
+  },
 ];
 
 const THEME_BUTTON_STYLES = new Set(["rounded", "pill", "square", "outline", "shadow"]);
@@ -345,6 +400,9 @@ const normalizeThemePreset = (value: unknown): ThemePreset | null => {
   if (asString(value.animatedGradient)) preset.animatedGradient = asString(value.animatedGradient) || undefined;
   if (asString(value.animationClass)) preset.animationClass = asString(value.animationClass) || undefined;
   if (asString(value.fontFamily)) preset.fontFamily = asString(value.fontFamily) || undefined;
+  if (asString(value.profileStyleVariant)) {
+    preset.profileStyleVariant = (asString(value.profileStyleVariant) as ThemePreset["profileStyleVariant"]) || undefined;
+  }
 
   return preset;
 };

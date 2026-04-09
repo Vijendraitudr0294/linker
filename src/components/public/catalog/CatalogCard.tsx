@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { ShoppingBag, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,7 @@ interface CatalogCardProps {
   buttonText: string;
   settings: any;
   formatPrice: (price: number) => string;
+  onView?: (id: string) => void;
   onClick: () => void;
   compact?: boolean;
 }
@@ -31,15 +33,38 @@ export const CatalogCard = ({
   buttonText,
   settings,
   formatPrice,
+  onView,
   onClick,
   compact = false
 }: CatalogCardProps) => {
+  const cardRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!onView) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          onView(item.id);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (cardRef.current) {
+      observer.observe(cardRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [item.id, onView]);
   const Icon = TYPE_ICONS[item.item_type] || ShoppingBag;
   const isOutOfStock = item.track_inventory && item.stock_quantity !== null && item.stock_quantity !== undefined && item.stock_quantity <= 0;
   const ctaLabel = resolveItemCtaLabel(item.item_type, settings, item.external_url ? "Buy" : "Buy"); 
 
   return (
     <motion.button
+      ref={cardRef}
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.35 }}

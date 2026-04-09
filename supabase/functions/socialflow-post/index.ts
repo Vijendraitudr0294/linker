@@ -13,8 +13,13 @@ Deno.serve(async (req: Request) => {
   try {
     const { post, platforms, mediaUrls } = await req.json();
     
-    // Using the secure Ayrshare Key provided by user
-    const AYRSHARE_API_KEY = "BADBA34A-322E445D-B4397EEA-50BBBC32";
+    const AYRSHARE_API_KEY = Deno.env.get("AYRSHARE_API_KEY");
+    if (!AYRSHARE_API_KEY) {
+      return new Response(JSON.stringify({ error: "AYRSHARE_API_KEY is not configured" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const response = await fetch("https://api.ayrshare.com/api/post", {
       method: "POST",
@@ -42,7 +47,7 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("socialflow-post error:", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
       status: 500,

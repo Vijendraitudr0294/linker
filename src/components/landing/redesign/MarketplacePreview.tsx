@@ -89,9 +89,13 @@ const MarketplacePreview = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ delay: i * 0.1, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                className="group relative flex flex-col items-start p-5 rounded-[32px] bg-card border border-surface-border hover:border-primary/20 transition-all duration-500 cursor-pointer overflow-hidden shadow-sm hover:shadow-2xl"
+                className="group relative flex flex-col items-start p-5 rounded-[32px] md:rounded-[40px] vibe-glass border-surface-border hover:border-primary/20 transition-all duration-500 cursor-pointer overflow-hidden shadow-sm hover:shadow-2xl"
              >
-                <div className="aspect-[1/1] relative w-full overflow-hidden rounded-[24px] mb-6">
+                {/* Luminous Glow Backdrop */}
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+                     style={{ background: `radial-gradient(circle at 50% 0%, ${creator.accent}20 0%, transparent 70%)` }} />
+
+                <div className="aspect-[1/1] relative w-full overflow-hidden rounded-[24px] md:rounded-[32px] mb-6">
                    <img src={creator.image} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" alt="creator" />
                    <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-background/80 backdrop-blur-md border border-surface-border">
                       <span className="text-[10px] font-mono font-black text-foreground tracking-wider">{creator.price}</span>
@@ -102,15 +106,26 @@ const MarketplacePreview = () => {
                         style={{ background: `linear-gradient(to bottom right, ${creator.accent}, transparent)` }} />
                 </div>
 
-                <div className="w-full">
-                   <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-display text-[20px] font-black text-foreground leading-none tracking-tighter">{creator.name}</h4>
-                      <div className="w-8 h-8 rounded-full border border-surface-border flex items-center justify-center group-hover:bg-primary group-hover:border-primary transition-all">
-                         <ShoppingBag className="w-3 h-3 text-muted-foreground group-hover:text-white transition-colors" />
+                <div className="w-full relative z-10">
+                   <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-display text-[22px] font-black text-foreground leading-none tracking-tighter">{creator.name}</h4>
+                      <div className="w-9 h-9 rounded-full border border-surface-border flex items-center justify-center group-hover:bg-primary group-hover:border-primary transition-all duration-300">
+                         <ShoppingBag className="w-4 h-4 text-muted-foreground group-hover:text-white transition-colors" />
                       </div>
                    </div>
-                   <p className="text-[10px] font-mono font-black text-muted-foreground/40 uppercase tracking-[0.2em]">{creator.role}</p>
+                   
+                   <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-mono font-black text-muted-foreground/40 uppercase tracking-[0.2em]">{creator.role}</p>
+                      <div className="flex gap-2">
+                         {creator.tags.map(tag => (
+                           <span key={tag} className="text-[8px] font-mono font-bold uppercase tracking-widest text-primary/60 bg-primary/5 px-2 py-0.5 rounded-md border border-primary/10">
+                             {tag}
+                           </span>
+                         ))}
+                      </div>
+                   </div>
                 </div>
+
              </motion.div>
            ))}
         </div>

@@ -24,13 +24,11 @@ const panelMotion = {
 const ChatWidget = () => {
   const [open, setOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [isLight, setIsLight] = useState(false);
-  const [isHeroActive, setIsHeroActive] = useState(true);
   const [messages, setMessages] = useState<Msg[]>([
     {
       role: "assistant",
       content:
-        "Hi — I'm BIOTRA AI.\nI can help you set up your creator page, sell products, or explore features.",
+        "HI — I'M BIOTRA AI.\nI CAN HELP YOU SET UP YOUR CREATOR PAGE, SELL PRODUCTS, OR EXPLORE FEATURES.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -48,36 +46,6 @@ const ChatWidget = () => {
   }, []);
 
   useEffect(() => {
-    const syncTheme = () => setIsLight(document.documentElement.classList.contains("light"));
-    syncTheme();
-    const observer = new MutationObserver(syncTheme);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const syncHeroState = () => {
-      const hero = document.getElementById("hero");
-      if (!hero || isMobile) {
-        setIsHeroActive(false);
-        return;
-      }
-
-      const rect = hero.getBoundingClientRect();
-      setIsHeroActive(rect.bottom > 220 && rect.top < window.innerHeight * 0.75);
-    };
-
-    syncHeroState();
-    window.addEventListener("scroll", syncHeroState, { passive: true });
-    window.addEventListener("resize", syncHeroState);
-
-    return () => {
-      window.removeEventListener("scroll", syncHeroState);
-      window.removeEventListener("resize", syncHeroState);
-    };
-  }, [isMobile]);
-
-  useEffect(() => {
     scrollRef.current?.scrollTo({
       top: scrollRef.current.scrollHeight,
       behavior: "smooth",
@@ -92,22 +60,11 @@ const ChatWidget = () => {
     textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
   }, [input]);
 
-  useEffect(() => {
-    if (!isMobile) return;
-
-    const originalOverflow = document.body.style.overflow;
-    if (open) document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, [isMobile, open]);
-
   const sendMessage = async (text: string) => {
     if (!text.trim() || loading) return;
 
     setShowQuickReplies(false);
-    const userMsg: Msg = { role: "user", content: text.trim() };
+    const userMsg: Msg = { role: "user", content: text.trim().toUpperCase() };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput("");
@@ -159,11 +116,11 @@ const ChatWidget = () => {
                 const last = prev[prev.length - 1];
                 if (last?.role === "assistant" && prev.length > newMessages.length) {
                   return prev.map((message, index) =>
-                    index === prev.length - 1 ? { ...message, content: assistantText } : message,
+                    index === prev.length - 1 ? { ...message, content: assistantText.toUpperCase() } : message,
                   );
                 }
 
-                return [...prev, { role: "assistant", content: assistantText }];
+                return [...prev, { role: "assistant", content: assistantText.toUpperCase() }];
               });
             }
           } catch {
@@ -176,7 +133,7 @@ const ChatWidget = () => {
         ...prev,
         {
           role: "assistant",
-          content: "Sorry, I'm having trouble connecting right now. Please try again in a moment.",
+          content: "SORRY, I'M HAVING TROUBLE CONNECTING RIGHT NOW. PLEASE TRY AGAIN IN A MOMENT.",
         },
       ]);
     }
@@ -184,45 +141,28 @@ const ChatWidget = () => {
     setLoading(false);
   };
 
-  const desktopBottom = isHeroActive ? 104 : 24;
   const desktopStyle = !isMobile
     ? {
-        bottom: `${desktopBottom}px`,
+        bottom: "24px",
         right: "24px",
       }
     : undefined;
-
-  const panelStyle = isMobile
-    ? undefined
-    : {
-        ...desktopStyle,
-        width: "360px",
-        height: "480px",
-        backdropFilter: "blur(22px)",
-        background: isLight ? "rgba(245, 239, 232, 0.93)" : "rgba(20,20,20,0.75)",
-        border: isLight ? "1px solid rgba(75, 56, 40, 0.2)" : "1px solid rgba(255,255,255,0.08)",
-      };
 
   return (
     <>
       <AnimatePresence>
         {!open && (
           <motion.button
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
+            initial={{ scale: 0.9, rotate: -10, opacity: 0 }}
+            animate={{ scale: 1, rotate: 0, opacity: 1 }}
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            whileTap={{ scale: 0.9 }}
             onClick={() => setOpen(true)}
-            className="fixed z-50 flex h-14 w-14 items-center justify-center rounded-full text-primary-foreground shadow-[0_16px_36px_-18px_rgba(255,132,34,0.85)] transition-transform hover:scale-105"
-            style={{
-              ...desktopStyle,
-              background:
-                "linear-gradient(135deg, rgba(255,122,26,1) 0%, rgba(255,163,74,1) 100%)",
-            }}
+            className="fixed z-50 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-400 border-4 border-black shadow-[6px_6px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all"
+            style={desktopStyle}
             aria-label="Open chat"
           >
-            <span className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.35),transparent_55%)]" />
-            <MessageCircle className="relative h-6 w-6" />
+            <MessageCircle className="h-8 w-8 text-black" strokeWidth={3} />
           </motion.button>
         )}
       </AnimatePresence>
@@ -230,185 +170,151 @@ const ChatWidget = () => {
       <AnimatePresence>
         {open && (
           <motion.div
-            {...panelMotion}
-            className={`fixed z-50 flex flex-col overflow-hidden ${
+            initial={{ opacity: 0, y: 20, rotate: 2 }}
+            animate={{ opacity: 1, y: 0, rotate: 0 }}
+            exit={{ opacity: 0, y: 20, rotate: -2 }}
+            className={`fixed z-50 flex flex-col overflow-hidden bg-white border-4 border-black shadow-[16px_16px_0_0_rgba(0,0,0,1)] ${
               isMobile
-                ? `inset-0 h-[100dvh] w-screen rounded-none border-0 ${isLight ? "bg-[#f4eee6]" : "bg-[#121212]"}`
-                : "rounded-[20px]"
+                ? "inset-0 h-[100dvh] w-screen rounded-none"
+                : "rounded-[32px] w-[380px] h-[520px]"
             }`}
-            style={panelStyle}
+            style={isMobile ? undefined : desktopStyle}
           >
-            <div className={`flex h-14 items-center justify-between px-4 ${isLight ? "border-b border-[#d7c5b3]" : "border-b border-white/8"}`}>
-              <div className="flex items-center gap-3">
-                <div className={`relative flex h-9 w-9 items-center justify-center rounded-full bg-primary/15 text-primary ${isLight ? "ring-1 ring-[#d8c7b4]" : "ring-1 ring-white/10"}`}>
-                  <Bot className="h-4 w-4" />
-                  <span className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 ${isLight ? "border-[#f4eee6]" : "border-[#141414]"} bg-emerald-400`} />
+            {/* Header */}
+            <div className="flex h-20 items-center justify-between px-6 border-b-4 border-black bg-pink-300">
+              <div className="flex items-center gap-4">
+                <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white border-2 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+                  <Bot className="h-5 w-5 text-black" strokeWidth={3} />
                 </div>
                 <div>
-                  <div className={`text-sm font-semibold ${isLight ? "text-[#33251a]" : "text-white"}`}>BIOTRA AI</div>
-                  <div className={`text-[10px] uppercase tracking-[0.18em] ${isLight ? "text-[#6e5946]" : "text-white/45"}`}>
-                    Online
+                  <div className="text-sm font-[1000] uppercase italic tracking-tighter text-black">BIOTRA AI</div>
+                  <div className="flex items-center gap-1.5 uppercase text-[10px] font-black tracking-widest text-black/60">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 border border-black" />
+                    SYSTEM ONLINE
                   </div>
                 </div>
               </div>
 
               <button
                 onClick={() => setOpen(false)}
-                className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
-                  isLight
-                    ? "text-[#7f6651] hover:bg-[#eadfce] hover:text-[#3b2a1f]"
-                    : "text-white/55 hover:bg-white/5 hover:text-white"
-                }`}
+                className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-black bg-white shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all"
                 aria-label="Close chat"
               >
-                <X className="h-4.5 w-4.5" />
+                <X className="h-5 w-5 text-black" strokeWidth={3} />
               </button>
             </div>
 
+            {/* Messages Area */}
             <div
               ref={scrollRef}
-              className="phone-scroll flex-1 overflow-y-auto px-4 py-4"
-              style={{
-                background:
-                  isLight
-                    ? "radial-gradient(circle at top, rgba(255,132,34,0.14), rgba(244,238,230,0.9) 30%)"
-                    : "radial-gradient(circle at top, rgba(255,132,34,0.10), transparent 28%)",
-              }}
+              className="flex-1 overflow-y-auto px-6 py-8 space-y-8 bg-[#fdfcf3]"
             >
-              <div className="space-y-4">
-                {messages.map((message, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.18 }}
-                    className={`flex gap-2 ${message.role === "user" ? "justify-end" : "justify-start"}`}
+              {messages.map((message, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: message.role === "user" ? 10 : -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className={`flex items-start gap-4 ${message.role === "user" ? "flex-row-reverse" : "flex-row"}`}
+                >
+                  <div 
+                    className={`shrink-0 w-10 h-10 rounded-xl border-2 border-black flex items-center justify-center shadow-[4px_4px_0_0_rgba(0,0,0,1)] ${
+                      message.role === "user" ? "bg-yellow-400" : "bg-emerald-400"
+                    }`}
                   >
-                    {message.role === "assistant" && (
-                      <div className={`mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary ${isLight ? "ring-1 ring-[#d7c4b0]" : "ring-1 ring-white/10"}`}>
-                        <Bot className="h-3.5 w-3.5" />
+                    {message.role === "user" ? <User size={20} className="text-black" strokeWidth={3} /> : <Bot size={20} className="text-black" strokeWidth={3} />}
+                  </div>
+
+                  <div
+                    className={`max-w-[75%] rounded-2xl border-4 border-black px-5 py-4 text-[12px] font-black uppercase tracking-wider leading-relaxed shadow-[6px_6px_0_0_rgba(0,0,0,1)] ${
+                      message.role === "user"
+                        ? "bg-white text-black"
+                        : "bg-white text-black"
+                    }`}
+                  >
+                    {message.role === "assistant" ? (
+                      <div className="prose-sm max-w-none prose-p:my-0 prose-headings:my-2">
+                        <ReactMarkdown>{message.content}</ReactMarkdown>
                       </div>
+                    ) : (
+                      message.content
                     )}
+                  </div>
+                </motion.div>
+              ))}
 
-                    <div
-                      className={`max-w-[84%] rounded-[18px] px-3.5 py-3 text-sm leading-6 ${
-                        message.role === "user"
-                          ? "rounded-br-md bg-primary text-primary-foreground"
-                          : isLight
-                            ? "rounded-bl-md border border-[#ccb8a2] bg-white/80 text-[#3a2b21]"
-                            : "rounded-bl-md border border-white/8 bg-white/[0.04] text-white/90"
-                      }`}
-                    >
-                      {message.role === "assistant" ? (
-                        <div className="max-w-none [&_ol]:my-2 [&_p]:m-0 [&_ul]:my-2 [&_li]:my-1">
-                          <ReactMarkdown>{message.content}</ReactMarkdown>
-                        </div>
-                      ) : (
-                        message.content
-                      )}
-                    </div>
-
-                    {message.role === "user" && (
-                      <div className={`mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${isLight ? "bg-[#eadfce] text-[#3b2a1f] ring-1 ring-[#d7c4b0]" : "bg-white/10 text-white ring-1 ring-white/10"}`}>
-                        <User className="h-3.5 w-3.5" />
-                      </div>
-                    )}
-                  </motion.div>
-                ))}
-
-                {loading && messages[messages.length - 1]?.role === "user" && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex gap-2"
-                  >
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary ring-1 ring-white/10">
-                      <Bot className="h-3.5 w-3.5" />
-                    </div>
-                    <div className={`rounded-[18px] rounded-bl-md px-4 py-3 ${isLight ? "border border-[#ccb8a2] bg-white/80" : "border border-white/8 bg-white/[0.04]"}`}>
-                      <span className="flex items-center gap-1.5">
-                        <motion.span
-                          className="h-2 w-2 rounded-full bg-primary/70"
-                          animate={{ scale: [1, 1.3, 1], opacity: [0.35, 1, 0.35] }}
-                          transition={{ duration: 0.8, repeat: Infinity, delay: 0 }}
+              {loading && messages[messages.length - 1]?.role === "user" && (
+                <div className="flex gap-4">
+                  <div className="w-10 h-10 rounded-xl border-2 border-black flex items-center justify-center shadow-[4px_4px_0_0_rgba(0,0,0,1)] bg-emerald-400">
+                    <Bot size={20} className="text-black" strokeWidth={3} />
+                  </div>
+                  <div className="rounded-2xl border-4 border-black bg-white px-6 py-4 shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
+                    <div className="flex gap-2">
+                      {[0, 0.2, 0.4].map((delay) => (
+                        <motion.div
+                          key={delay}
+                          animate={{ y: [0, -6, 0] }}
+                          transition={{ duration: 0.6, repeat: Infinity, delay }}
+                          className="w-2 h-2 rounded-full bg-black"
                         />
-                        <motion.span
-                          className="h-2 w-2 rounded-full bg-primary/70"
-                          animate={{ scale: [1, 1.3, 1], opacity: [0.35, 1, 0.35] }}
-                          transition={{ duration: 0.8, repeat: Infinity, delay: 0.2 }}
-                        />
-                        <motion.span
-                          className="h-2 w-2 rounded-full bg-primary/70"
-                          animate={{ scale: [1, 1.3, 1], opacity: [0.35, 1, 0.35] }}
-                          transition={{ duration: 0.8, repeat: Infinity, delay: 0.4 }}
-                        />
-                      </span>
-                    </div>
-                  </motion.div>
-                )}
-
-                {showQuickReplies && !loading && messages.length <= 1 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.16, duration: 0.22 }}
-                    className={`rounded-[18px] p-3 ${isLight ? "border border-[#ccb8a2] bg-white/72" : "border border-white/8 bg-white/[0.03]"}`}
-                  >
-                    <div className={`mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] ${isLight ? "text-[#725f4d]" : "text-white/45"}`}>
-                      Quick questions
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {quickReplies.map((reply) => (
-                        <button
-                          key={reply.message}
-                          onClick={() => sendMessage(reply.message)}
-                          className={`rounded-full px-3 py-2 text-xs font-medium transition-all duration-200 ${
-                            isLight
-                              ? "border border-[#d3bfaa] bg-[#f4ece2] text-[#5d4a39] hover:border-primary/40 hover:bg-primary/10 hover:text-[#38281d]"
-                              : "border border-white/10 bg-white/[0.03] text-white/80 hover:border-primary/40 hover:bg-primary/10 hover:text-white hover:shadow-[0_0_18px_rgba(255,132,34,0.18)]"
-                          }`}
-                        >
-                          {reply.label}
-                        </button>
                       ))}
                     </div>
-                  </motion.div>
-                )}
-              </div>
+                  </div>
+                </div>
+              )}
+
+              {showQuickReplies && !loading && messages.length <= 1 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-4"
+                >
+                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-black/40">SUGGESTIONS</div>
+                  <div className="flex flex-col gap-3">
+                    {quickReplies.map((reply) => (
+                      <button
+                        key={reply.message}
+                        onClick={() => sendMessage(reply.message)}
+                        className="text-left w-full rounded-xl border-2 border-black bg-white px-4 py-3 text-[11px] font-black uppercase tracking-widest text-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all bg-[#FEF08A]"
+                      >
+                        {reply.label}
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
             </div>
 
-            <div className={`px-4 py-3 ${isLight ? "border-t border-[#d7c5b3] bg-[#efe5d9]" : "border-t border-white/8 bg-[#141414]"}`}>
+            {/* Input Area */}
+            <div className="p-6 bg-white border-t-4 border-black">
               <form
                 onSubmit={(event) => {
                   event.preventDefault();
                   sendMessage(input);
                 }}
-                className="flex items-end gap-2"
+                className="flex items-end gap-3"
               >
-                <textarea
-                  ref={textareaRef}
-                  value={input}
-                  onChange={(event) => setInput(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" && !event.shiftKey) {
-                      event.preventDefault();
-                      sendMessage(input);
-                    }
-                  }}
-                  rows={1}
-                  placeholder="Ask anything about BIOTRA..."
-                  className={`max-h-[120px] min-h-[44px] flex-1 resize-none rounded-[16px] px-4 py-3 text-sm shadow-[0_10px_28px_-22px_rgba(0,0,0,0.8)] outline-none transition-colors ${
-                    isLight
-                      ? "border border-[#ccb8a2] bg-white/85 text-[#3b2a1f] placeholder:text-[#8f7865] focus:border-primary/45"
-                      : "border border-white/10 bg-white/[0.04] text-white placeholder:text-white/35 focus:border-primary/35"
-                  }`}
-                />
+                <div className="relative flex-1">
+                  <textarea
+                    ref={textareaRef}
+                    value={input}
+                    onChange={(event) => setInput(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" && !event.shiftKey) {
+                        event.preventDefault();
+                        sendMessage(input);
+                      }
+                    }}
+                    rows={1}
+                    placeholder="ASK ANYTHING..."
+                    className="w-full max-h-[120px] min-h-[56px] resize-none rounded-2xl border-4 border-black bg-white px-5 py-4 text-[12px] font-black uppercase tracking-wider outline-none placeholder:text-black/30 focus:bg-yellow-50 transition-colors"
+                  />
+                </div>
                 <button
                   type="submit"
                   disabled={!input.trim() || loading}
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_10px_30px_-20px_rgba(255,132,34,0.7)] transition-transform hover:scale-105 disabled:opacity-40"
+                  className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-400 border-4 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all disabled:opacity-50 disabled:grayscale"
                 >
-                  <Send className="h-4 w-4" />
+                  <Send className="h-6 w-6 text-black" strokeWidth={3} />
                 </button>
               </form>
             </div>

@@ -1,6 +1,6 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "./DashboardSidebar";
-import { Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import ThemeToggle from "./ThemeToggle";
 import NotificationsPanel from "./NotificationsPanel";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,24 +9,28 @@ import { useAuthStore } from "@/stores/authStore";
 import { useAppearanceStore } from "@/stores/appearanceStore";
 import { useCatalogItems } from "@/hooks/useCatalogApi";
 import { useLinks } from "@/hooks/useLinksApi";
+import { Search, User, Globe, LayoutGrid, Bell } from "lucide-react";
 
 const pageTitles: Record<string, string> = {
-  "/dashboard": "Dashboard",
-  "/dashboard/links": "My Links",
-  "/dashboard/catalog": "Catalog / Products",
-  "/dashboard/orders": "Orders / Bookings",
+  "/dashboard": "Overview",
+  "/dashboard/apps": "Apps & Integrations",
+  "/dashboard/links": "Links",
+  "/dashboard/forms": "Forms",
+  "/dashboard/catalog": "Shop",
+  "/dashboard/orders": "Orders",
   "/dashboard/analytics": "Analytics",
-  "/dashboard/appearance": "Design Studio",
+  "/dashboard/appearance": "Design",
   "/dashboard/messages": "Messages",
-  "/dashboard/settings": "My Profile",
+  "/dashboard/settings": "Settings",
   "/dashboard/admin": "Admin",
-  "/dashboard/admin/settings": "System",
+  "/dashboard/qrforge": "QR Codes",
+  "/dashboard/socialflow": "Social Flow",
 };
 
 const DashboardLayout = () => {
   const location = useLocation();
   const title = location.pathname.startsWith("/dashboard/admin/user/")
-    ? "Edit User"
+    ? "User Edit"
     : pageTitles[location.pathname] || "Dashboard";
   const user = useAuthStore((s) => s.user);
   const { fetchSettings } = useAppearanceStore();
@@ -41,81 +45,83 @@ const DashboardLayout = () => {
   }, [fetchSettings, user?.user_id]);
 
   return (
-    <SidebarProvider defaultOpen={false}>
-      <div className="min-h-screen flex w-full bg-background selection:bg-primary/20 selection:text-foreground relative">
+    <SidebarProvider defaultOpen={true}>
+      <div className="h-screen flex w-full bg-[#f8f9fa] font-bruddle relative overflow-hidden">
+        
+        {/* Subtle Architectural Texture */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.4] mix-blend-multiply">
+           <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px]" />
+        </div>
+
         <DashboardSidebar />
         
-        <div className="flex-1 flex flex-col min-w-0 relative">
-          <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 origin-top">
-             <style>{`
-               @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap');
-               .font-script { font-family: 'Dancing Script', cursive; }
-               .gradient-glow-1 { background: radial-gradient(circle, #f25f30 0%, transparent 70%); }
-               .gradient-glow-2 { background: radial-gradient(circle, #0079FF 0%, transparent 70%); }
-             `}</style>
-             <div className="absolute -top-[10%] -right-[5%] w-[60%] h-[60%] gradient-glow-1 opacity-[0.08] blur-[120px]" />
-             <div className="absolute top-[30%] -left-[10%] w-[50%] h-[50%] gradient-glow-2 opacity-[0.05] blur-[100px]" />
-          </div>
-
-          <header className="h-14 flex items-center justify-between px-5 border-b border-surface-border bg-surface-glass backdrop-blur-3xl sticky top-0 z-40 transition-all duration-300">
-            <div className="flex items-center gap-3">
-              <SidebarTrigger className="h-8 w-8 hover:bg-white/5 rounded-lg transition-all active:scale-95 text-muted-foreground hover:text-foreground" />
-              <div className="h-4 w-px bg-surface-border hidden sm:block" />
-              <AnimatePresence mode="wait">
-                <motion.h2
-                  key={title}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
-                  transition={{ duration: 0.2 }}
-                  className="text-[11px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] hidden sm:block"
-                >
-                  {title}
-                </motion.h2>
-              </AnimatePresence>
-            </div>
-            
-            <div className="flex items-center gap-2 sm:gap-4">
-              <div className="hidden min-[450px]:flex items-center gap-2 px-3 py-1 rounded-full border border-primary/20 bg-primary/5 shadow-sm">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                <span className="text-[9px] font-black uppercase tracking-widest text-primary">Node Operational</span>
+        <div className="flex-1 flex flex-col min-w-0 relative z-10">
+          
+          <header className="min-h-[84px] md:h-24 flex items-center justify-between px-4 md:px-10 py-3 md:py-0 bg-transparent shrink-0">
+            <div className="flex items-center gap-3 md:gap-6">
+              <div>
+                <SidebarTrigger className="h-10 w-10 md:h-12 md:w-12 border-2 border-black bg-white rounded-xl shadow-[4px_4px_0_0_rgba(0,0,0,1)] flex items-center justify-center hover:bg-black hover:text-white hover:shadow-none hover:translate-y-[4px] hover:translate-x-[4px] transition-all" />
               </div>
-              
-              <div className="h-4 w-px bg-surface-border mx-1 hidden sm:block" />
-              
-              <div className="flex items-center gap-2">
-                <NotificationsPanel />
-                <ThemeToggle />
-                
-                <div className="h-6 w-px bg-surface-border mx-1" />
-                
-                <div className="flex items-center gap-3 pl-1 group cursor-pointer" onClick={() => window.location.assign("/dashboard/settings")}>
-                  <div className="flex flex-col items-end hidden md:flex">
-                    <span className="text-[11px] font-black text-foreground leading-none mb-1 group-hover:text-primary transition-colors">{user?.name?.split(" ")[0] || user?.username}</span>
-                    <span className="text-[8px] font-bold text-muted-foreground/50 uppercase tracking-[0.3em] leading-none">Pro Plan</span>
-                  </div>
-                  <div className="w-8 h-8 rounded-lg bg-surface-glass border border-surface-border flex items-center justify-center shadow-sm group-hover:border-primary/40 group-hover:scale-105 transition-all">
-                    <span className="text-[11px] font-black text-primary uppercase">
-                      {user?.username?.[0] || 'U'}
-                    </span>
-                  </div>
+              <div>
+                <h2 className="text-[10px] md:text-sm font-black text-black/20 uppercase tracking-[0.25em] md:tracking-[0.4em] mb-1">My Link Page</h2>
+                <h1 className="text-xl md:text-2xl font-black text-black tracking-tight">{title}</h1>
+                <div className="mt-2 md:mt-3 inline-flex items-center gap-1 rounded-full border-2 border-black bg-white p-1 overflow-x-auto max-w-[75vw] md:max-w-none">
+                  {[
+                    { label: "Links", path: "/dashboard/links" },
+                    { label: "Forms", path: "/dashboard/forms" },
+                    { label: "Shop", path: "/dashboard/catalog" },
+                    { label: "Design", path: "/dashboard/appearance" },
+                  ].map((item) => {
+                    const active = location.pathname.startsWith(item.path);
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        className={`px-3 md:px-4 py-1.5 rounded-full text-[10px] md:text-[11px] font-black uppercase tracking-wider border transition-all whitespace-nowrap ${
+                          active
+                            ? "bg-black text-white border-black"
+                            : "bg-white text-black border-transparent hover:border-black/30"
+                        }`}
+                      >
+                        {item.label}
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             </div>
+            
+            <div className="flex items-center gap-3 md:gap-6">
+               <div className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-black rounded-2xl shadow-sm">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-black">Active Substrate</span>
+               </div>
+
+               <div className="flex items-center gap-2 md:gap-3">
+                  <div className="w-10 h-10 md:w-12 md:h-12 bg-white border-2 border-black rounded-2xl flex items-center justify-center shadow-sm hover:shadow-[4px_4px_0_0_rgba(16,185,129,1)] transition-all cursor-pointer">
+                      <Bell size={20} className="text-black" />
+                  </div>
+                  <div className="w-10 h-10 md:w-12 md:h-12 bg-white border-2 border-black rounded-2xl flex items-center justify-center shadow-sm hover:shadow-[4px_4px_0_0_rgba(244,114,182,1)] transition-all cursor-pointer overflow-hidden p-1">
+                      <img 
+                        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username}`} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover rounded-xl"
+                      />
+                  </div>
+               </div>
+            </div>
           </header>
 
-          <main className="flex-1 relative z-10 overflow-x-hidden">
-            <div className="p-[clamp(1rem,2vw,1.5rem)] mx-auto max-w-[1440px] w-full min-h-[calc(100vh-3.5rem)]">
-              <motion.div
-                key={location.pathname}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="w-full"
-              >
-                <Outlet />
-              </motion.div>
-            </div>
+          <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-10 pt-0 scroll-smooth">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="w-full h-full"
+            >
+              <Outlet />
+            </motion.div>
           </main>
         </div>
       </div>

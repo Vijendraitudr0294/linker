@@ -30,16 +30,19 @@ export const domainVerifyWorker = new Worker(
         .eq("user_id", userId)
         .eq("domain", domain);
 
-      console.log("[domain-verify] Domain verified:", { userId, domain });
+      console.log("[domain-verify] ✅ Domain verified:", { userId, domain });
 
-      // Stop retrying — domain is verified
-      const { UnrecoverableError } = await import("bullmq");
-      throw new UnrecoverableError("verified");
+      // Remove remaining attempts since verification succeeded
+      await job.remove();
+      return;
     }
 
-    console.log("[domain-verify] Domain not yet verified:", {
+    console.log("[domain-verify] ⏳ Domain not yet verified:", {
       userId, domain, attempt: job.attemptsMade,
     });
+
+    // Throw to trigger retry with backoff
+    throw new Error(`DNS record not found for ${domain} (attempt ${job.attemptsMade})`);
   },
   { connection: redisConnection, concurrency: 10 }
 );

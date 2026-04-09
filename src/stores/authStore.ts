@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { supabase } from "@/integrations/supabase/client";
 import { logActivity } from "@/lib/activityLogger";
+import { getPublicSiteUrl } from "@/lib/publicUrl";
 import type { User } from "@supabase/supabase-js";
 import type { Json } from "@/integrations/supabase/types";
 
@@ -74,6 +75,9 @@ const parseStringRecord = (value: Json | null | undefined): Record<string, strin
   }, {});
 };
 
+// Guard against duplicate auth listener subscriptions
+let _authListenerActive = false;
+
 export const useAuthStore = create<AuthState>()((set, get) => ({
   user: null,
   supabaseUser: null,
@@ -81,6 +85,9 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   loading: true,
 
   initialize: async () => {
+    // Prevent duplicate listener setup if called multiple times
+    if (_authListenerActive) return;
+
     try {
       // 1. Fetch initial session first to avoid token refresh deadlocks
       const { data: { session }, error } = await supabase.auth.getSession();
@@ -100,7 +107,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       }
 
       // 2. Setup auth state listener AFTER initial session is resolved
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+      _authListenerActive = true;
+      supabase.auth.onAuthStateChange(async (event, currentSession) => {
         if (currentSession?.user) {
           set({ supabaseUser: currentSession.user, isAuthenticated: true });
           
@@ -112,10 +120,9 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           set({ user: null, supabaseUser: null, isAuthenticated: false, loading: false });
         }
       });
-
-      void subscription;
     } catch (err) {
       console.error("Auth initialization failed:", err);
+      _authListenerActive = false;
       set({ loading: false });
     }
   },
@@ -161,18 +168,53 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   },
 
   register: async (name, email, password) => {
-    const baseUsername = email.split("@")[0].toLowerCase().replace(/[^a-z0-9_]/g, "") || "creator";
+    const trimmedName = name.trim();
+    const normalizedEmail = email.trim().toLowerCase();
+    const publicSiteUrl = getPublicSiteUrl();
+    const baseUsername = normalizedEmail.split("@")[0].toLowerCase().replace(/[^a-z0-9_]/g, "") || "creator";
+
+    // Fast, user-friendly duplicate email guard (profiles table mirrors auth users).
+    const { data: existingEmailProfile } = await supabase
+      .from("profiles")
+      .select("user_id")
+      .eq("email", normalizedEmail)
+      .maybeSingle();
+
+    if (existingEmailProfile) {
+      return { success: false, error: "This email is already registered. Please sign in." };
+    }
+
+    const usernameExists = async (username: string): Promise<boolean> => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("username", username)
+        .maybeSingle();
+      return Boolean(data);
+    };
+
+    const pickAvailableUsername = async (): Promise<string> => {
+      if (!(await usernameExists(baseUsername))) return baseUsername;
+
+      for (let i = 0; i < 8; i += 1) {
+        const candidate = `${baseUsername}${Math.floor(1000 + Math.random() * 9000)}`;
+        if (!(await usernameExists(candidate))) return candidate;
+      }
+      return `${baseUsername}${Date.now().toString().slice(-6)}`;
+    };
 
     const signUpWithUsername = async (username: string) =>
       supabase.auth.signUp({
-        email,
+        email: normalizedEmail,
         password,
         options: {
-          data: { name, username },
+          data: { name: trimmedName, username },
+          emailRedirectTo: `${publicSiteUrl}/login`,
         },
       });
 
-    let { data, error } = await signUpWithUsername(baseUsername);
+    let generatedUsername = await pickAvailableUsername();
+    let { data, error } = await signUpWithUsername(generatedUsername);
 
     const errorDetails =
       typeof error === "object" &&
@@ -182,18 +224,33 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         ? (error as { details?: string }).details
         : undefined;
 
-    if (error && isDuplicateUsernameError(error.message, errorDetails)) {
-      const fallbackUsername = `${baseUsername}${Math.floor(1000 + Math.random() * 9000)}`;
-      ({ data, error } = await signUpWithUsername(fallbackUsername));
+    if (
+      error &&
+      (isDuplicateUsernameError(error.message, errorDetails) ||
+        /database error saving new user/i.test(error.message || ""))
+    ) {
+      generatedUsername = await pickAvailableUsername();
+      ({ data, error } = await signUpWithUsername(generatedUsername));
     }
 
-    if (error) return { success: false, error: error.message };
+    if (error) {
+      const message = (error.message || "").toLowerCase();
+      if (message.includes("already registered") || message.includes("already exists") || message.includes("email")) {
+        return { success: false, error: "This email is already registered. Please sign in." };
+      }
+      return { success: false, error: error.message };
+    }
+
+    // Supabase may return an obfuscated user for existing email in some auth configurations.
+    if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+      return { success: false, error: "This email is already registered. Please sign in." };
+    }
 
     if (data.user) {
       // Optimize: Update and select in one round trip to avoid extra fetchProfile call
       const { data: updatedProfile, error: updateError } = await supabase
         .from("profiles")
-        .update({ name })
+        .update({ name: trimmedName })
         .eq("user_id", data.user.id)
         .select("*")
         .single();
@@ -240,28 +297,53 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   },
 
   login: async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return { success: false, error: error.message };
-    
-    if (data.user) {
-      // Use maybeSingle to handle cases where profile might be missing temporarily
-      const profile = await get().fetchProfile(data.user.id);
-      
-      if (profile?.status === "blocked") {
-        await supabase.auth.signOut();
-        return { success: false, error: "Your account has been blocked" };
+    set({ loading: true });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        set({ loading: false });
+        console.error("Authentication failed:", error.message);
+        return { success: false, error: error.message };
       }
       
-      set({ user: profile, supabaseUser: data.user, isAuthenticated: true });
-      rememberLastProfileUsername(profile?.username);
-      
-      // Fire-and-forget background updates
-      Promise.all([
-        supabase.from("profiles").update({ last_login_at: new Date().toISOString() }).eq("user_id", data.user.id),
-        supabase.from("user_activity_logs").insert({ user_id: data.user.id, action: "login", details: "User logged in" })
-      ]).catch(err => console.error("Background login updates failed:", err));
+      if (data.user) {
+        // Fetch profile and wait for it to ensure consistent state
+        const profile = await get().fetchProfile(data.user.id);
+        
+        if (profile?.status === "blocked") {
+          await supabase.auth.signOut();
+          set({ loading: false });
+          return { success: false, error: "This account has been deactivated." };
+        }
+
+        rememberLastProfileUsername(profile?.username);
+
+        set({ 
+          user: profile, 
+          supabaseUser: data.user, 
+          isAuthenticated: true,
+          loading: false 
+        });
+
+        // Background updates (swallowed errors to avoid blocking user)
+        supabase.from("profiles")
+          .update({ last_login_at: new Date().toISOString() })
+          .eq("user_id", data.user.id)
+          .then(({ error }) => { if (error) console.warn("Profile timestamp update failed", error); });
+
+        supabase.from("user_activity_logs")
+          .insert({ user_id: data.user.id, action: "login", details: "Credential login successful" })
+          .then(({ error }) => { if (error) console.warn("Activity log failed", error); });
+          
+        return { success: true };
+      }
+      set({ loading: false });
+      return { success: false, error: "Access denied. Verification failed." };
+    } catch (err: any) {
+      set({ loading: false });
+      console.error("Unexpected authentication error:", err);
+      return { success: false, error: "Service unavailable. Please try again later." };
     }
-    return { success: true };
   },
 
   logout: async () => {

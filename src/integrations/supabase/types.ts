@@ -157,6 +157,7 @@ export type Database = {
           updated_at: string
           user_id: string
           variants: Json | null
+          media: Json | null
         }
         Insert: {
           allow_order_form?: boolean
@@ -181,6 +182,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           variants?: Json | null
+          media?: Json | null
         }
         Update: {
           allow_order_form?: boolean
@@ -205,6 +207,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           variants?: Json | null
+          media?: Json | null
         }
         Relationships: []
       }
@@ -449,6 +452,89 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      qr_codes: {
+        Row: {
+          bg_color: string | null
+          content: string
+          created_at: string
+          fg_color: string | null
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          mode: string
+          name: string
+          short_code: string | null
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bg_color?: string | null
+          content: string
+          created_at?: string
+          fg_color?: string | null
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          mode: string
+          name: string
+          short_code?: string | null
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bg_color?: string | null
+          content?: string
+          created_at?: string
+          fg_color?: string | null
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          mode?: string
+          name?: string
+          short_code?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      qr_scans: {
+        Row: {
+          browser_ua: string | null
+          created_at: string
+          id: string
+          platform: string | null
+          qr_code_id: string
+          short_code_used: string | null
+        }
+        Insert: {
+          browser_ua?: string | null
+          created_at?: string
+          id?: string
+          platform?: string | null
+          qr_code_id: string
+          short_code_used?: string | null
+        }
+        Update: {
+          browser_ua?: string | null
+          created_at?: string
+          id?: string
+          platform?: string | null
+          qr_code_id?: string
+          short_code_used?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_scans_qr_code_id_fkey"
+            columns: ["qr_code_id"]
+            isOneToOne: false
+            referencedRelation: "qr_codes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profile_views: {
         Row: {

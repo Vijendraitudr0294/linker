@@ -1,5 +1,7 @@
 // @ts-nocheck
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.98.0";
+import { sendEmail } from "../_shared/resend.ts";
+import { getPublicSiteUrl } from "../_shared/site-url.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,7 +29,6 @@ Deno.serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Fetch order details
     const { data: order, error: orderError } = await supabase
       .from("catalog_orders")
       .select("*")
@@ -41,14 +42,12 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // Fetch item details
     const { data: item } = await supabase
       .from("catalog_items")
       .select("title, price, price_label, item_type")
       .eq("id", order.item_id)
       .single();
 
-    // Fetch profile owner's email
     const { data: profile } = await supabase
       .from("profiles")
       .select("email, name")
@@ -62,39 +61,36 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    const siteUrl = getPublicSiteUrl();
+
     const itemTitle = item?.title || "Unknown Item";
     const priceStr = item?.price ? `$${item.price}` : item?.price_label || "N/A";
 
-    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-    if (!RESEND_API_KEY) {
-      console.error("RESEND_API_KEY is not configured");
-      return new Response(JSON.stringify({ error: "Email service not configured" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const isStatusUpdate = !!status_update;
     const itemType = item?.item_type || "physical";
-    const status = order.status || "pending";
-    const typeTerm = (itemType === 'service' || itemType === 'car' || itemType === 'boat') ? 'Booking' : 'Order';
-    const actionTerm = (itemType === 'service' || itemType === 'car' || itemType === 'boat') ? 'booked' : 'ordered';
+    const isBookingType = itemType === "service" || itemType === "car" || itemType === "boat";
+    const typeTerm = isBookingType ? "Booking" : "Order";
+    const actionTerm = isBookingType ? "booked" : "ordered";
 
     let finalResendData: Record<string, unknown> | null = null;
     let finalResendOk = true;
 
     if (isStatusUpdate) {
-      // Notify customer about status change
-      const subject = `${typeTerm} Update: ${itemTitle} is now ${status}`;
+      const subject = `${typeTerm} Update: ${itemTitle} is now ${order.status || "pending"}`;
       const toEmail = order.customer_email;
-      
+      const status = order.status || "pending";
+
       const statusColors: Record<string, string> = {
-        pending: '#FFC107',
-        confirmed: '#4CAF50',
-        completed: '#2196F3',
-        cancelled: '#F44336'
+        pending: "#FFC107",
+        confirmed: "#4CAF50",
+        completed: "#2196F3",
+        cancelled: "#F44336",
       };
-      const mainColor = statusColors[status] || '#111';
+      const mainColor = statusColors[status] || "#111";
+
+      const dashboardRow = siteUrl
+        ? `<tr><td style="color: #888; padding-top: 8px;">Dashboard</td><td style="text-align: right; padding-top: 8px;"><a href="${siteUrl}/dashboard" style="color: ${mainColor}; font-weight: 700; text-decoration: none;">Open dashboard</a></td></tr>`
+        : "";
 
       const html = `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 40px 20px; border: 1px solid #eee; border-radius: 16px;">
@@ -111,6 +107,7 @@ Deno.serve(async (req: Request) => {
               <tr><td style="color: #888; padding-bottom: 8px;">Quantity</td><td style="text-align: right; font-weight: 700; padding-bottom: 8px;">${order.quantity}</td></tr>
               <tr><td style="color: #888; padding-bottom: 8px;">Total</td><td style="text-align: right; font-weight: 700; padding-bottom: 8px;">${priceStr}</td></tr>
               <tr><td style="color: #888;">Order ID</td><td style="text-align: right; font-weight: 700; font-family: monospace;">#LV-${order.id.slice(0, 8).toUpperCase()}</td></tr>
+              ${dashboardRow}
             </table>
           </div>
           <div style="text-align: center;">
@@ -119,22 +116,26 @@ Deno.serve(async (req: Request) => {
         </div>
       `;
 
-      const res = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ from: "LinkVertex <updates@resend.dev>", to: [toEmail], subject, html }),
+      const { data, error } = await sendEmail({
+        from: "LinkVertex <updates@resend.dev>",
+        to: [toEmail],
+        subject,
+        html,
       });
-      finalResendOk = res.ok;
-      const payload = await res.json();
-      finalResendData = payload && typeof payload === "object" ? (payload as Record<string, unknown>) : null;
+
+      finalResendOk = !error;
+      finalResendData = error
+        ? ({ error } as Record<string, unknown>)
+        : ((data as Record<string, unknown>) ?? null);
     } else {
-      // NEW BOOKING: Notify BOTH owner and customer
-      
-      // 1. Notify OWNER
       const ownerSubject = `New ${typeTerm}: ${itemTitle} from ${order.customer_name}`;
+      const ownerCta = siteUrl
+        ? `<p style="margin-top: 16px;"><a href="${siteUrl}/dashboard/orders" style="display:inline-block;padding:10px 14px;background:#111;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Open orders dashboard</a></p>`
+        : "";
+
       const ownerHtml = `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px;">
-          <h2 style="color: #111; margin-bottom: 4px;">🛒 New ${typeTerm} Received</h2>
+          <h2 style="color: #111; margin-bottom: 4px;">New ${typeTerm} Received</h2>
           <p style="color: #666; font-size: 14px; margin-top: 0;">Someone just ${actionTerm} an item on your profile!</p>
           <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
           <table style="width: 100%; font-size: 14px; color: #333;">
@@ -145,19 +146,32 @@ Deno.serve(async (req: Request) => {
             <tr><td style="padding: 6px 0; color: #888;">Phone</td><td style="padding: 6px 0;">${order.customer_phone || "N/A"}</td></tr>
             <tr><td style="padding: 6px 0; color: #888;">Notes</td><td style="padding: 6px 0;">${order.notes || "None"}</td></tr>
           </table>
+          ${ownerCta}
           <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
           <p style="font-size: 12px; color: #999;">Order ID: ${order.id}<br/>Date: ${new Date(order.created_at || Date.now()).toLocaleString()}</p>
         </div>
       `;
 
-      await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ from: "LinkVertex Orders <orders@resend.dev>", to: [profile.email], subject: ownerSubject, html: ownerHtml }),
+      const { error: ownerError } = await sendEmail({
+        from: "LinkVertex Orders <orders@resend.dev>",
+        to: [profile.email],
+        subject: ownerSubject,
+        html: ownerHtml,
       });
 
-      // 2. Notify CUSTOMER
+      if (ownerError) {
+        console.error("Resend owner email error:", ownerError);
+        return new Response(JSON.stringify({ error: "Failed to send owner email", details: ownerError }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       const customerSubject = `Confirmation: Your ${typeTerm} for ${itemTitle}`;
+      const customerCta = siteUrl
+        ? `<p style="text-align:center;margin-top:18px;"><a href="${siteUrl}" style="display:inline-block;padding:10px 14px;background:#111;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Open LinkVertex</a></p>`
+        : "";
+
       const customerHtml = `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 40px 20px; border: 1px solid #eee; border-radius: 16px;">
           <h2 style="color: #111; text-align: center;">Thanks for your ${typeTerm.toLowerCase()}!</h2>
@@ -170,18 +184,22 @@ Deno.serve(async (req: Request) => {
               <tr><td style="color: #888;">Status</td><td style="text-align: right; color: #FFC107; font-weight: 800;">PENDING</td></tr>
             </table>
           </div>
+          ${customerCta}
           <p style="text-align: center; font-size: 12px; color: #999;">Order ID: #LV-${order.id.slice(0, 8).toUpperCase()}</p>
         </div>
       `;
 
-      const res = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ from: "LinkVertex <onboarding@resend.dev>", to: [order.customer_email], subject: customerSubject, html: customerHtml }),
+      const { data, error } = await sendEmail({
+        from: "LinkVertex <onboarding@resend.dev>",
+        to: [order.customer_email],
+        subject: customerSubject,
+        html: customerHtml,
       });
-      finalResendOk = res.ok;
-      const payload = await res.json();
-      finalResendData = payload && typeof payload === "object" ? (payload as Record<string, unknown>) : null;
+
+      finalResendOk = !error;
+      finalResendData = error
+        ? ({ error } as Record<string, unknown>)
+        : ((data as Record<string, unknown>) ?? null);
     }
 
     if (!finalResendOk) {

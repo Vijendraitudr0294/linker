@@ -1,10 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { computeBgStyle, computePalette, getLinkButtonClasses, getLinkButtonStyle, type ProfileAppearance } from "@/lib/profileRenderer";
+import {
+  computeBgStyle,
+  computePalette,
+  getLinkButtonClasses,
+  getLinkButtonStyle,
+  type ProfileAppearance,
+} from "@/lib/profileRenderer";
 import type { ThemePreset } from "@/data/themes";
 import ThemeEffects from "@/components/theme/ThemeEffects";
-import { Check, ExternalLink, Trash2 } from "lucide-react";
+import { Check, Trash2, Zap, Sparkles, Image as ImgIcon } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface ThemePreviewCardProps {
@@ -22,8 +28,6 @@ const ThemePreviewCard = ({
   selected,
   onSelect,
   compact = false,
-  showStudioLink = false,
-  onOpenStudio,
   onDelete,
 }: ThemePreviewCardProps) => {
   const sharedAppearance: ProfileAppearance = {
@@ -49,40 +53,39 @@ const ThemePreviewCard = ({
   const buttonStyle = getLinkButtonStyle(theme.buttonStyle, palette.btnBg, palette.btnText);
 
   return (
-    <div className="space-y-2">
-      <motion.button
-        whileHover={{ y: compact ? -1 : -2, scale: compact ? 1.005 : 1.01 }}
-        whileTap={{ scale: 0.995 }}
-        type="button"
-        onClick={() => void onSelect(theme)}
-        className={cn(
-          "relative w-full overflow-hidden rounded-xl border text-left transition-all",
-          compact ? "p-2" : "p-2.5",
-          selected
-            ? "border-primary bg-primary/5 shadow-md shadow-primary/5 ring-2 ring-primary/5"
-            : "border-border/40 bg-card/60 hover:border-primary/35 hover:bg-card/80 shadow-sm"
-        )}
-      >
-        {onDelete && (
-          <Button
-            size="icon"
-            variant="destructive"
-            className="absolute top-1.5 right-1.5 z-50 h-6 w-6 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(theme.id);
-            }}
-          >
-            <Trash2 className="h-3 w-3" />
-          </Button>
-        )}
-        <div
-          className={cn(
-            "relative w-full overflow-hidden rounded-lg border border-border/10",
-            compact ? "h-[120px]" : "aspect-[4/4.5] min-h-[260px]"
-          )}
-          style={bgStyle}
+    <motion.div
+      whileHover={{ y: -4 }}
+      transition={{ type: "spring", stiffness: 400, damping: 20 }}
+      className={cn(
+        "relative rounded-[28px] border-4 overflow-hidden cursor-pointer transition-all group",
+        selected
+          ? "border-black shadow-[8px_8px_0_0_rgba(0,0,0,1)]"
+          : "border-black/10 shadow-[4px_4px_0_0_rgba(0,0,0,0.08)] hover:border-black hover:shadow-[6px_6px_0_0_rgba(0,0,0,1)]"
+      )}
+      onClick={() => void onSelect(theme)}
+    >
+      {/* Delete button (admin only) */}
+      {onDelete && (
+        <button
+          className="absolute top-3 right-3 z-50 w-7 h-7 rounded-xl bg-white border-2 border-black flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:bg-red-500 hover:border-red-500 hover:text-white"
+          onClick={(e) => { e.stopPropagation(); onDelete(theme.id); }}
         >
+          <Trash2 className="w-3 h-3" />
+        </button>
+      )}
+
+      {/* Selected tick */}
+      {selected && (
+        <div className="absolute top-3 left-3 z-50 w-7 h-7 rounded-xl bg-black flex items-center justify-center shadow-[2px_2px_0_0_rgba(0,0,0,0.3)]">
+          <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+        </div>
+      )}
+
+      {/* Background canvas */}
+      <div
+        className="relative w-full overflow-hidden"
+        style={{ ...bgStyle, height: compact ? "140px" : "240px" }}
+      >
         {theme.backgroundImage && (
           <>
             <img src={theme.backgroundImage} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
@@ -91,98 +94,74 @@ const ThemePreviewCard = ({
             )}
           </>
         )}
-
         <ThemeEffects appearance={sharedAppearance} variant="card" />
 
-        <div className={cn("relative z-10 flex h-full items-center justify-center p-3", compact ? "p-2" : "p-4")}>
+        {/* Mini profile mockup */}
+        <div className="absolute inset-0 flex items-center justify-center p-4">
           <div
-            className={cn(
-              "w-full max-w-[200px] overflow-hidden rounded-[22px] border shadow-xl backdrop-blur-sm",
-              compact ? "p-2.5" : "p-3.5"
-            )}
+            className="w-full max-w-[160px] rounded-2xl p-3 space-y-2.5 backdrop-blur-sm border"
             style={{
               backgroundColor: palette.cardBg,
-              borderColor: palette.cardBorder,
+              borderColor: `${palette.cardBorder}40`,
               color: palette.cardText,
               fontFamily: sharedAppearance.font_family,
             }}
           >
-            <div className="flex items-center gap-2.5">
+            {/* Avatar row */}
+            <div className="flex items-center gap-2">
               <div
-                className={cn("shrink-0 rounded-full border border-white/20", compact ? "h-8 w-8" : "h-10 w-10")}
-                style={{ backgroundColor: palette.btnBg }}
+                className="w-8 h-8 rounded-full border-2"
+                style={{ backgroundColor: palette.btnBg, borderColor: `${palette.btnBg}80` }}
               />
-              <div className="min-w-0 flex-1">
-                <div className="h-2 w-16 rounded-full" style={{ backgroundColor: `${palette.cardText}CC` }} />
-                <div className="mt-1.5 h-1.5 w-12 rounded-full" style={{ backgroundColor: `${palette.cardText}66` }} />
+              <div className="flex-1 space-y-1">
+                <div className="h-2 w-14 rounded-full" style={{ backgroundColor: `${palette.cardText}CC` }} />
+                <div className="h-1.5 w-10 rounded-full" style={{ backgroundColor: `${palette.cardText}55` }} />
               </div>
             </div>
-
-            <div className="mt-3 space-y-1.5">
+            {/* Bio lines */}
+            <div className="space-y-1">
               <div className="h-1.5 w-full rounded-full" style={{ backgroundColor: `${palette.cardText}30` }} />
               <div className="h-1.5 w-4/5 rounded-full" style={{ backgroundColor: `${palette.cardText}20` }} />
             </div>
-
-            <div className="mt-3 flex gap-1.5">
-              <div className="h-5 w-8 rounded-full" style={{ backgroundColor: `${palette.btnBg}20` }} />
-              <div className="h-5 w-8 rounded-full" style={{ backgroundColor: `${palette.cardText}12` }} />
-            </div>
-
+            {/* CTA button */}
             <div
-              className={cn(
-                "mt-3 flex items-center justify-center border text-[9px] font-bold uppercase tracking-widest",
-                compact ? "h-8 rounded-lg" : `h-9 ${buttonClasses}`
-              )}
-              style={{
-                ...buttonStyle,
-                borderColor: theme.buttonStyle === "outline" ? palette.btnBg : "transparent",
-              }}
+              className={cn("h-7 w-full flex items-center justify-center text-[9px] font-black uppercase tracking-widest border", buttonClasses)}
+              style={{ ...buttonStyle, borderColor: theme.buttonStyle === "outline" ? palette.btnBg : "transparent" }}
             >
-              {compact ? "Preview" : "Sample"}
+              Follow
             </div>
           </div>
         </div>
-        </div>
+      </div>
 
-        <div className={cn("flex flex-col", compact ? "gap-1 px-0.5 pt-2" : "gap-1.5 px-0.5 py-0.5 mt-2")}>
-          <div className="flex items-center justify-between gap-2">
-            <div className="min-w-0">
-              <p className={cn("truncate font-bold text-foreground", compact ? "text-xs" : "text-[11px] uppercase tracking-wider")}>
-                {theme.name}
-              </p>
-              <p className="text-[10px] text-muted-foreground">{theme.category}</p>
-            </div>
+      {/* Info footer */}
+      <div
+        className="p-4 border-t-4"
+        style={{ borderColor: selected ? "black" : "#00000010", backgroundColor: theme.backgroundColor, color: theme.textColor }}
+      >
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-[11px] font-black uppercase tracking-wide truncate" style={{ color: theme.textColor }}>
+              {theme.name}
+            </p>
+            <p className="text-[9px] font-bold uppercase tracking-widest mt-0.5 opacity-50">{theme.category}</p>
+          </div>
+          <div className="flex flex-col items-end gap-1 shrink-0">
             {selected && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold text-primary">
-                <Check className="h-2.5 w-2.5" />
-                Live
-              </span>
+              <Badge className="bg-emerald-500 text-white border-0 text-[8px] px-2 h-4.5 font-black uppercase tracking-tighter rounded-lg">
+                Active
+              </Badge>
+            )}
+            {theme.animationClass && (
+              <Sparkles className="w-3 h-3 opacity-40" style={{ color: theme.textColor }} />
+            )}
+            {theme.backgroundImage && (
+              <ImgIcon className="w-3 h-3 opacity-40" style={{ color: theme.textColor }} />
             )}
           </div>
-
-          {!compact && (
-            <div className="flex min-h-[20px] flex-wrap gap-1.5 items-center">
-              {theme.backgroundImage && <Badge variant="secondary" className="h-4 border-none bg-primary/10 px-1.5 text-[8px] font-bold uppercase tracking-tight text-primary">Photo</Badge>}
-              {theme.animationClass && <Badge variant="secondary" className="h-4 border-none bg-purple-500/10 px-1.5 text-[8px] font-bold uppercase tracking-tight text-purple-500">Motion</Badge>}
-              {theme.gradientFrom && <Badge variant="secondary" className="h-4 border-none bg-blue-500/10 px-1.5 text-[8px] font-bold uppercase tracking-tight text-blue-500">Gradient</Badge>}
-            </div>
-          )}
         </div>
-      </motion.button>
-
-      {compact && showStudioLink && onOpenStudio && (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="h-8 w-full"
-          onClick={onOpenStudio}
-        >
-          Full Design Studio
-          <ExternalLink className="ml-2 h-3.5 w-3.5" />
-        </Button>
-      )}
-    </div>
+      </div>
+    </motion.div>
   );
 };
 

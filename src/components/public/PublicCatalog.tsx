@@ -159,6 +159,8 @@ const PublicCatalog = ({ items, profileUserId, textColor, buttonBg, buttonText, 
                     {contentCards.filter(c => c.kind === "reel" || (c.kind === "video" && c.title.toLowerCase().includes("reel"))).map((item, index) => (
                     <motion.button
                       key={item.id}
+                      onViewportEnter={() => void trackEvent(item.id, "view")}
+                      viewport={{ once: true, amount: 0.5 }}
                       onClick={() => {
                          const rawItem = normalizedItems.find(i => i.id === item.id);
                          if (rawItem) {
@@ -223,6 +225,7 @@ const PublicCatalog = ({ items, profileUserId, textColor, buttonBg, buttonText, 
                     hasPhoto={hasPhoto}
                     buttonBg={buttonBg}
                     compact={compact}
+                    onView={(id) => void trackEvent(id, "view")}
                     onClick={() => {
                       const rawItem = normalizedItems.find(i => i.id === item.id);
                       if (rawItem) {
@@ -284,6 +287,7 @@ const PublicCatalog = ({ items, profileUserId, textColor, buttonBg, buttonText, 
                     settings={settings}
                     formatPrice={formatPrice}
                     compact={compact}
+                    onView={(id) => void trackEvent(id, "view")}
                     onClick={() => {
                       void trackEvent(item.id, "click");
                       setSelectedItem(item);

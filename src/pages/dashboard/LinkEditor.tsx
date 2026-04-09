@@ -43,7 +43,7 @@ import LinksToolbar from "@/components/dashboard/links/LinksToolbar";
 import TemplatePicker from "@/components/dashboard/links/TemplatePicker";
 import { buildTemplateUrl, getLinkTemplateCategories, inferPlatformFromTag } from "@/lib/linkTemplates";
 import AddBlockButton from "@/components/dashboard/blocks/AddBlockButton";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const tutorialSteps = [
   {
@@ -114,6 +114,7 @@ const LinkEditor = () => {
   const [newLayout, setNewLayout] = useState<string>("default");
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const moveLink = (index: number, direction: 'up' | 'down') => {
     const newLinks = [...links];
@@ -204,6 +205,23 @@ const LinkEditor = () => {
       void fetchPlatformSettings();
     }
   }, [fetchPlatformSettings, platformInitialized]);
+
+  useEffect(() => {
+    const shouldOpen = searchParams.get("add") === "true";
+    if (!shouldOpen) return;
+
+    const platformParam = (searchParams.get("platform") || "website") as SocialPlatform;
+    const titleParam = searchParams.get("title") || getSuggestedLinkTitle(platformParam);
+    const urlParam = searchParams.get("url") || "";
+    const layoutParam = searchParams.get("layout") || "default";
+
+    setNewPlatform(platformParam);
+    setNewTitle(titleParam);
+    setNewUrl(urlParam);
+    setNewLayout(layoutParam);
+    setShowAdd(true);
+    setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     setVisibleCount(40);
@@ -432,18 +450,13 @@ const LinkEditor = () => {
           </div>
 
           <motion.div
-            className="flex flex-col mb-8 px-1 mt-6 space-y-2"
+            className="flex flex-col mb-8 px-1 mt-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
           >
-             <div className="flex items-center gap-2">
-               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-               <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50">Identity Studio • Multi-Link Active</h4>
-             </div>
-             <h2 className="text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-foreground flex items-baseline gap-2">
-               Control <span className="font-script text-primary text-xl font-medium lowercase opacity-80">management.</span>
-             </h2>
+             <h1 className="text-3xl font-black text-black tracking-tight mb-1">Identity Nodes</h1>
+             <p className="text-sm font-medium text-black/40">Manage your active profile links.</p>
           </motion.div>
 
           {/* Link Filters */}
@@ -471,14 +484,14 @@ const LinkEditor = () => {
           <AnimatePresence>
             {showAdd && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
-                <Card className="p-6 space-y-4 border-2 border-primary/30 shadow-xl bg-card rounded-2xl relative overflow-hidden">
+                <Card className="bruddle-card-green p-8 space-y-6 relative overflow-hidden">
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-primary" />
-                      <h3 className="font-heading font-bold text-foreground text-sm uppercase tracking-wider">New Block</h3>
+                    <div className="flex items-center gap-2 text-black">
+                      <Zap className="w-5 h-5" />
+                      <h3 className="font-black text-lg uppercase tracking-tight">New Block</h3>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => setShowAdd(false)} className="rounded-full">
-                      <X className="w-5 h-5" />
+                    <Button variant="ghost" size="icon" onClick={() => setShowAdd(false)} className="rounded-2xl bg-white border-2 border-black hover:bg-black hover:text-white transition-all shadow-sm">
+                      <X className="w-4 h-4" />
                     </Button>
                   </div>
 
@@ -589,10 +602,9 @@ const LinkEditor = () => {
                 transition={{ delay: renderIndex * 0.035 }}
               >
                 <Card className={cn(
-                  "p-4 flex items-center gap-5 bg-white/[0.02] border border-white/5 hover:border-primary/40 transition-all duration-500 rounded-2xl group relative overflow-hidden",
+                  "bruddle-card p-5 flex items-center gap-5 hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:-translate-y-1 transition-all duration-300 relative group overflow-hidden",
                   !link.enabled && "opacity-60 grayscale-[0.5]"
                 )}>
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                   
                   {/* Reorder Controls */}
                   <div className="flex flex-col gap-1 shrink-0 z-10 scale-90">
@@ -772,17 +784,17 @@ const LinkEditor = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
             >
-              <Card className="p-12 text-center border-dashed border-2 border-border/50 bg-card/30 rounded-[2rem]">
-                <div className="w-20 h-20 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-primary/20 via-primary/5 to-transparent flex items-center justify-center">
-                  <Link2 className="w-10 h-10 text-primary" />
+              <Card className="bruddle-card-yellow p-12 text-center">
+                <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-white border-2 border-black flex items-center justify-center shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+                  <Link2 className="w-10 h-10 text-black" />
                 </div>
-                <h3 className="font-heading font-black text-foreground text-xl mb-2 tracking-tight">Your stage is empty</h3>
-                <p className="text-muted-foreground text-sm mb-8 max-w-[280px] mx-auto font-medium leading-relaxed">
+                <h3 className="font-black text-black text-2xl mb-2 tracking-tight">Your stage is empty</h3>
+                <p className="text-black/60 text-sm mb-8 max-w-[280px] mx-auto font-medium leading-relaxed">
                   Every big creator started with a single link. Time to add yours!
                 </p>
                 <Button
                   onClick={openAddForm}
-                  className="rounded-xl bg-primary hover:bg-primary/90 font-bold px-6 h-11"
+                  className="rounded-2xl bg-black hover:bg-black/90 text-white font-black px-8 h-12 shadow-[4px_4px_0_0_rgba(0,0,0,1)] uppercase tracking-widest text-[10px]"
                 >
                   <Plus className="w-4 h-4 mr-2" /> Add Your First Link
                 </Button>
@@ -796,73 +808,65 @@ const LinkEditor = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
-              className="flex items-center justify-center gap-8 py-6 rounded-2xl bg-card border border-border/50 shadow-sm"
+              className="bruddle-card p-8 flex items-center justify-around font-bruddle"
             >
               <div className="flex flex-col items-center">
-                <span className="text-xl font-black text-foreground">{links.length}</span>
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total</span>
+                <span className="text-3xl font-black text-black">{links.length}</span>
+                <span className="text-[10px] font-black text-black/40 uppercase tracking-widest mt-1">Total</span>
               </div>
-              <div className="w-px h-8 bg-border/50" />
+              <div className="w-0.5 h-12 bg-black/10" />
               <div className="flex flex-col items-center">
-                <span className="text-xl font-black text-primary">{links.filter(l => l.enabled).length}</span>
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Active</span>
+                <span className="text-3xl font-black text-black">{links.filter(l => l.enabled).length}</span>
+                <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mt-1">Active</span>
               </div>
-              <div className="w-px h-8 bg-border/50" />
+              <div className="w-0.5 h-12 bg-black/10" />
               <div className="flex flex-col items-center">
-                <span className="text-xl font-black text-accent">{links.reduce((sum, l) => sum + (l.clicks || 0), 0)}</span>
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Clicks</span>
+                <span className="text-3xl font-black text-black">{links.reduce((sum, l) => sum + (l.clicks || 0), 0)}</span>
+                <span className="text-[10px] font-black text-pink-500 uppercase tracking-widest mt-1">Clicks</span>
               </div>
             </motion.div>
           )}
         </div>
 
         {/* Right Column: Single Preview View */}
-        <div className="hidden lg:block w-[320px] 2xl:w-[360px] shrink-0 self-start sticky top-6 z-30">
-          <div className="bg-card border border-border/40 rounded-[28px] p-5 shadow-2xl relative overflow-hidden group/sidebar">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="hidden lg:block w-[320px] 2xl:w-[360px] shrink-0 self-start sticky top-6 z-30 font-bruddle">
+          <div className="bruddle-card-blue p-8 relative overflow-hidden group/sidebar">
+            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:rotate-12 transition-all">
+                <Smartphone size={120} strokeWidth={1} />
+            </div>
 
-            <div className="relative">
-              <div className="flex items-center justify-between px-1 mb-4">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                    <Smartphone className="w-4 h-4 text-primary" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-black uppercase tracking-[0.18em] text-foreground">Preview</p>
-                    <p className="text-xs text-muted-foreground truncate">@{user?.username}</p>
-                  </div>
-                </div>
+            <div className="relative z-10 w-full">
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="text-xl font-black text-black uppercase tracking-tight">Preview</h3>
                 <Button
                   type="button"
-                  size="sm"
                   variant="outline"
-                  className="h-9 rounded-xl px-3 text-[11px] font-bold border-primary/30 text-primary hover:bg-primary/10"
+                  className="rounded-xl px-4 py-2 bg-white border-2 border-black text-[10px] font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
                   onClick={() => window.location.assign("/dashboard/appearance")}
                 >
-                  Design Studio
+                  Edit
                 </Button>
               </div>
 
-              <div className="relative group/preview flex flex-col gap-4">
-                <div className="absolute -inset-10 bg-primary/5 blur-[100px] rounded-full opacity-0 group-hover/preview:opacity-100 transition-opacity duration-1000" />
-                <div className="relative transform scale-[1.01] origin-top transition-all duration-500 ease-out">
+              <div className="relative group/preview flex flex-col gap-6">
+                <div className="rounded-[2.4rem] border-2 border-black overflow-hidden bg-white shadow-2xl relative z-10 scale-95 origin-top">
                   {previewPanel}
                 </div>
 
-                <div className="relative flex items-center gap-3 px-1 pb-2">
+                <div className="relative flex items-center gap-3 w-full">
                   <a
                     href={profileUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl h-12 bg-card/80 hover:bg-card border border-border/50 text-foreground text-[11px] font-bold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm"
+                    className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl h-12 bg-white hover:bg-black border-2 border-black text-black hover:text-white text-[10px] font-black uppercase tracking-widest transition-all shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]"
                   >
-                    <ExternalLink className="w-4 h-4" /> View Site
+                    View Site
                   </a>
                   <Button
                     onClick={copyProfileLink}
-                    className="flex-1 gap-2 rounded-2xl h-12 bg-primary hover:bg-primary/90 text-white text-[11px] font-bold transition-all hover:shadow-xl hover:shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] border-none"
+                    className="flex-1 gap-2 rounded-2xl h-12 bg-black hover:bg-black/90 text-white text-[10px] font-black uppercase tracking-widest transition-all shadow-[4px_4px_0_0_rgba(255,255,255,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]"
                   >
-                    <Copy className="w-4 h-4" /> Copy URL
+                    Copy URL
                   </Button>
                 </div>
               </div>

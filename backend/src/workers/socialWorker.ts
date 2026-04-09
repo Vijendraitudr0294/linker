@@ -1,6 +1,6 @@
 import { Worker, Job } from 'bullmq';
 import { redisConnection, supabase, SocialJobPayload } from '../queues/socialQueue';
-import { decryptToken, refreshPlatformToken, publishToPlatform } from '../lib/socialUtils';
+import { decryptToken, refreshPlatformToken, publishToPlatform, encryptToken } from '../lib/socialUtils';
 
 export const socialWorker = new Worker<SocialJobPayload>(
   'social-publish',
@@ -17,7 +17,17 @@ export const socialWorker = new Worker<SocialJobPayload>(
 
       if (new Date(tokenRecord.expires_at) < new Date()) {
         try {
-          accessToken = await refreshPlatformToken(platform, tokenRecord.refresh_token);
+          const refreshedTokenRes = await refreshPlatformToken(platform, tokenRecord.refresh_token);
+          if (!refreshedTokenRes) {
+            await supabase.from('post_platforms').update({ status: 'reconnect_required' }).eq('post_id', postId).eq('platform', platform);
+            continue;
+          }
+          accessToken = refreshedTokenRes;
+          // MANDATORY: Update the encrypted token in the database
+          await supabase.from('oauth_tokens').update({
+            encrypted_token: encryptToken(accessToken), 
+            expires_at: new Date(Date.now() + 3600000).toISOString() // Default to 1h if not provided
+          }).eq('id', tokenRecord.id);
         } catch (refreshErr) {
           await supabase.from('post_platforms').update({ status: 'reconnect_required' }).eq('post_id', postId).eq('platform', platform);
           continue; 

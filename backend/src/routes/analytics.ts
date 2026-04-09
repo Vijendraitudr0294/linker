@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import { supabase } from '../queues/socialQueue';
+import { requireSupabaseAuth } from '../lib/auth';
 
 export const dashboardRouter = Router();
+dashboardRouter.use(requireSupabaseAuth);
 
 dashboardRouter.get('/summary', async (req, res) => {
   const { entity_id, days = 30 } = req.query;

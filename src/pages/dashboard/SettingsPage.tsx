@@ -19,9 +19,18 @@ import SocialLinksEditor, { type SocialLinkConfig } from "@/components/dashboard
 import ProfilePreview from "@/components/dashboard/ProfilePreview";
 import ShareProfile from "@/components/dashboard/ShareProfile";
 import ThemePreviewCard from "@/components/dashboard/ThemePreviewCard";
+import MailingListIntegrations from "@/components/dashboard/MailingListIntegrations";
 import { getThemePresetsFromSettings, type ThemePreset } from "@/data/themes";
+import { isAdminRole } from "@/lib/authRoles";
+import { cn } from "@/lib/utils";
 
 const BIO_MAX = 160;
+const SETTINGS_SECTION_LINKS = [
+  { label: "Profile", id: "public-persona" },
+  { label: "Revenue", id: "revenue-stream" },
+  { label: "Social", id: "connective-matrix" },
+  { label: "Mailing List Integrations", id: "mailing-list-integrations" },
+] as const;
 
 const SettingsPage = () => {
   const navigate = useNavigate();
@@ -52,6 +61,7 @@ const SettingsPage = () => {
   const [errors, setErrors] = useState<{ name?: string; username?: string; bio?: string }>({});
   const [showPreview, setShowPreview] = useState(false);
   const [showAdvancedProfile, setShowAdvancedProfile] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>("public-persona");
   const bioRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -81,6 +91,23 @@ const SettingsPage = () => {
       });
     }
   }, [user]);
+
+  useEffect(() => {
+    const sectionIds = SETTINGS_SECTION_LINKS.map((item) => item.id);
+    const onScroll = () => {
+      let current = sectionIds[0];
+      for (const id of sectionIds) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        if (el.getBoundingClientRect().top <= 180) current = id;
+      }
+      setActiveSection((prev) => (prev === current ? prev : current));
+    };
+
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
 
   const insertEmoji = (emoji: string) => {
@@ -214,18 +241,18 @@ const SettingsPage = () => {
       </div>
 
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-4 p-12 rounded-[48px] bg-white border border-black/5 shadow-2xl shadow-black/[0.04] relative overflow-hidden group">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8 mb-4 p-6 md:p-12 rounded-[32px] md:rounded-[48px] bg-white border border-black/5 shadow-2xl shadow-black/[0.04] relative overflow-hidden group">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
         <div className="relative z-10 flex-1">
           <div className="inline-flex items-center gap-2 rounded-full border border-black/5 bg-black/5 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.25em] text-emerald-600 mb-6">
             <User className="w-3.5 h-3.5" />
-            Identity Control Node
+            Profile Settings
           </div>
-          <h1 className="text-5xl md:text-7xl font-black tracking-tight flex items-baseline gap-4 text-black leading-[0.9]">
+          <h1 className="text-4xl md:text-7xl font-black tracking-tight flex items-baseline gap-3 md:gap-4 text-black leading-[0.9]">
             Identity <span className="font-script text-primary text-3xl md:text-4xl lowercase opacity-90">studio</span>
           </h1>
           <p className="mt-8 max-w-2xl text-[16px] font-medium text-black/30 leading-relaxed uppercase tracking-widest text-[11px]">
-            Master Authority Node • <span className="text-black font-black">Verified Identity Architecture</span>
+            Manage your profile • <span className="text-black font-black">Everything in one place</span>
           </p>
         </div>
         
@@ -236,27 +263,49 @@ const SettingsPage = () => {
               onClick={() => setShowPreview(!showPreview)}
             >
               <Smartphone className="w-5 h-5" />
-              {showPreview ? "Conceal Orbit" : "Visual Orbit"}
+              {showPreview ? "Hide Preview" : "Show Preview"}
             </Button>
             <Button 
-               className="rounded-full bg-black text-white hover:bg-black/90 px-12 py-8 h-16 text-[11px] font-black uppercase tracking-widest shadow-2xl transition-all hover:scale-[1.05] active:scale-95 flex items-center gap-3"
+               className="rounded-full bg-black text-white hover:bg-black/90 px-8 md:px-12 py-6 md:py-8 h-14 md:h-16 text-[10px] md:text-[11px] font-black uppercase tracking-widest shadow-2xl transition-all hover:scale-[1.05] active:scale-95 flex items-center gap-3"
                onClick={handleSave}
             >
               <Save className="w-6 h-6" />
-              Sync Protocol
+              Save Changes
             </Button>
         </div>
       </div>
 
+      <Card className="sticky top-4 z-20 p-4 md:p-5 rounded-[24px] border-2 border-black bg-white/95 backdrop-blur shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
+        <div className="flex flex-wrap items-center gap-2">
+          {SETTINGS_SECTION_LINKS.map((item) => (
+            <a
+              key={item.id}
+              href={`#${item.id}`}
+              className={cn(
+                "rounded-full border-2 border-black px-4 py-2 text-[11px] font-black uppercase tracking-wider transition-colors",
+                activeSection === item.id
+                  ? "bg-black text-white"
+                  : "text-black hover:bg-black hover:text-white"
+              )}
+            >
+              {item.label}
+            </a>
+          ))}
+        </div>
+      </Card>
+
       <ShareProfile />
+      <div id="mailing-list-integrations" className="scroll-mt-28">
+        <MailingListIntegrations userId={user.user_id} />
+      </div>
 
       {/* Main Orchestration Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12">
         <div className="lg:col-span-8 space-y-12">
           
           {/* Transition Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-            <Card className="p-12 rounded-[48px] border-black/5 bg-white shadow-2xl shadow-black/[0.02] group hover:shadow-primary/10 transition-all duration-700 overflow-hidden relative">
+            <Card className="p-6 md:p-12 rounded-[32px] md:rounded-[48px] border-black/5 bg-white shadow-2xl shadow-black/[0.02] group hover:shadow-primary/10 transition-all duration-700 overflow-hidden relative">
                <div className="absolute top-0 right-0 w-40 h-40 bg-primary/10 rounded-bl-[100px] -translate-y-10 translate-x-10 group-hover:scale-110 transition-transform duration-700" />
                <div className="relative z-10 flex flex-col gap-8">
                   <div className="w-16 h-16 rounded-[24px] bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
@@ -264,26 +313,26 @@ const SettingsPage = () => {
                   </div>
                   <div>
                     <h2 className="text-2xl font-black tracking-tight text-black flex items-center gap-2">
-                       Wizard Node
+                       Setup Wizard
                     </h2>
                     <p className="text-black/40 text-[15px] font-medium mt-3 leading-relaxed">
                       Re-initialize your identity parameters and onboarding sequence.
                     </p>
                   </div>
-                  <Button onClick={() => navigate("/welcome")} className="w-fit rounded-full bg-black text-white px-10 py-7 h-14 text-[10px] font-black uppercase tracking-widest shadow-2xl transition-all hover:scale-[1.05]">
-                    Launch Control
+                    <Button onClick={() => navigate("/welcome")} className="w-fit rounded-full bg-black text-white px-10 py-7 h-14 text-[10px] font-black uppercase tracking-widest shadow-2xl transition-all hover:scale-[1.05]">
+                    Open Wizard
                   </Button>
                </div>
             </Card>
 
-            <Card className="p-12 rounded-[48px] border-black/5 bg-white shadow-2xl shadow-black/[0.02] group hover:shadow-emerald-500/10 transition-all duration-700 overflow-hidden relative">
+            <Card className="p-6 md:p-12 rounded-[32px] md:rounded-[48px] border-black/5 bg-white shadow-2xl shadow-black/[0.02] group hover:shadow-emerald-500/10 transition-all duration-700 overflow-hidden relative">
                <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/10 rounded-bl-[100px] -translate-y-10 translate-x-10 group-hover:scale-110 transition-transform duration-700" />
                <div className="relative z-10 flex flex-col gap-8">
                   <div className="w-16 h-16 rounded-[24px] bg-emerald-500/5 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
                     <Palette className="w-8 h-8" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-black tracking-tight text-black">Aesthetic Core</h2>
+                    <h2 className="text-2xl font-black tracking-tight text-black">Design Settings</h2>
                     <p className="text-black/40 text-[15px] font-medium mt-3 leading-relaxed">
                       Refine your visual signature, themes, and global presence.
                     </p>
@@ -296,13 +345,13 @@ const SettingsPage = () => {
           </div>
 
           {/* Primary Persona Node */}
-          <Card className="p-12 rounded-[48px] border-black/5 bg-white shadow-2xl shadow-black/[0.04] space-y-12">
+          <Card id="public-persona" className="scroll-mt-28 p-6 md:p-12 rounded-[32px] md:rounded-[48px] border-black/5 bg-white shadow-2xl shadow-black/[0.04] space-y-8 md:space-y-12">
             <div className="flex items-center gap-4 pb-8 border-b border-black/5">
               <div className="w-14 h-14 rounded-2xl bg-black/5 flex items-center justify-center text-primary">
                 <User className="w-7 h-7" />
               </div>
               <div>
-                <h2 className="text-3xl font-black text-black tracking-tight">Public Persona</h2>
+                <h2 className="text-3xl font-black text-black tracking-tight">Public Profile</h2>
                 <p className="text-[15px] font-medium text-black/40">Visible to global network nodes</p>
               </div>
             </div>
@@ -359,7 +408,7 @@ const SettingsPage = () => {
 
                   <div className="space-y-5">
                      <div className="flex items-center justify-between px-2">
-                        <Label className="text-[11px] font-black uppercase tracking-[0.25em] text-black/30">Narrative Bio</Label>
+                        <Label className="text-[11px] font-black uppercase tracking-[0.25em] text-black/30">Short Bio</Label>
                         <span className={cn(
                           "text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full",
                           bio.length >= BIO_MAX ? "bg-rose-500 text-white" : "bg-black/5 text-black/40"
@@ -393,20 +442,20 @@ const SettingsPage = () => {
             <div className="pt-10 flex border-t border-black/5">
                <Button onClick={handleSave} className="rounded-full bg-black text-white px-12 py-8 h-16 text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl transition-all hover:scale-[1.05] active:scale-95 flex items-center gap-4">
                   <Save className="w-6 h-6" />
-                  Sync Identity
+                  Save Profile
                </Button>
             </div>
           </Card>
 
           {/* Revenue Node */}
-          <Card className="p-12 rounded-[48px] border-black/5 bg-white shadow-2xl shadow-black/[0.04] space-y-10">
+          <Card id="revenue-stream" className="scroll-mt-28 p-6 md:p-12 rounded-[32px] md:rounded-[48px] border-black/5 bg-white shadow-2xl shadow-black/[0.04] space-y-8 md:space-y-10">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-2xl bg-emerald-500/5 flex items-center justify-center text-emerald-600">
                 <IndianRupee className="w-7 h-7" />
               </div>
               <div>
-                <h2 className="text-3xl font-black text-black tracking-tight">Revenue Stream</h2>
-                <p className="text-[15px] font-medium text-black/40">Authorize direct commerce pathways</p>
+                <h2 className="text-3xl font-black text-black tracking-tight">Payment Settings</h2>
+                <p className="text-[15px] font-medium text-black/40">Set how people can pay you.</p>
               </div>
             </div>
             
@@ -432,7 +481,7 @@ const SettingsPage = () => {
                      }
                    }}
                  >
-                   Establish Route
+                    Save UPI
                  </Button>
                </div>
             </div>
@@ -443,15 +492,15 @@ const SettingsPage = () => {
             </div>
           </Card>
 
-          {/* Connective Matrix */}
-          <Card className="p-12 rounded-[48px] border-black/5 bg-white shadow-2xl shadow-black/[0.04] space-y-12">
+          {/* Social Links */}
+          <Card id="connective-matrix" className="scroll-mt-28 p-6 md:p-12 rounded-[32px] md:rounded-[48px] border-black/5 bg-white shadow-2xl shadow-black/[0.04] space-y-8 md:space-y-12">
              <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-2xl bg-blue-500/5 flex items-center justify-center text-blue-600">
                   <AtSign className="w-7 h-7" />
                 </div>
                 <div>
-                  <h2 className="text-3xl font-black text-black tracking-tight">Connective Matrix</h2>
-                  <p className="text-[15px] font-medium text-black/40">Global network integration points</p>
+                  <h2 className="text-3xl font-black text-black tracking-tight">Social Links</h2>
+                  <p className="text-[15px] font-medium text-black/40">Add all your social profiles and websites.</p>
                 </div>
              </div>
              
@@ -476,8 +525,8 @@ const SettingsPage = () => {
              </div>
           </Card>
 
-          {/* Advanced Cluster Node */}
-          <Card className="p-12 rounded-[48px] border-black/5 bg-black/[0.02] shadow-none space-y-10 group overflow-hidden relative">
+          {/* Advanced Settings */}
+          <Card className="p-6 md:p-12 rounded-[32px] md:rounded-[48px] border-black/5 bg-black/[0.02] shadow-none space-y-8 md:space-y-10 group overflow-hidden relative">
             <div className="absolute bottom-0 right-0 w-64 h-64 bg-black/5 rounded-full blur-[100px] translate-y-32 translate-x-32" />
             
             <button
@@ -597,8 +646,8 @@ const SettingsPage = () => {
                     </div>
                     <div className="flex justify-between items-center p-8 rounded-[32px] bg-black/[0.02] border border-black/5">
                       <span className="font-black text-black/40 uppercase tracking-[0.25em] text-[11px]">Access Authorization</span>
-                      <span className={cn("font-black px-6 py-2 rounded-full text-[11px] uppercase tracking-widest", user.role === "admin" ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20" : "bg-black/10 text-black")}>
-                        {user.role === "admin" ? "Master Authority" : "Verified User"}
+                      <span className={cn("font-black px-6 py-2 rounded-full text-[11px] uppercase tracking-widest", isAdminRole(user.role) ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20" : "bg-black/10 text-black")}>
+                        {isAdminRole(user.role) ? "Master Authority" : "Verified User"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center p-8 rounded-[32px] bg-black/[0.02] border border-black/5">
@@ -622,7 +671,7 @@ const SettingsPage = () => {
             <div className="relative z-10 flex-1 flex flex-col h-full">
               <div className="flex items-center justify-between mb-10">
                 <div className="min-w-0">
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-600">Visual Orbit</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-600">Live Preview</p>
                   <p className="text-[17px] font-black truncate text-black mt-1 tracking-tight">@{username || user.username}</p>
                 </div>
                 <Button

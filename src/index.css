@@ -41,35 +41,20 @@
     --surface-glass: rgba(0, 0, 0, 0.02);
     --surface-border: rgba(0, 0, 0, 0.06);
 
-    --font-display: 'Inter', sans-serif;
-    --font-body: 'Inter', sans-serif;
+    --font-display: 'Plus Jakarta Sans', sans-serif;
+    --font-body: 'Plus Jakarta Sans', sans-serif;
     --font-mono: 'Space Mono', monospace;
+
+    /* Bruddle UI Palette */
+    --bruddle-green: #D1FAE5;
+    --bruddle-yellow: #FEF9C3;
+    --bruddle-pink: #FCE7F3;
+    --bruddle-blue: #E0F2FE;
+    --bruddle-gray: #F3F4F6;
+    --bruddle-dark: #111827;
   }
 
-  .dark {
-    /* Voltagent-inspired Elite Theme - Professional & High-Fidelity */
-    --background: 0 0% 0%; /* Pure Black */
-    --foreground: 0 0% 93%; /* #eeeeee */
-    
-    --card: 0 0% 2%;
-    --card-foreground: 0 0% 93%;
-
-    --primary: 161 66% 51%; 
-    --primary-foreground: 0 0% 0%;
-
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 93%;
-
-    --muted: 0 0% 10%;
-    --muted-foreground: 215 14% 63%; /* #9ca3af */
-
-    --border: 15 4% 23%; /* #3d3a39 */
-    --input: 15 4% 23%;
-    --ring: 161 66% 51%;
-
-    --surface-glass: rgba(255, 255, 255, 0.03);
-    --surface-border: rgba(255, 255, 255, 0.06);
-  }
+  /* Forster Light Mode as Default Only */
 }
 
 @layer base {
@@ -128,19 +113,22 @@
 
 @layer utilities {
   .boutique-container {
-    @apply max-w-[1300px] mx-auto px-6 md:px-12 w-full relative;
+    @apply max-w-[1280px] mx-auto px-8 w-full relative;
   }
 
-  /* Luminance Stacking - Theme Aware */
-  .surface-glass { 
-    background-color: var(--surface-glass); 
-    backdrop-filter: blur(24px);
-    border: 1px solid var(--surface-border); 
+  /* VibeHub Design System - Twenty.com Style */
+  .vibe-glass {
+    @apply backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl shadow-2xl;
   }
 
   .vibe-aura-indigo {
-    background: radial-gradient(circle at center, hsla(var(--primary)/0.1) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
   }
+
+  .vibe-aura-cyan {
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, transparent 70%);
+  }
+
   
   .text-glow {
     text-shadow: 0 0 40px hsla(var(--foreground)/0.1);
@@ -167,5 +155,32 @@
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
+  }
+
+  /* Bruddle Component System */
+  .bruddle-card {
+    @apply bg-white border-2 border-black rounded-[32px] overflow-hidden transition-all duration-300;
+  }
+  
+  .bruddle-card-green { @apply bg-[#D1FAE5] bruddle-card; }
+  .bruddle-card-yellow { @apply bg-[#FEF9C3] bruddle-card; }
+  .bruddle-card-pink { @apply bg-[#FCE7F3] bruddle-card; }
+  .bruddle-card-blue { @apply bg-[#E0F2FE] bruddle-card; }
+  
+  .bruddle-shadow {
+    box-shadow: 8px 8px 0 0 rgba(0,0,0,1);
+  }
+
+  .font-bruddle {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }

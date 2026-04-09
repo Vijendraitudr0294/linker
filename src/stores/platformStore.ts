@@ -7,7 +7,6 @@ export interface PlatformSettings {
   site_logo_url: string;
   default_theme_id: string;
   allow_registration: boolean;
-  ai_api_key: string;
   feature_catalog: boolean;
   feature_contact_form: boolean;
   feature_social_links: boolean;
@@ -37,6 +36,35 @@ interface PlatformState {
   updateSettings: (data: Partial<PlatformSettings>) => Promise<boolean>;
 }
 
+const PLATFORM_SETTINGS_SELECT = [
+  "id",
+  "site_name",
+  "site_logo_url",
+  "default_theme_id",
+  "allow_registration",
+  "feature_catalog",
+  "feature_contact_form",
+  "feature_social_links",
+  "feature_analytics",
+  "notify_order_email",
+  "notify_contact_email",
+  "notify_low_stock_email",
+  "enable_order_notifications",
+  "enable_contact_notifications",
+  "enable_low_stock_notifications",
+  "checkout_step_labels",
+  "cta_label_overrides",
+  "category_label_overrides",
+  "item_type_label_overrides",
+  "link_template_categories",
+  "theme_categories",
+  "theme_presets",
+  "niche_templates",
+  "demo_catalog_packs",
+  "created_at",
+  "updated_at",
+].join(", ");
+
 export const usePlatformStore = create<PlatformState>()((set, get) => ({
   settings: null,
   loading: false,
@@ -49,7 +77,7 @@ export const usePlatformStore = create<PlatformState>()((set, get) => ({
     try {
       const { data, error } = await supabase
         .from("platform_settings")
-        .select("*")
+        .select(PLATFORM_SETTINGS_SELECT)
         .limit(1)
         .single();
         

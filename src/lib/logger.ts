@@ -6,12 +6,14 @@ export function log(level: "info" | "error" | "warn", message: string, meta?: ob
     ...meta,
   };
 
-  if (process.env.BETTERSTACK_SOURCE_TOKEN) {
+  // Use import.meta.env for Vite (process.env is a Node.js API, not available in browser)
+  const betterStackToken = import.meta.env.VITE_BETTERSTACK_SOURCE_TOKEN;
+  if (betterStackToken) {
     fetch("https://in.logs.betterstack.com", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.BETTERSTACK_SOURCE_TOKEN}`,
+        Authorization: `Bearer ${betterStackToken}`,
       },
       body: JSON.stringify(payload),
     }).catch(() => {});

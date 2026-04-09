@@ -92,7 +92,7 @@ const QRRedirectPage = () => {
            
            // Use the mock Supabase client to log the scan record
            const { error: scanErr } = await supabase
-             .from('qr_scans' as any)
+             .from('qr_scans')
              .insert({
                qr_code_id: qr.id,
                platform: platform,

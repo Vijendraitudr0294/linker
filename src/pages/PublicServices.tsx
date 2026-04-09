@@ -268,18 +268,21 @@ const PublicServices = () => {
   }, [activeItemType, itemTypes]);
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-4">
+        <div className="rounded-2xl border-4 border-black bg-white px-8 py-7 shadow-[8px_8px_0_0_rgba(0,0,0,1)] text-center">
+          <div className="mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-4 border-black border-t-[#34D399]" />
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-black/70">Loading Catalog</p>
+        </div>
       </div>
     );
   }
 
   if (notFound || !profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-4">
-          <h1 className="text-2xl font-heading font-bold text-foreground">Profile not found</h1>
-          <Link to="/" className="text-primary hover:underline">Go to homepage -&gt;</Link>
+      <div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-6">
+        <div className="text-center space-y-5 rounded-3xl border-4 border-black bg-white p-8 shadow-[10px_10px_0_0_rgba(0,0,0,1)]">
+          <h1 className="text-3xl font-black uppercase tracking-tight text-black">Profile Not Found</h1>
+          <Link to="/" className="inline-block px-7 py-3 bg-black text-white border-4 border-black rounded-xl font-black uppercase tracking-[0.14em] shadow-[6px_6px_0_0_rgba(16,185,129,1)]">Go Home</Link>
         </div>
       </div>
     );

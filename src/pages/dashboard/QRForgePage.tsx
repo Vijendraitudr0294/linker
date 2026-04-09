@@ -243,32 +243,27 @@ const QRForgePage = () => {
     <div className="space-y-6 max-w-[1200px] mx-auto pb-10 selection:bg-primary selection:text-white px-4 md:px-6">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 mt-6">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50">Matrix active • Core Sync</span>
-          </div>
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-foreground flex items-baseline gap-2">
-            QR <span className="font-script text-primary text-xl font-medium lowercase opacity-80">intelligence.</span>
-          </h1>
+          <h1 className="text-3xl font-black text-black tracking-tight mb-1">QR Intelligence</h1>
+          <p className="text-sm font-medium text-black/40">Manage your dynamic QR networks.</p>
         </div>
-        <Button onClick={() => { setActiveTab("builder"); setQrContent(""); setQrName(""); }} className="bg-primary hover:bg-foreground hover:text-background text-white font-bold rounded-xl h-10 px-6 shadow-lg shadow-primary/10 transition-all duration-300 active:scale-95 border-none text-[12px] uppercase tracking-widest">
+        <Button onClick={() => { setActiveTab("builder"); setQrContent(""); setQrName(""); }} className="rounded-2xl bg-black hover:bg-black/90 text-white font-black h-12 px-6 shadow-[4px_4px_0_0_rgba(0,0,0,1)] uppercase tracking-widest text-[10px] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">
           <Plus className="w-4 h-4 mr-2" />
           Create Code
         </Button>
       </header>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="bg-white/5 p-1 rounded-2xl mb-8 overflow-x-auto no-scrollbar scrollbar-hide flex w-full md:w-fit border border-white/5 backdrop-blur-3xl shadow-sm">
-          <TabsTrigger value="dashboard" className="rounded-xl px-5 py-2 text-[11px] font-bold text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-lg transition-all duration-500">
+        <TabsList className="bg-white p-2 rounded-[24px] mb-8 overflow-x-auto no-scrollbar scrollbar-hide flex w-full md:w-fit border-2 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+          <TabsTrigger value="dashboard" className="rounded-xl px-5 py-2 text-[11px] font-black uppercase tracking-widest text-black/60 data-[state=active]:bg-black data-[state=active]:text-white transition-all">
             <Globe className="w-3.5 h-3.5 mr-1.5" /> Dashboard
           </TabsTrigger>
-          <TabsTrigger value="builder" className="rounded-xl px-5 py-2 text-[11px] font-bold text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-lg transition-all duration-500">
+          <TabsTrigger value="builder" className="rounded-xl px-5 py-2 text-[11px] font-black uppercase tracking-widest text-black/60 data-[state=active]:bg-black data-[state=active]:text-white transition-all">
             <Palette className="w-3.5 h-3.5 mr-1.5" /> Builder
           </TabsTrigger>
-          <TabsTrigger value="bulk" className="rounded-xl px-5 py-2 text-[11px] font-bold text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-lg transition-all duration-500">
+          <TabsTrigger value="bulk" className="rounded-xl px-5 py-2 text-[11px] font-black uppercase tracking-widest text-black/60 data-[state=active]:bg-black data-[state=active]:text-white transition-all">
             <FileText className="w-3.5 h-3.5 mr-1.5" /> Bulk
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="rounded-xl px-5 py-2 text-[11px] font-bold text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-lg transition-all duration-500">
+          <TabsTrigger value="analytics" className="rounded-xl px-5 py-2 text-[11px] font-black uppercase tracking-widest text-black/60 data-[state=active]:bg-black data-[state=active]:text-white transition-all">
             <BarChart3 className="w-3.5 h-3.5 mr-1.5" /> Insights
           </TabsTrigger>
         </TabsList>
@@ -281,61 +276,61 @@ const QRForgePage = () => {
               { label: "Total Scans", value: String(qrs.reduce((sum, q) => sum + (q.scans_count || 0), 0)), icon: Eye },
               { label: "Total Saved", value: "$0.00", icon: Check },
             ].map((stat) => (
-              <Card key={stat.label} className="p-6 bg-background/20 backdrop-blur-md border border-white/5 rounded-2xl flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-primary/5 border border-primary/10 flex items-center justify-center">
-                  <stat.icon className="w-6 h-6 text-primary" />
+              <Card key={stat.label} className="bruddle-card-yellow p-6 flex flex-col justify-center transition-all hover:-translate-y-1 hover:shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
+                <div className="w-12 h-12 rounded-xl bg-white border-2 border-black flex items-center justify-center mb-4">
+                  <stat.icon className="w-6 h-6 text-black" />
                 </div>
                 <div>
-                  <p className="text-2xl font-black">{stat.value}</p>
-                  <p className="text-xs text-muted-foreground font-medium">{stat.label}</p>
+                  <p className="text-3xl font-black text-black">{stat.value}</p>
+                  <p className="text-[10px] uppercase font-black tracking-widest text-black/60">{stat.label}</p>
                 </div>
               </Card>
             ))}
           </div>
 
-          <Card className="bg-background/20 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden">
-            <div className="p-4 border-b border-white/5 flex items-center justify-between">
-              <h3 className="font-bold text-sm">Your Codes</h3>
+          <Card className="bruddle-card overflow-hidden bg-white">
+            <div className="p-6 border-b-2 border-black flex items-center justify-between">
+              <h3 className="font-black text-black text-xl tracking-tight">Your Codes</h3>
               {qrs.length > 0 && (
-                 <Button variant="ghost" size="sm" onClick={async () => { if(confirm("Are you sure you want to delete ALL QR codes?")) { await clearAllQRCodes.mutateAsync(); toast.success("All codes deleted!"); } }} className="text-destructive h-8 text-xs hover:bg-destructive/10">
+                 <Button variant="ghost" size="sm" onClick={async () => { if(confirm("Are you sure you want to delete ALL QR codes?")) { await clearAllQRCodes.mutateAsync(); toast.success("All codes deleted!"); } }} className="text-red-500 hover:text-red-600 h-9 rounded-xl border-2 border-red-500 text-[10px] font-black uppercase tracking-widest">
                     <Trash2 className="w-3.5 h-3.5 mr-2" /> Delete All
                  </Button>
               )}
             </div>
-            <div className="divide-y divide-white/5">
+            <div className="divide-y-2 divide-black/5">
               {loading && (
-                <div className="p-8 flex items-center justify-center text-muted-foreground">
-                  <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading codes...
+                <div className="p-12 flex items-center justify-center text-black/40 font-black tracking-widest uppercase text-[10px]">
+                  <Loader2 className="w-5 h-5 animate-spin mr-3 text-black" /> Loading codes...
                 </div>
               )}
               {!loading && qrs.length === 0 && (
-                <div className="p-8 text-center text-muted-foreground text-sm">
+                <div className="p-12 text-center text-black/40 font-black tracking-widest uppercase text-[10px]">
                   No QR codes found. Create your first one.
                 </div>
               )}
               {qrs.map((qr) => (
-                <div key={qr.id} className="p-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center border border-white/10">
+                <div key={qr.id} className="p-6 flex items-center justify-between hover:bg-black/[0.02] transition-colors">
+                  <div className="flex items-center gap-5">
+                    <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center border-2 border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
                       <QRCodeSVG 
                         value={qr.mode === "dynamic" ? `${window.location.origin}/r/${qr.short_code}` : qr.content} 
-                        size={40} 
+                        size={48} 
                         fgColor={qr.fg_color} 
                         bgColor={qr.bg_color} 
                       />
                     </div>
                     <div>
-                      <h4 className="font-bold text-sm flex items-center gap-2">
+                      <h4 className="font-black text-black text-base flex items-center gap-3">
                         {qr.name}
                         {qr.mode === "dynamic" ? (
-                          <Badge className="bg-blue-500/10 text-blue-400 border-0 text-[10px] px-2 h-5 font-bold">Dynamic</Badge>
+                          <Badge className="bg-[#D1FAE5] text-emerald-900 border-2 border-emerald-900 text-[9px] px-2 h-5 font-black uppercase tracking-wider rounded-md">Dynamic</Badge>
                         ) : (
-                          <Badge className="bg-green-500/10 text-green-400 border-0 text-[10px] px-2 h-5 font-bold">Static</Badge>
+                          <Badge className="bg-gray-100 text-gray-500 border-2 border-gray-500 text-[9px] px-2 h-5 font-black uppercase tracking-wider rounded-md">Static</Badge>
                         )}
                       </h4>
-                      <p className="text-[11px] font-medium text-muted-foreground truncate max-w-[250px] mt-0.5">
+                      <p className="text-[11px] font-bold text-black/40 truncate max-w-[250px] mt-1 uppercase tracking-widest">
                           {qr.mode === "dynamic" && qr.short_code ? (
-                              <span className="text-primary tracking-wide">{`${window.location.origin}/r/${qr.short_code}`}</span>
+                              <span className="text-black tracking-widest">{`${window.location.origin}/r/${qr.short_code}`}</span>
                           ) : qr.type === "apps" 
                             ? (() => { try { return `Apps: ${JSON.parse(qr.content).appName}`; } catch (e) { return "Apps Landing"; } })() 
                             : qr.type === "vcard_plus"
@@ -350,17 +345,17 @@ const QRForgePage = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-8">
                     <div className="text-right">
-                      <p className="text-sm font-black">{qr.scans_count || 0}</p>
-                      <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Scans</p>
+                      <p className="text-2xl font-black text-black leading-none">{qr.scans_count || 0}</p>
+                      <p className="text-[9px] text-black/40 font-black uppercase tracking-widest mt-1">Scans</p>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => handleEdit(qr)} title="Edit QR Content"><Palette className="w-3.5 h-3.5" /></Button>
-                      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => { const link = qr.mode === "dynamic" ? `${window.location.origin}/r/${qr.short_code}` : qr.content; window.open(link, '_blank'); }} title="Preview / View"><ExternalLink className="w-3.5 h-3.5" /></Button>
-                      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => handleListDownload(qr)} title="Download PNG"><Download className="w-3.5 h-3.5" /></Button>
-                      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => handleListShare(qr)} title="Copy Short Link"><Share2 className="w-3.5 h-3.5" /></Button>
-                      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => { deleteQRCode.mutateAsync(qr.id); toast.success("QR Code deleted"); }} title="Delete Forever"><Trash2 className="w-3.5 h-3.5" /></Button>
+                    <div className="flex items-center gap-2">
+                      <Button size="icon" variant="ghost" className="h-10 w-10 text-black border-2 border-transparent hover:border-black hover:bg-white rounded-[12px] hover:-translate-y-0.5 transition-all" onClick={() => handleEdit(qr)} title="Edit QR Content"><Palette className="w-4 h-4" /></Button>
+                      <Button size="icon" variant="ghost" className="h-10 w-10 text-black border-2 border-transparent hover:border-black hover:bg-white rounded-[12px] hover:-translate-y-0.5 transition-all" onClick={() => { const link = qr.mode === "dynamic" ? `${window.location.origin}/r/${qr.short_code}` : qr.content; window.open(link, '_blank'); }} title="Preview / View"><ExternalLink className="w-4 h-4" /></Button>
+                      <Button size="icon" variant="ghost" className="h-10 w-10 text-black border-2 border-transparent hover:border-black hover:bg-white rounded-[12px] hover:-translate-y-0.5 transition-all" onClick={() => handleListDownload(qr)} title="Download PNG"><Download className="w-4 h-4" /></Button>
+                      <Button size="icon" variant="ghost" className="h-10 w-10 text-black border-2 border-transparent hover:border-black hover:bg-white rounded-[12px] hover:-translate-y-0.5 transition-all" onClick={() => handleListShare(qr)} title="Copy Short Link"><Share2 className="w-4 h-4" /></Button>
+                      <Button size="icon" variant="ghost" className="h-10 w-10 text-red-500 border-2 border-transparent hover:border-red-500 hover:bg-white rounded-[12px] hover:-translate-y-0.5 transition-all" onClick={() => { deleteQRCode.mutateAsync(qr.id); toast.success("QR Code deleted"); }} title="Delete Forever"><Trash2 className="w-4 h-4" /></Button>
                     </div>
                   </div>
                 </div>
@@ -374,11 +369,14 @@ const QRForgePage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column: Creator Accordions */}
             <div className="lg:col-span-2 space-y-6">
-              <Card className="p-6 bg-background/20 backdrop-blur-md border border-white/5 rounded-2xl space-y-4">
-                <h3 className="font-bold text-lg flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-primary" /> 1. Select QR Type
+              <Card className="bruddle-card p-8 space-y-6 bg-white">
+                <h3 className="font-black text-black text-xl flex items-center gap-3 uppercase tracking-tight">
+                  <div className="w-8 h-8 rounded-lg bg-[#D1FAE5] border-2 border-black flex items-center justify-center">
+                     <Settings className="w-4 h-4 text-black" /> 
+                  </div>
+                  1. Select Matrix
                 </h3>
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                   {qrTypes.map((type) => (
                     <button
                       key={type.value}
@@ -387,22 +385,25 @@ const QRForgePage = () => {
                          if (type.value === "apps" || type.value === "vcard_plus" || type.value === "coupon" || type.value === "social_links" || type.value === "feedback") setIsDynamic(true);
                       }}
                       className={cn(
-                        "p-3 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all duration-300 hover:scale-102",
+                        "p-4 rounded-xl border-2 flex flex-col items-center justify-center gap-3 transition-all duration-300 hover:-translate-y-1",
                         selectedType === type.value
-                          ? "border-primary bg-primary/10 shadow-lg text-primary"
-                          : "border-white/5 bg-background/40 hover:bg-background/60"
+                          ? "border-black bg-[#FDE68A] shadow-[4px_4px_0_0_rgba(0,0,0,1)] text-black"
+                          : "border-black/10 bg-white hover:border-black/30 hover:bg-gray-50 text-black/60 hover:text-black"
                       )}
                     >
-                      <type.icon className="w-5 h-5" />
-                      <span className="text-[10px] font-bold tracking-tight">{type.label}</span>
+                      <type.icon className="w-6 h-6" />
+                      <span className="text-[10px] uppercase tracking-widest font-black leading-tight text-center">{type.label}</span>
                     </button>
                   ))}
                 </div>
               </Card>
 
-              <Card className="p-6 bg-background/20 backdrop-blur-md border border-white/5 rounded-2xl space-y-4">
-                <h3 className="font-bold text-lg flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-primary" /> 2. Content Details
+              <Card className="bruddle-card p-8 space-y-6 bg-white">
+                <h3 className="font-black text-black text-xl flex items-center gap-3 uppercase tracking-tight">
+                  <div className="w-8 h-8 rounded-lg bg-[#FBCFE8] border-2 border-black flex items-center justify-center">
+                     <FileText className="w-4 h-4 text-black" /> 
+                  </div>
+                  2. Content Injection
                 </h3>
                 <div className="space-y-3">
                   <div>
@@ -527,45 +528,48 @@ const QRForgePage = () => {
                       <Input value={qrContent} onChange={(e) => setQrContent(e.target.value)} placeholder={currentType?.placeholder} className="rounded-xl h-11 border-white/10" />
                     </div>
                   )}
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-background/40 border border-white/5 mt-4">
+                  <div className="flex items-center justify-between p-4 rounded-xl border-2 border-black/10 mt-4">
                     <div>
-                      <h4 className="text-sm font-bold">Enable Dynamic Features</h4>
-                      <p className="text-[11px] text-muted-foreground">Allows full analytics tracking and editing after printing.</p>
+                      <h4 className="text-sm font-black text-black">Enable Dynamic Features</h4>
+                      <p className="text-[11px] text-black/40 font-medium">Allows full analytics tracking and editing after printing.</p>
                     </div>
                      <button 
                         onClick={() => (selectedType !== "apps" && selectedType !== "vcard_plus" && selectedType !== "coupon" && selectedType !== "social_links" && selectedType !== "feedback") && setIsDynamic(!isDynamic)} 
                         disabled={selectedType === "apps" || selectedType === "vcard_plus" || selectedType === "coupon" || selectedType === "social_links" || selectedType === "feedback"}
-                        className={cn("w-10 h-5 rounded-full transition-colors relative", isDynamic ? "bg-primary" : "bg-muted", (selectedType === "apps" || selectedType === "vcard_plus" || selectedType === "coupon" || selectedType === "social_links" || selectedType === "feedback") && "opacity-50 cursor-not-allowed")}
+                        className={cn("w-12 h-6 rounded-full transition-colors relative border-2 border-black", isDynamic ? "bg-[#D1FAE5]" : "bg-gray-200", (selectedType === "apps" || selectedType === "vcard_plus" || selectedType === "coupon" || selectedType === "social_links" || selectedType === "feedback") && "opacity-50 cursor-not-allowed")}
                      >
-                       <span className={cn("absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform", isDynamic ? "left-[22px]" : "left-0.5")} />
+                       <span className={cn("absolute top-0.5 w-4 h-4 rounded-full bg-black transition-transform", isDynamic ? "left-[22px]" : "left-[2px]")} />
                      </button>
                   </div>
                 </div>
               </Card>
 
-              <Card className="p-6 bg-background/20 backdrop-blur-md border border-white/5 rounded-2xl space-y-4">
-                <h3 className="font-bold text-lg flex items-center gap-2">
-                  <Palette className="w-5 h-5 text-primary" /> 3. Style & Customization
+              <Card className="bruddle-card p-8 space-y-6 bg-white">
+                <h3 className="font-black text-black text-xl flex items-center gap-3 uppercase tracking-tight">
+                  <div className="w-8 h-8 rounded-lg bg-[#E0E7FF] border-2 border-black flex items-center justify-center">
+                     <Palette className="w-4 h-4 text-black" /> 
+                  </div>
+                  3. Style & Customization
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-xs font-bold uppercase text-muted-foreground">Foreground Color</Label>
+                    <Label className="text-[10px] font-black uppercase text-black/60 tracking-widest">Foreground Color</Label>
                     <div className="flex items-center gap-2 mt-1">
-                      <div className="w-8 h-8 rounded-lg border border-white/10 shrink-0" style={{ backgroundColor: fgColor }} />
-                      <Input value={fgColor} onChange={(e) => setFgColor(e.target.value)} className="rounded-xl h-9 text-xs" />
+                      <div className="w-10 h-10 rounded-xl border-2 border-black shrink-0" style={{ backgroundColor: fgColor }} />
+                      <Input value={fgColor} onChange={(e) => setFgColor(e.target.value)} className="rounded-xl h-10 border-2 border-black/10 text-xs font-bold font-bruddle uppercase" />
                     </div>
                   </div>
                   <div>
-                    <Label className="text-xs font-bold uppercase text-muted-foreground">Background Color</Label>
+                    <Label className="text-[10px] font-black uppercase text-black/60 tracking-widest">Background Color</Label>
                     <div className="flex items-center gap-2 mt-1">
-                      <div className="w-8 h-8 rounded-lg border border-white/10 shrink-0" style={{ backgroundColor: bgColor }} />
-                      <Input value={bgColor} onChange={(e) => setBgColor(e.target.value)} className="rounded-xl h-9 text-xs" />
+                      <div className="w-10 h-10 rounded-xl border-2 border-black shrink-0" style={{ backgroundColor: bgColor }} />
+                      <Input value={bgColor} onChange={(e) => setBgColor(e.target.value)} className="rounded-xl h-10 border-2 border-black/10 text-xs font-bold font-bruddle uppercase" />
                     </div>
                   </div>
                 </div>
                 <div>
-                  <Label className="text-xs font-bold uppercase text-muted-foreground">Embed Logo URL (Optional)</Label>
-                  <Input value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} placeholder="https://example.com/logo.png" className="rounded-xl h-11 border-white/10 mt-1" />
+                  <Label className="text-[10px] font-black uppercase text-black/60 tracking-widest">Embed Logo URL (Optional)</Label>
+                  <Input value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} placeholder="https://example.com/logo.png" className="rounded-xl h-12 border-2 border-black/10 mt-1 font-bold font-bruddle" />
                 </div>
               </Card>
             </div>
@@ -573,15 +577,17 @@ const QRForgePage = () => {
             {/* Right Column: Live Preview */}
             <div className="lg:col-span-1">
               <div className="sticky top-6">
-                <Card className="p-6 bg-background/20 backdrop-blur-md border border-white/5 rounded-2xl flex flex-col items-center justify-center text-center space-y-6 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2" />
+                <Card className="bruddle-card-blue p-8 flex flex-col items-center justify-center text-center space-y-6 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12">
+                      <Smartphone size={120} strokeWidth={1} />
+                  </div>
                   
-                  <div className="flex items-center gap-2 mb-2">
-                    <Smartphone className="w-4 h-4 text-primary" />
-                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Live Preview</span>
+                  <div className="flex items-center gap-2 mb-2 relative z-10 w-full justify-between">
+                    <span className="text-xl font-black text-black uppercase tracking-tight">Preview</span>
+                    <Smartphone className="w-5 h-5 text-black" />
                   </div>
 
-                  <div className="p-4 rounded-3xl bg-white border border-white/10 shadow-2xl flex items-center justify-center">
+                  <div className="p-6 rounded-[2.4rem] bg-white border-2 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] flex items-center justify-center relative z-10 w-full mb-4">
                     <QRCodeSVG
                       id="qr-preview"
                       value={
@@ -763,13 +769,13 @@ const QRForgePage = () => {
 
         {/* Bulk Generator Tab */}
         <TabsContent value="bulk" className="space-y-6">
-          <Card className="p-8 bg-background/20 backdrop-blur-md border border-white/5 rounded-[2rem] space-y-6">
+          <Card className="bruddle-card-green p-12 bg-white space-y-8">
              <div className="text-center max-w-xl mx-auto space-y-2">
-                 <h3 className="text-xl font-black">Bulk QR Code Generator</h3>
-                 <p className="text-sm text-muted-foreground">Upload a `.csv` list with columns for `Name` and `URL` to batch-create up to 500 codes immediately.</p>
+                 <h3 className="text-2xl font-black text-black">Bulk QR Code Generator</h3>
+                 <p className="text-sm font-medium text-black/40">Upload a `.csv` list with columns for `Name` and `URL` to batch-create up to 500 codes immediately.</p>
              </div>
 
-             <div className="border-2 border-dashed border-white/5 rounded-2xl p-12 text-center hover:border-primary/40 transition-colors cursor-pointer space-y-4 bg-white/[0.02] relative">
+             <div className="border-2 border-dashed border-black/20 rounded-3xl p-12 text-center hover:border-black transition-colors cursor-pointer space-y-4 bg-black/[0.02] relative">
                 <input 
                    type="file" 
                    accept=".csv" 
@@ -787,27 +793,27 @@ const QRForgePage = () => {
                        }
                    }} 
                 />
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto">
-                    <Download className="w-8 h-8 text-primary rotate-180" />
+                <div className="w-20 h-20 rounded-2xl bg-white border-2 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] flex items-center justify-center mx-auto">
+                    <Download className="w-10 h-10 text-black rotate-180" />
                 </div>
                 <div>
-                   <p className="font-bold text-sm">{bulkFile ? `Loaded: ${bulkFile.name}` : "Drag and drop your template file here"}</p>
-                   <p className="text-xs text-muted-foreground mt-1">or click to browse from device (CSV files only)</p>
+                   <p className="font-black text-black text-lg tracking-tight">{bulkFile ? `Loaded: ${bulkFile.name}` : "Drag and drop your template file here"}</p>
+                   <p className="text-xs font-bold text-black/40 mt-1 uppercase tracking-widest">or click to browse from device (CSV files only)</p>
                 </div>
              </div>
 
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-xl border border-white/5 bg-background/40">
-                     <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground mb-2">1. Required Columns</h4>
+                  <div className="p-6 rounded-2xl border-2 border-black/10 bg-black/[0.02]">
+                     <h4 className="font-black text-[10px] uppercase tracking-widest text-black/60 mb-3">1. Required Columns</h4>
                      <div className="flex gap-2">
-                         <Badge className="bg-white/5 border-white/10 text-white rounded-lg px-2 h-6">`name`</Badge>
-                         <Badge className="bg-white/5 border-white/10 text-white rounded-lg px-2 h-6">`url` or `content`</Badge>
+                         <Badge className="bg-white border-2 border-black text-black rounded-lg px-2 h-7 font-black tracking-widest uppercase text-[9px]">`name`</Badge>
+                         <Badge className="bg-white border-2 border-black text-black rounded-lg px-2 h-7 font-black tracking-widest uppercase text-[9px]">`url` or `content`</Badge>
                      </div>
-                     <p className="text-[11px] text-muted-foreground mt-2">Static mode is assumed. Upload standard valid links.</p>
+                     <p className="text-[11px] font-medium text-black/60 mt-3">Static mode is assumed. Upload standard valid links.</p>
                   </div>
-                  <div className="p-4 rounded-xl border border-white/5 bg-background/40">
-                     <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground mb-2">2. Batch Defaults</h4>
-                     <p className="text-xs text-muted-foreground mt-1">Codes will use dashboard standard black/white layouts safely configurations.</p>
+                  <div className="p-6 rounded-2xl border-2 border-black/10 bg-black/[0.02]">
+                     <h4 className="font-black text-[10px] uppercase tracking-widest text-black/60 mb-3">2. Batch Defaults</h4>
+                     <p className="text-[11px] font-medium text-black/60">Codes will use dashboard standard black/white layout configurations.</p>
                   </div>
              </div>
 
@@ -870,9 +876,9 @@ const QRForgePage = () => {
                    };
                    reader.readAsText(bulkFile);
                }}
-               className="w-full bg-primary text-white font-bold h-12 rounded-xl mt-4"
+               className="w-full bg-black text-white font-black h-12 rounded-2xl uppercase tracking-widest text-[10px] sm:text-xs shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:-translate-y-1 hover:bg-black/90 transition-all mt-4"
              >
-                  {isProcessingBulk ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />} 
+                  {isProcessingBulk ? <Loader2 className="w-5 h-5 mr-3 animate-spin text-white/60" /> : <Sparkles className="w-5 h-5 mr-3" />} 
                   {isProcessingBulk ? "Processing Batch..." : "Generate Bulk Batch"}
              </Button>
           </Card>
@@ -881,41 +887,41 @@ const QRForgePage = () => {
         {/* Analytics Tab (Simulation) */}
         <TabsContent value="analytics" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="p-6 md:col-span-2 bg-background/20 backdrop-blur-md border border-white/5 rounded-2xl space-y-4">
-              <h4 className="font-bold text-sm">Scans Over Time</h4>
+            <Card className="bruddle-card bg-white p-8 md:col-span-2 space-y-6">
+              <h4 className="font-black text-black text-lg tracking-tight uppercase">Scans Over Time</h4>
               <div className="h-[250px]">
                  <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={mockAnalyticsData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                         <defs>
                            <linearGradient id="colorScans" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.4}/>
-                              <stop offset="95%" stopColor="#7c3aed" stopOpacity={0}/>
+                              <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
+                              <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                            </linearGradient>
                         </defs>
-                        <XAxis dataKey="day" stroke="#888888" fontSize={11} tickLine={false} axisLine={false} />
-                        <YAxis stroke="#888888" fontSize={11} tickLine={false} axisLine={false} />
-                        <Tooltip contentStyle={{ background: "#18181b", border: "1px solid rgba(255,255,255,0.05)", borderRadius: "12px", fontSize: "11px" }} />
-                        <Area type="monotone" dataKey="scans" stroke="#7c3aed" strokeWidth={2} fillOpacity={1} fill="url(#colorScans)" />
+                        <XAxis dataKey="day" stroke="#000000" fontSize={11} tickLine={false} axisLine={false} fontWeight="bold" />
+                        <YAxis stroke="#000000" fontSize={11} tickLine={false} axisLine={false} fontWeight="bold" />
+                        <Tooltip contentStyle={{ background: "#ffffff", border: "2px solid #000000", borderRadius: "12px", fontSize: "11px", fontWeight: "bold" }} />
+                        <Area type="monotone" dataKey="scans" stroke="#000000" strokeWidth={3} fillOpacity={1} fill="url(#colorScans)" />
                     </AreaChart>
                  </ResponsiveContainer>
               </div>
             </Card>
 
-            <Card className="p-6 bg-background/20 backdrop-blur-md border border-white/5 rounded-2xl space-y-4">
-               <h4 className="font-bold text-sm">Device Distribution</h4>
-               <div className="space-y-3 pt-2">
+            <Card className="bruddle-card bg-white p-8 space-y-6">
+               <h4 className="font-black text-black text-lg tracking-tight uppercase">Device Distribution</h4>
+               <div className="space-y-5 pt-2">
                    {[
-                       { label: "Mobile", value: 65, color: "bg-purple-500" },
-                       { label: "Desktop", value: 28, color: "bg-blue-500" },
-                       { label: "Tablet", value: 7, color: "bg-green-500" },
+                       { label: "Mobile", value: 65, color: "bg-[#10b981]" },
+                       { label: "Desktop", value: 28, color: "bg-[#3b82f6]" },
+                       { label: "Tablet", value: 7, color: "bg-[#f59e0b]" },
                    ].map((item) => (
-                       <div key={item.label} className="space-y-1">
-                           <div className="flex items-center justify-between text-xs font-bold">
+                       <div key={item.label} className="space-y-2">
+                           <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-widest text-black/60">
                                <span>{item.label}</span>
-                               <span className="text-muted-foreground">{item.value}%</span>
+                               <span className="text-black">{item.value}%</span>
                            </div>
-                           <div className="w-full h-1.5 rounded-full bg-white/5 overflow-hidden">
-                               <div className={cn("h-full rounded-full", item.color)} style={{ width: `${item.value}%` }} />
+                           <div className="w-full h-3 rounded-full bg-black/5 overflow-hidden border-2 border-black/10">
+                               <div className={cn("h-full border-r-2 border-black/10", item.color)} style={{ width: `${item.value}%` }} />
                            </div>
                        </div>
                    ))}
@@ -923,15 +929,17 @@ const QRForgePage = () => {
             </Card>
           </div>
 
-          <Card className="p-12 text-center rounded-[2rem] border-dashed border-2 border-white/5 bg-background/20 backdrop-blur-md space-y-4">
-            <div className="w-20 h-20 bg-primary/10 border border-primary/20 rounded-3xl mx-auto flex items-center justify-center">
-              <BarChart3 className="w-10 h-10 text-primary" />
+          <Card className="bruddle-card-yellow p-16 text-center space-y-6">
+            <div className="w-24 h-24 bg-white border-2 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] rounded-3xl mx-auto flex items-center justify-center">
+              <BarChart3 className="w-10 h-10 text-black" />
             </div>
-            <h3 className="text-xl font-black">Analytical Locations Node</h3>
-            <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
+            <h3 className="text-3xl font-black text-black">Analytical Locations Node</h3>
+            <p className="text-sm font-medium text-black/60 max-w-sm mx-auto leading-relaxed">
               Scan history, location tracking, and deep audience breakdown require upgrading to a Pro account to accurately mapping triggers and layout parameters.
             </p>
-            <Button className="rounded-xl h-11 px-6 bg-primary font-bold text-white shadow-lg">Upgrade to Pro</Button>
+            <Button className="rounded-[16px] h-14 px-8 bg-black hover:bg-black/90 text-white font-black uppercase tracking-widest text-xs shadow-[4px_4px_0_0_rgba(0,0,0,1)] transition-all hover:-translate-y-1 hover:shadow-[6px_6px_0_0_rgba(0,0,0,1)] mt-4">
+               Upgrade to Pro
+            </Button>
           </Card>
         </TabsContent>
       </Tabs>

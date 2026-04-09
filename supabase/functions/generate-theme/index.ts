@@ -13,7 +13,7 @@ serve(async (req: Request) => {
     }
 
     try {
-        const { prompt, apiKey } = await req.json();
+        const { prompt } = await req.json();
         if (!prompt || typeof prompt !== "string") {
             return new Response(JSON.stringify({ error: "Invalid prompt" }), {
                 status: 400,
@@ -22,7 +22,7 @@ serve(async (req: Request) => {
         }
 
         const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-        const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY") || (typeof apiKey === "string" ? apiKey.trim() : "");
+        const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
         const promptText = `You are a professional UI/UX designer. Generate a color theme based on this description: "${prompt}"
 
 Return ONLY valid JSON with this exact structure (no markdown, no explanation):
@@ -71,7 +71,7 @@ Rules:
         // Fallback: direct Gemini API when LOVABLE_API_KEY is not available (or gateway fails)
         if (!text) {
             if (!GEMINI_API_KEY) {
-                throw new Error("No AI key configured. Set GEMINI_API_KEY (Edge secret) or provide Gemini key from Platform Settings.");
+                throw new Error("No AI key configured. Set GEMINI_API_KEY or LOVABLE_API_KEY as an Edge Function secret.");
             }
 
             const geminiRes = await fetch(
@@ -109,7 +109,7 @@ Rules:
         return new Response(JSON.stringify({ text }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("generate-theme error:", err);
         return new Response(
             JSON.stringify({ error: err instanceof Error ? err.message : "Unknown error" }),

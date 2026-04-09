@@ -23,8 +23,9 @@ export interface AppearanceSettings {
   animatedGradient?: string;
   animationClass?: string;
   heroImage?: string;
-  layoutType: "list" | "grid" | "bento" | "timeline";
+  layoutType: "list" | "grid" | "bento" | "timeline" | "brutalism";
   cardStyle: "classic" | "glass" | "glass-premium" | "neon";
+  profileStyleVariant?: "default" | "music";
 }
 
 interface AppearanceState {
@@ -51,6 +52,7 @@ interface AppearanceState {
     heroImage?: string;
     layoutMode?: "list" | "grid" | "bento" | "timeline";
     cardStyle?: "classic" | "glass" | "glass-premium" | "neon";
+    profileStyleVariant?: "default" | "music";
   }) => Promise<void>;
 }
 
@@ -71,6 +73,7 @@ const defaultSettings: AppearanceSettings = {
   linksTabLabel: "Links",
   layoutType: "list",
   cardStyle: "classic",
+  profileStyleVariant: "default",
 };
 
 type TabLabelSettings = Pick<AppearanceSettings, "shopTabLabel" | "linksTabLabel">;
@@ -98,6 +101,7 @@ const appearanceDbColumns = [
   "hero_image",
   "layout_type",
   "card_style",
+  "profile_style_variant",
 ] as const;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -193,7 +197,7 @@ const persistTabLabelFallback = async (userId: string, data: Partial<AppearanceS
     const creatorUpdate = await supabase
       .from("profiles")
       .update({
-        creator_metrics: nextCreatorMetrics as any,
+        creator_metrics: nextCreatorMetrics as Json,
         updated_at: new Date().toISOString(),
       })
       .eq("user_id", userId);
@@ -207,7 +211,7 @@ const persistTabLabelFallback = async (userId: string, data: Partial<AppearanceS
     const socialUpdate = await supabase
       .from("profiles")
       .update({
-        social_stats: nextSocialStats as any,
+        social_stats: nextSocialStats as Json,
         updated_at: new Date().toISOString(),
       })
       .eq("user_id", userId);
@@ -240,6 +244,7 @@ const dbToSettings = (row: Record<string, unknown>): AppearanceSettings => ({
   heroImage: (row.hero_image as string) || undefined,
   layoutType: (row.layout_type as AppearanceSettings["layoutType"]) || defaultSettings.layoutType,
   cardStyle: (row.card_style as AppearanceSettings["cardStyle"]) || defaultSettings.cardStyle,
+  profileStyleVariant: (row.profile_style_variant as AppearanceSettings["profileStyleVariant"]) || defaultSettings.profileStyleVariant,
 });
 
 const settingsToDb = (s: Partial<AppearanceSettings>) => {
@@ -264,6 +269,7 @@ const settingsToDb = (s: Partial<AppearanceSettings>) => {
   if (s.heroImage !== undefined) map.hero_image = s.heroImage || null;
   if (s.layoutType !== undefined) map.layout_type = s.layoutType;
   if (s.cardStyle !== undefined) map.card_style = s.cardStyle;
+  if (s.profileStyleVariant !== undefined) map.profile_style_variant = s.profileStyleVariant || null;
   return map;
 };
 
@@ -271,6 +277,15 @@ const persistDesignOverridesFallback = async (userId: string, data: Partial<Appe
   const overrides: Record<string, string> = {};
   if (data.layoutType !== undefined) overrides.layout_type = data.layoutType;
   if (data.cardStyle !== undefined) overrides.card_style = data.cardStyle;
+  if (data.buttonBg !== undefined) overrides.button_bg = data.buttonBg;
+  if (data.buttonText !== undefined) overrides.button_text = data.buttonText;
+  if (data.backgroundColor !== undefined) overrides.background_color = data.backgroundColor;
+  if (data.textColor !== undefined) overrides.text_color = data.textColor;
+  if (data.cardColor !== undefined) overrides.card_color = data.cardColor;
+  if (data.fontFamily !== undefined) overrides.font_family = data.fontFamily;
+  if (data.buttonStyle !== undefined) overrides.button_style = data.buttonStyle;
+  if (data.profileStyleVariant !== undefined) overrides.profile_style_variant = data.profileStyleVariant;
+  
   if (Object.keys(overrides).length === 0) return true;
 
   const profileRead = await supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle();
@@ -287,7 +302,7 @@ const persistDesignOverridesFallback = async (userId: string, data: Partial<Appe
   const update = await supabase
     .from("profiles")
     .update({
-      creator_metrics: metrics as any,
+      creator_metrics: metrics as Json,
       updated_at: new Date().toISOString(),
     })
     .eq("user_id", userId);
@@ -469,6 +484,7 @@ export const useAppearanceStore = create<AppearanceState>()((set, get) => ({
       heroImage: theme.heroImage ?? undefined,
       layoutType: theme.layoutMode ?? get().settings.layoutType,
       cardStyle: theme.cardStyle ?? get().settings.cardStyle,
+      profileStyleVariant: theme.profileStyleVariant ?? get().settings.profileStyleVariant,
     };
 
     set({ settings: newSettings });
@@ -486,6 +502,14 @@ export const useAppearanceStore = create<AppearanceState>()((set, get) => ({
       // Wait a bit and try one more time as a simple retry
       await new Promise(r => setTimeout(r, 1000));
       await upsertAppearanceSettings(user.id, newSettings);
+    }
+
+    if (skippedColumns.size > 0) {
+      try {
+        await persistDesignOverridesFallback(user.id, newSettings);
+      } catch (err) {
+        console.error("Theme design fallback save error:", err);
+      }
     }
 
     const skippedTabLabelColumns =

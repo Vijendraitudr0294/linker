@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ArrowLeft, Save, User, Link2, Palette, Loader2, Globe } from "lucide-react";
 import type { Json, Tables } from "@/integrations/supabase/types";
+import { isAdminUser } from "@/lib/authRoles";
 
 type LinkRow = Tables<"links">;
 type ProfileRow = Tables<"profiles">;
@@ -155,7 +156,7 @@ const AdminUserEditPage = () => {
     else toast.success("Appearance saved");
   };
 
-  if (!currentUser || currentUser.role !== "superadmin") return <Navigate to="/dashboard" replace />;
+  if (!isAdminUser(currentUser)) return <Navigate to="/dashboard" replace />;
 
   if (loading) {
     return (

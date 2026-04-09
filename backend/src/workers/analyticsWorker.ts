@@ -11,13 +11,14 @@ import { log } from '../lib/logger';
 
 const flushBuffer = async () => {
   if (eventBuffer.length === 0) return;
-  const payload = [...eventBuffer];
+  // Atomically swap the buffer to prevent data loss
+  const payload = eventBuffer;
   eventBuffer = [];
   try {
     const { error } = await supabase.from('analytics_events').insert(payload);
     if (error) throw error;
   } catch (err) {
-    log("error", "Analytics Flush Failed", { error: String(err) });
+    log("error", "Analytics Flush Failed", { error: String(err), lostEvents: payload.length });
   }
 };
 
@@ -41,5 +42,18 @@ export const analyticsWorker = new Worker(
       }, BATCH_FLUSH_MS);
     }
   },
-  { connection: redisConnection, concurrency: 50 }
+  // IMPORTANT: concurrency must be 1 — the shared eventBuffer is not thread-safe
+  { connection: redisConnection, concurrency: 1 }
 );
+
+// GRACEFUL SHUTDOWN: Flush buffer on process exit
+const handleExit = async () => {
+  if (eventBuffer.length > 0) {
+    console.log(`[Worker] Flushing ${eventBuffer.length} events before shutdown...`);
+    await flushBuffer();
+  }
+  process.exit(0);
+};
+
+process.on('SIGTERM', handleExit);
+process.on('SIGINT', handleExit);

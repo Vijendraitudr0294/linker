@@ -24,8 +24,8 @@ export const useQRCodes = (userId: string | undefined) => {
       if (!userId) return localCodes;
 
       try {
-        const { data: qrData, error: qrError } = await (supabase
-          .from("qr_codes" as any) as any)
+        const { data: qrData, error: qrError } = await supabase
+          .from("qr_codes")
           .select(`
             *,
             qr_scans ( count )
@@ -38,7 +38,7 @@ export const useQRCodes = (userId: string | undefined) => {
             return localCodes;
         }
 
-        const supabaseCodes = (qrData || []).map((q: any) => ({
+        const supabaseCodes = (qrData || []).map((q) => ({
           id: q.id,
           user_id: q.user_id,
           name: q.name,
@@ -118,8 +118,8 @@ export const useQRForgeMutations = (userId: string | undefined) => {
                  shortCode = shortCodeLocal;
              }
 
-             const { data, error } = await (supabase
-               .from("qr_codes" as any) as any)
+             const { data, error } = await supabase
+               .from("qr_codes")
                .insert({
                  user_id: userId,
                  name: payload.name,
@@ -159,9 +159,9 @@ export const useQRForgeMutations = (userId: string | undefined) => {
   const updateQRCode = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<QRCodeItem> }) => {
       try {
-         const { error } = await (supabase
-           .from("qr_codes" as any) as any)
-           .update(data)
+         const { error } = await supabase
+           .from("qr_codes")
+           .update(data as any)
            .eq("id", id);
          
          if (error) throw error;
@@ -181,8 +181,8 @@ export const useQRForgeMutations = (userId: string | undefined) => {
   const deleteQRCode = useMutation({
     mutationFn: async (id: string) => {
       try {
-         const { error } = await (supabase
-           .from("qr_codes" as any) as any)
+         const { error } = await supabase
+           .from("qr_codes")
            .delete()
            .eq("id", id);
          if (error) throw error;
@@ -202,8 +202,8 @@ export const useQRForgeMutations = (userId: string | undefined) => {
   const toggleQRCode = useMutation({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
       try {
-         const { error } = await (supabase
-           .from("qr_codes" as any) as any)
+         const { error } = await supabase
+           .from("qr_codes")
            .update({ is_active })
            .eq("id", id);
          if (error) throw error;
@@ -223,8 +223,8 @@ export const useQRForgeMutations = (userId: string | undefined) => {
     mutationFn: async () => {
       try {
          if (userId) {
-             const { error } = await (supabase
-               .from("qr_codes" as any) as any)
+             const { error } = await supabase
+               .from("qr_codes")
                .delete()
                .eq("user_id", userId);
              if (error) throw error;

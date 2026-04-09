@@ -273,16 +273,12 @@ const CatalogPage = () => {
   const servicesUrl = user ? `${window.location.origin}/p/${user.username}/services` : "";
 
   return (
-    <div className="p-6 md:p-10 lg:p-16 space-y-10 bg-background min-h-screen text-foreground selection:bg-primary selection:text-white">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap');
-        .airbnb-shadow { box-shadow: 0 4px 20px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04); }
-        .store-title { font-family: 'Outfit', sans-serif; }
-      `}</style>
+    <div className="space-y-10">
       
-      <div className="relative overflow-hidden rounded-[2rem] border border-white/5 bg-card p-10 md:p-14 lg:p-16 shadow-lg mb-12 airbnb-shadow">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 blur-[120px] rounded-full translate-x-1/3 -translate-y-1/2 pointer-events-none opacity-40" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff02_1px,transparent_1px),linear-gradient(to_bottom,#ffffff02_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
+      <div className="relative overflow-hidden bruddle-card bg-[#FBCFE8] p-10 md:p-14 lg:p-16 shadow-[4px_4px_0_0_rgba(0,0,0,1)] mb-12">
+        <div className="absolute top-0 right-0 p-12 opacity-10 rotate-12 pointer-events-none">
+           <ShoppingBag size={200} strokeWidth={1} className="text-black" />
+        </div>
         
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-end justify-between gap-10">
           <div className="space-y-8">
@@ -291,22 +287,21 @@ const CatalogPage = () => {
                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">Studio Storefront • Live Sync</span>
             </div>
             
-            <div className="space-y-3">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-tight store-title">
+            <div className="space-y-3 relative z-10 w-full flex flex-col items-start gap-4">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-black leading-tight uppercase">
                 Your <br />
-                <span className="text-primary italic font-medium">Collections.</span>
+                <span className="text-black">Collections.</span>
               </h1>
-              <p className="text-base md:text-lg text-muted-foreground/60 font-medium tracking-tight max-w-[500px]">
+              <p className="text-base md:text-lg text-black/60 font-black tracking-widest uppercase max-w-[500px]">
                 Manage your vision with professional simplicity. Every item is optimized for global commerce.
               </p>
             </div>
 
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4 flex-wrap">
                {["Premium Hosting", "Secure Checkout", "Global Reach"].map((tag, i) => (
-                 <div key={tag} className="flex items-center gap-2.5">
-                    {i > 0 && <div className="w-1 h-1 rounded-full bg-primary/20" />}
-                    <span className="text-[11px] font-bold text-muted-foreground/30 whitespace-nowrap">{tag}</span>
-                 </div>
+                 <Badge key={tag} className="bg-white text-black border-2 border-black font-black uppercase text-[9px] tracking-widest shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
+                   {tag}
+                 </Badge>
                ))}
             </div>
           </div>
@@ -326,16 +321,16 @@ const CatalogPage = () => {
                 setEditItem(undefined);
                 setShowAdd(true);
               }}
-              className="h-14 px-8 rounded-2xl bg-primary hover:bg-foreground text-white font-bold text-[14px] gap-3 shadow-xl shadow-primary/10 transition-all duration-300 active:scale-95 border-none"
+              className="h-14 px-8 rounded-xl bg-white border-2 border-black text-black font-black uppercase tracking-widest text-[12px] shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:translate-y-1 hover:translate-x-1 hover:shadow-none hover:bg-black hover:text-white transition-all whitespace-nowrap"
             >
-              <Plus className="w-5 h-5" /> Host Item
+              <Plus className="w-5 h-5 mr-2" /> Host Item
             </Button>
           </div>
         </div>
       </div>
 
       <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
-        <div className="flex bg-white/5 p-1 rounded-2xl border border-white/5 shadow-xl overflow-x-auto no-scrollbar scrollbar-hide w-full md:w-auto">
+        <div className="flex bg-white p-2 rounded-[24px] border-2 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] overflow-x-auto no-scrollbar scrollbar-hide w-full md:w-auto h-14">
           {[
             { id: "all", label: "All Items", count: items.length },
             { id: "shop", label: "Store", count: sellableCount },
@@ -345,16 +340,16 @@ const CatalogPage = () => {
               key={tab.id}
               onClick={() => setManagerView(tab.id as any)}
               className={cn(
-                "px-6 py-2.5 rounded-xl text-[11px] font-bold tracking-tight transition-all duration-300 flex items-center gap-2 whitespace-nowrap",
+                "px-5 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-2 whitespace-nowrap",
                 managerView === tab.id 
-                  ? "bg-white text-black shadow-lg" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                  ? "bg-black text-white" 
+                  : "text-black/60 hover:text-black"
               )}
             >
               {tab.label}
               <span className={cn(
-                "text-[9px] px-2 py-0.5 rounded-md font-bold",
-                managerView === tab.id ? "bg-black/10 text-black" : "bg-white/5 text-muted-foreground/30"
+                "text-[9px] px-2 py-0.5 rounded-md font-black shadow-[2px_2px_0_0_rgba(0,0,0,1)]",
+                managerView === tab.id ? "bg-[#FBCFE8] text-black border-2 border-black" : "bg-gray-100 text-black border-2 border-black/10 shadow-none"
               )}>
                 {tab.count}
               </span>
@@ -386,17 +381,17 @@ const CatalogPage = () => {
       </AnimatePresence>
 
       {items.length === 0 && !showAdd && (
-        <Card className="p-12 text-center space-y-6">
-          <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mx-auto">
-            <ShoppingBag className="w-8 h-8 text-muted-foreground" />
+        <Card className="bruddle-card bg-gray-50 border-2 border-black border-dashed p-12 text-center space-y-6">
+          <div className="w-20 h-20 bg-white border-2 border-black rounded-2xl flex items-center justify-center mx-auto shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+            <ShoppingBag className="w-10 h-10 text-black/40" />
           </div>
           <div className="space-y-2">
-            <h3 className="text-xl font-bold">Your Catalog is Empty</h3>
-            <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+            <h3 className="text-xl font-black uppercase tracking-tight text-black">Your Catalog is Empty</h3>
+            <p className="text-xs font-bold text-black/40 max-w-sm mx-auto">
               Add products, food menus, or digital items. They'll appear on your public profile for visitors to browse.
             </p>
           </div>
-          <Button onClick={() => { setEditItem(undefined); setShowAdd(true); }} size="lg" className="px-8">
+          <Button onClick={() => { setEditItem(undefined); setShowAdd(true); }} className="bg-white border-2 border-black text-black font-black uppercase tracking-widest text-[11px] h-12 px-8 shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:translate-y-1 hover:translate-x-1 hover:shadow-none hover:bg-black hover:text-white transition-all">
             <Plus className="w-5 h-5 mr-2" /> 
             Add Your First Item
           </Button>
@@ -404,9 +399,9 @@ const CatalogPage = () => {
       )}
 
       {items.length > 0 && managedItems.length === 0 && !showAdd && (
-        <Card className="p-6 text-center space-y-2 border-border/60">
-          <h3 className="text-base font-semibold text-foreground">No items in this view</h3>
-          <p className="text-sm text-muted-foreground">
+        <Card className="bruddle-card bg-gray-50 border-2 border-dashed border-black/20 p-6 text-center space-y-2">
+          <h3 className="text-sm font-black uppercase text-black">No items in this view</h3>
+          <p className="text-[10px] font-bold text-black/40 uppercase tracking-wide">
             Switch to another manage view or add a new item.
           </p>
         </Card>

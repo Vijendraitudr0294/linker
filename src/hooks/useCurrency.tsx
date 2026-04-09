@@ -57,10 +57,32 @@ const CurrencyContext = createContext<{
   formatPrice: (n) => `$${n}`,
 });
 
+const CURRENCY_CACHE_KEY = "biotra_currency";
+const CURRENCY_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+
 export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
-  const [currency, setCurrency] = useState<CurrencyInfo>(defaultCurrency);
+  const [currency, setCurrency] = useState<CurrencyInfo>(() => {
+    // Try to load cached currency from localStorage
+    try {
+      const cached = localStorage.getItem(CURRENCY_CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.expiry > Date.now()) return parsed.currency;
+      }
+    } catch {}
+    return defaultCurrency;
+  });
 
   useEffect(() => {
+    // Skip geo-IP if we already have a cached non-default currency
+    try {
+      const cached = localStorage.getItem(CURRENCY_CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.expiry > Date.now()) return;
+      }
+    } catch {}
+
     const detect = async () => {
       try {
         const res = await fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(4000) });
@@ -68,11 +90,16 @@ export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
         const country = data.country_code;
         const match = currencyMap[country];
         if (match) {
-          setCurrency({
+          const detected = {
             code: match.code,
             symbol: match.symbol,
             rate: fallbackRates[match.code] || 1,
-          });
+          };
+          setCurrency(detected);
+          localStorage.setItem(CURRENCY_CACHE_KEY, JSON.stringify({
+            currency: detected,
+            expiry: Date.now() + CURRENCY_CACHE_TTL,
+          }));
         }
       } catch {
         // Keep USD default

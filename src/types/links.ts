@@ -4,7 +4,7 @@ export type SocialPlatform =
   | "snapchat" | "pinterest" | "whatsapp" | "telegram" | "email" 
   | "website" | "googlemeet" | "zoom" | "calendly" | "calcom"
   | "video-embed" | "website-embed" | "google-maps"
-  | "spotify" | "apple-music" | "soundcloud" | "audiomack" | "substack" | "typeform"
+  | "apple-music" | "soundcloud" | "audiomack" | "substack" | "typeform"
   | "gofundme" | "kick" | "kickstarter" | "mixcloud" | "tidal" | "tunein"
   | "bandsintown" | "seated" | "songkick" | "airbnb" | "behance" | "imgur" | "laylo" | "matterport" | "shopmy" | "tip-jar"
   | "appstore" | "playstore"

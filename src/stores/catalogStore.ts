@@ -1,8 +1,18 @@
 import { create } from "zustand";
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesInsert, TablesUpdate, Json } from "@/integrations/supabase/types";
 import { logActivity } from "@/lib/activityLogger";
 import { toast } from "sonner";
 import { useAuthStore } from "@/stores/authStore";
+import {
+  coercePositiveNumber,
+  coerceNonNegativeInteger,
+  sanitizeVariants,
+  sanitizeMedia,
+  toCatalogItem,
+  hasMissingMediaColumnError,
+  cloneWithoutMedia,
+} from "@/lib/catalogUtils";
 
 export type ItemType = "physical" | "food" | "service" | "digital" | "boat" | "car" | "blog" | "social" | "video" | "article" | "post" | "music" | "reel";
 export type ItemCategory = string;
@@ -47,93 +57,6 @@ interface CatalogState {
   toggleItem: (id: string) => Promise<boolean>;
   bulkAddItems: (items: Omit<CatalogItem, "id" | "sort_order" | "user_id">[]) => Promise<boolean>;
 }
-
-const coercePositiveNumber = (value: unknown): number | null => {
-  if (value === null || value === undefined || value === "") return null;
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return null;
-  return Math.max(0, parsed);
-};
-
-const coerceNonNegativeInteger = (value: unknown): number | null => {
-  if (value === null || value === undefined || value === "") return null;
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return null;
-  return Math.max(0, Math.floor(parsed));
-};
-
-const sanitizeVariants = (value: unknown): ItemVariant[] => {
-  if (!Array.isArray(value)) return [];
-  return value
-    .map((entry) => {
-      const row = entry as Record<string, unknown>;
-      const label = typeof row.label === "string" ? row.label.trim() : "";
-      const options = Array.isArray(row.options)
-        ? row.options
-            .map((option) => (typeof option === "string" ? option.trim() : ""))
-            .filter(Boolean)
-        : [];
-
-      return { label, options };
-    })
-    .filter((variant) => variant.label && variant.options.length > 0);
-};
-
-const sanitizeMedia = (value: unknown): { type: "image" | "video"; url: string }[] => {
-  if (!Array.isArray(value)) return [];
-
-  return value
-    .map((entry) => {
-      const row = entry as Record<string, unknown>;
-      const type = row.type === "video" ? "video" : "image";
-      const url = typeof row.url === "string" ? row.url.trim() : "";
-
-      return {
-        type: type as "image" | "video",
-        url,
-      };
-    })
-    .filter((entry) => entry.url.length > 0);
-};
-
-const toCatalogItem = (row: Record<string, unknown>): CatalogItem => ({
-  id: (row.id as string) || "",
-  user_id: (row.user_id as string) || "",
-  title: (row.title as string) || "",
-  description: (row.description as string) || "",
-  price: coercePositiveNumber(row.price),
-  price_label: (row.price_label as string) || "",
-  image_url: (row.image_url as string) || "",
-  category: (row.category as string) || "General",
-  item_type: (row.item_type as ItemType) || "physical",
-  tags: Array.isArray(row.tags) ? (row.tags as string[]).filter((tag) => typeof tag === "string") : [],
-  external_url: (row.external_url as string) || "",
-  allow_order_form: Boolean(row.allow_order_form),
-  enabled: row.enabled !== false,
-  sort_order: typeof row.sort_order === "number" ? row.sort_order : 0,
-  variants: sanitizeVariants(row.variants),
-  track_inventory: Boolean(row.track_inventory),
-  stock_quantity: coerceNonNegativeInteger(row.stock_quantity),
-  duration: (row.duration as string) || "",
-  schedule: (row.schedule as string) || "",
-  location: (row.location as string) || "",
-  media: sanitizeMedia(row.media),
-});
-
-const hasMissingMediaColumnError = (error: { message?: string | null; details?: string | null } | null): boolean => {
-  const detailText = `${error?.message || ""} ${error?.details || ""}`.toLowerCase();
-  return detailText.includes("media") && (detailText.includes("column") || detailText.includes("schema cache"));
-};
-
-const cloneWithoutMedia = <T extends Record<string, unknown>>(value: T): T => {
-  if (!Object.prototype.hasOwnProperty.call(value, "media")) {
-    return value;
-  }
-
-  const cloned = { ...value };
-  delete cloned.media;
-  return cloned as T;
-};
 
 export const useCatalogStore = create<CatalogState>()((set, get) => ({
   items: [],
@@ -182,7 +105,7 @@ export const useCatalogStore = create<CatalogState>()((set, get) => ({
 
     const sort_order = get().items.length;
 
-    const insertData: Record<string, unknown> = {
+    const insertData: TablesInsert<"catalog_items"> = {
       user_id: user.user_id,
       title: item.title.trim(),
       description: item.description?.trim() || "",
@@ -197,19 +120,19 @@ export const useCatalogStore = create<CatalogState>()((set, get) => ({
       enabled: item.enabled !== false,
       track_inventory: Boolean(item.track_inventory),
       stock_quantity: item.track_inventory ? coerceNonNegativeInteger(item.stock_quantity) : null,
-      variants: sanitizeVariants(item.variants),
+      variants: sanitizeVariants(item.variants) as unknown as Json,
       duration: item.duration?.trim() || "",
       schedule: item.schedule?.trim() || "",
       location: item.location?.trim() || "",
-      media: sanitizeMedia(item.media),
+      media: sanitizeMedia(item.media) as unknown as Json,
       sort_order,
     };
 
-    let { data, error } = await supabase.from("catalog_items").insert(insertData as any).select("*").single();
+    let { data, error } = await supabase.from("catalog_items").insert(insertData).select("*").single();
 
     if (error && hasMissingMediaColumnError(error)) {
       const fallbackInsert = cloneWithoutMedia(insertData);
-      const fallbackResponse = await supabase.from("catalog_items").insert(fallbackInsert as any).select("*").single();
+      const fallbackResponse = await supabase.from("catalog_items").insert(fallbackInsert).select("*").single();
       data = fallbackResponse.data;
       error = fallbackResponse.error;
     }
@@ -239,13 +162,13 @@ export const useCatalogStore = create<CatalogState>()((set, get) => ({
     if (data.external_url !== undefined) updateData.external_url = data.external_url.trim();
     if (data.allow_order_form !== undefined) updateData.allow_order_form = data.allow_order_form;
     if (data.enabled !== undefined) updateData.enabled = data.enabled;
-    if (data.variants !== undefined) updateData.variants = sanitizeVariants(data.variants);
+    if (data.variants !== undefined) updateData.variants = sanitizeVariants(data.variants) as unknown as Json;
     if (data.track_inventory !== undefined) updateData.track_inventory = Boolean(data.track_inventory);
     if (data.stock_quantity !== undefined) updateData.stock_quantity = coerceNonNegativeInteger(data.stock_quantity);
     if (data.duration !== undefined) updateData.duration = data.duration.trim();
     if (data.schedule !== undefined) updateData.schedule = data.schedule.trim();
     if (data.location !== undefined) updateData.location = data.location.trim();
-    if (data.media !== undefined) updateData.media = sanitizeMedia(data.media);
+    if (data.media !== undefined) updateData.media = sanitizeMedia(data.media) as unknown as Json;
 
     let { data: updatedData, error } = await supabase
       .from("catalog_items")
@@ -360,11 +283,11 @@ export const useCatalogStore = create<CatalogState>()((set, get) => ({
         enabled: true,
         track_inventory: item.track_inventory || false,
         stock_quantity: item.track_inventory ? coerceNonNegativeInteger(item.stock_quantity) : null,
-        variants: sanitizeVariants(item.variants),
+        variants: sanitizeVariants(item.variants) as unknown as Json,
         duration: item.duration || "",
         schedule: item.schedule || "",
         location: item.location || "",
-        media: sanitizeMedia(item.media),
+        media: sanitizeMedia(item.media) as unknown as Json,
         sort_order: lastSortOrder++,
       }));
 

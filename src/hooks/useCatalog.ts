@@ -63,11 +63,8 @@ export const useCatalog = (items: CatalogItemData[], profileUserId: string) => {
     }
   };
 
-  useEffect(() => {
-    normalizedItems.forEach((item) => {
-      void trackEvent(item.id, "view");
-    });
-  }, [normalizedItems.length]);
+  // View tracking is deferred to component-level IntersectionObserver or on explicit interaction.
+  // Do NOT eagerly track all items on mount — it causes N concurrent DB inserts.
 
   const categories = useMemo(() => [...new Set(sellableItems.map((item) => item.primaryCategory))], [sellableItems]);
 
