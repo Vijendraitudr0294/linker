@@ -87,6 +87,7 @@ const CatalogPage = () => {
   const [editItem, setEditItem] = useState<CatalogItem | undefined>(undefined);
   const [saving, setSaving] = useState(false);
   const [managerView, setManagerView] = useState<CatalogManagerView>("all");
+  const [viewMode, setViewMode] = useState<"list" | "card">("list");
 
   useEffect(() => {
     if (!platformInitialized) {
@@ -332,31 +333,58 @@ const CatalogPage = () => {
       </div>
 
       <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
-        <div className="flex bg-white p-2 rounded-[24px] border-2 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] overflow-x-auto no-scrollbar scrollbar-hide w-full md:w-auto h-14">
-          {[
-            { id: "all", label: "All Items", count: items.length },
-            { id: "shop", label: "Store", count: sellableCount },
-            { id: "content", label: "Media Hub", count: contentCount }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setManagerView(tab.id as any)}
-              className={cn(
-                "px-5 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-2 whitespace-nowrap",
-                managerView === tab.id 
-                  ? "bg-black text-white" 
-                  : "text-black/60 hover:text-black"
-              )}
-            >
-              {tab.label}
-              <span className={cn(
-                "text-[9px] px-2 py-0.5 rounded-md font-black shadow-[2px_2px_0_0_rgba(0,0,0,1)]",
-                managerView === tab.id ? "bg-[#FBCFE8] text-black border-2 border-black" : "bg-gray-100 text-black border-2 border-black/10 shadow-none"
-              )}>
-                {tab.count}
-              </span>
-            </button>
-          ))}
+        <div className="flex items-center gap-4 w-full md:w-auto overflow-x-auto no-scrollbar scrollbar-hide">
+          <div className="flex bg-white p-2 rounded-[24px] border-2 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] shrink-0 h-14">
+            {[
+              { id: "all", label: "All Items", count: items.length },
+              { id: "shop", label: "Store", count: sellableCount },
+              { id: "content", label: "Media Hub", count: contentCount }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setManagerView(tab.id as any)}
+                className={cn(
+                  "px-5 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-2 whitespace-nowrap",
+                  managerView === tab.id 
+                    ? "bg-black text-white" 
+                    : "text-black/60 hover:text-black"
+                )}
+              >
+                {tab.label}
+                <span className={cn(
+                  "text-[9px] px-2 py-0.5 rounded-md font-black shadow-[2px_2px_0_0_rgba(0,0,0,1)]",
+                  managerView === tab.id ? "bg-[#FBCFE8] text-black border-2 border-black" : "bg-gray-100 text-black border-2 border-black/10 shadow-none"
+                )}>
+                  {tab.count}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <div className="flex bg-white/50 p-1 rounded-2xl border-2 border-black/10 shrink-0 h-14 items-center gap-1 px-2">
+             <Button
+                variant={viewMode === "list" ? "secondary" : "ghost"}
+                size="sm"
+                className={cn(
+                  "h-10 px-4 rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest",
+                  viewMode === "list" ? "bg-black text-white shadow-[4px_4px_0_0_rgba(0,0,0,1)]" : "text-black/40 hover:text-black"
+                )}
+                onClick={() => setViewMode("list")}
+              >
+                List
+              </Button>
+              <Button
+                variant={viewMode === "card" ? "secondary" : "ghost"}
+                size="sm"
+                className={cn(
+                  "h-10 px-4 rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest",
+                  viewMode === "card" ? "bg-black text-white shadow-[4px_4px_0_0_rgba(0,0,0,1)]" : "text-black/40 hover:text-black"
+                )}
+                onClick={() => setViewMode("card")}
+              >
+                Card
+              </Button>
+          </div>
         </div>
         
         <div className="hidden md:flex items-center gap-3 text-[11px] font-bold text-muted-foreground/30">
@@ -412,6 +440,7 @@ const CatalogPage = () => {
       {managedItems.length > 0 && (
         <CatalogGrid 
           items={managedItems} 
+          viewMode={viewMode}
           onEdit={startEdit} 
           onDelete={handleDelete} 
           onToggle={(id, enabled) => toggleItem.mutateAsync({ id, enabled })} 

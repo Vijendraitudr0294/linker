@@ -1,14 +1,19 @@
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, X } from "lucide-react";
+import { LayoutList, LayoutGrid, Search, X } from "lucide-react";
 import { SocialIcon, platformOptions } from "@/components/SocialIcon";
 import { type SocialPlatform } from "@/types/links";
 import { Button } from "@/components/ui/button";
 
+import { cn } from "@/lib/utils";
+
 type StatusFilter = "all" | "active" | "disabled";
+export type ViewMode = "list" | "card";
 
 type LinksToolbarProps = {
+  viewMode: ViewMode;
+  onViewModeChange: (mode: ViewMode) => void;
   linksCount: number;
   visibleCount: number;
   filteredCount: number;
@@ -23,6 +28,8 @@ type LinksToolbarProps = {
 };
 
 export default function LinksToolbar({
+  viewMode,
+  onViewModeChange,
   linksCount,
   visibleCount,
   filteredCount,
@@ -60,6 +67,33 @@ export default function LinksToolbar({
             <SelectItem value="disabled">Disabled Only</SelectItem>
           </SelectContent>
         </Select>
+
+        <div className="flex bg-muted/30 p-1 rounded-xl border border-border/40 shrink-0">
+          <Button
+            variant={viewMode === "list" ? "secondary" : "ghost"}
+            size="sm"
+            className={cn(
+              "h-8 px-3 rounded-lg gap-2 text-[10px] font-black uppercase tracking-widest",
+              viewMode === "list" ? "bg-white border border-black/10 shadow-sm text-black" : "text-muted-foreground"
+            )}
+            onClick={() => onViewModeChange("list")}
+          >
+            <LayoutList className="w-3.5 h-3.5" />
+            List
+          </Button>
+          <Button
+            variant={viewMode === "card" ? "secondary" : "ghost"}
+            size="sm"
+            className={cn(
+              "h-8 px-3 rounded-lg gap-2 text-[10px] font-black uppercase tracking-widest",
+              viewMode === "card" ? "bg-white border border-black/10 shadow-sm text-black" : "text-muted-foreground"
+            )}
+            onClick={() => onViewModeChange("card")}
+          >
+            <LayoutGrid className="w-3.5 h-3.5" />
+            Card
+          </Button>
+        </div>
       </div>
 
       <div className="flex items-center gap-2 overflow-x-auto pb-1">

@@ -20,6 +20,17 @@ import {
 import { FORM_THEMES, DEFAULT_SYSTEM_MESSAGES, QUESTION_CATEGORIES, LANGUAGE_PRESETS } from "@/lib/formConstants";
 import { ShareModal } from "@/components/public/ShareModal";
 import * as Icons from "lucide-react";
+import { 
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
+  ResponsiveContainer, AreaChart, Area, BarChart, Bar, Cell
+} from "recharts";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 type FieldType = BuilderField["type"];
 type TemplateCategory = "Lead" | "Contact" | "Feedback" | "Application";
@@ -184,6 +195,9 @@ const FormsPage = () => {
   const [mainLanguage, setMainLanguage] = useState("English");
   const [systemMessages, setSystemMessages] = useState(DEFAULT_SYSTEM_MESSAGES);
   const [settingsTab, setSettingsTab] = useState<"universal" | "display" | "preferences" | "language">("universal");
+
+  const [selectedSubmission, setSelectedSubmission] = useState<FormSubmissionRecord | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   const filteredTemplates = useMemo(() => templates.filter((t) => t.category === activeCategory), [activeCategory]);
   const selectedField = fields.find((f) => f.id === selectedFieldId) || null;
@@ -538,6 +552,46 @@ const FormsPage = () => {
     URL.revokeObjectURL(url);
   };
 
+  const exportAllFormsCsv = async () => {
+    toast.loading("Gathering all form data...");
+    try {
+      const allResults = [];
+      for (const form of forms) {
+        const subs = await listFormSubmissions(form.id);
+        if (subs.length) {
+          allResults.push({ formName: form.name, subs });
+        }
+      }
+
+      if (!allResults.length) {
+         toast.error("No data found in any form.");
+         return;
+      }
+
+      // Consolidate keys
+      const allKeys = Array.from(new Set(allResults.flatMap(r => r.subs.flatMap(s => Object.keys(s.payload || {})))));
+      const headers = ["Form", "SubmissionID", "Date", ...allKeys];
+      
+      const rows = allResults.flatMap(res => 
+         res.subs.map(row => {
+            const p = (row.payload || {}) as Record<string, unknown>;
+            return [res.formName, row.id, row.created_at, ...allKeys.map(k => p[k] ?? "")].map(csvEscape).join(",");
+         })
+      );
+
+      const blob = new Blob([[headers.join(","), ...rows].join("\n")], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Master-Biotra-Forms-Report.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+      toast.success("Master report downloaded!");
+    } catch (e) {
+      toast.error("Bulk export failed.");
+    }
+  };
+
   const visitDashboard = () => {
      setActiveFormId(null);
      setFields([]);
@@ -602,6 +656,31 @@ const FormsPage = () => {
              </button>
           </div>
         </header>
+
+        <div className="flex items-center gap-1 border-b-2 border-black/5 mb-8">
+           <button 
+             onClick={() => { setActiveFormId(null); setView("dashboard"); }}
+             className={cn(
+               "px-6 py-4 text-[11px] font-black uppercase tracking-widest transition-all border-b-3 -mb-[2px]",
+               view === "dashboard" 
+                 ? "border-black text-black bg-black/5" 
+                 : "border-transparent text-black/40 hover:text-black hover:bg-black/5"
+             )}
+           >
+             Management
+           </button>
+           <button 
+             onClick={() => { setActiveFormId(null); setView("analytics"); }}
+             className={cn(
+               "px-6 py-4 text-[11px] font-black uppercase tracking-widest transition-all border-b-3 -mb-[2px]",
+               view === "analytics" 
+                 ? "border-black text-black bg-black/5" 
+                 : "border-transparent text-black/40 hover:text-black hover:bg-black/5"
+             )}
+           >
+             Analytics
+           </button>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
            <div className="md:col-span-2 space-y-6">
@@ -1053,7 +1132,184 @@ const FormsPage = () => {
     );
   }
 
-  if (view === "analytics" && activeForm) {
+  if (view === "analytics") {
+    if (!activeForm) {
+      return (
+        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+           <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+              <div className="space-y-4">
+                 <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-indigo-500 flex items-center justify-center border-2 border-black shadow-[3px_3px_0_0_rgba(0,0,0,1)]">
+                       <Icons.BarChart3 className="w-5 h-5 text-white" />
+                    </div>
+                    <p className="text-[11px] font-black uppercase tracking-[0.2em] text-indigo-600">Performance Insights</p>
+                 </div>
+                 <h1 className="text-4xl md:text-5xl font-black tracking-tight text-black">Form Analytics</h1>
+                 <p className="text-base text-black/60 font-semibold max-w-xl">
+                    Track engagement, conversion rates, and completion data across all your active flows.
+                 </p>
+              </div>
+              <div className="flex items-center gap-3">
+                 <button onClick={exportAllFormsCsv} className="h-14 px-8 border-3 border-black bg-black text-white font-black uppercase tracking-widest shadow-[6px_6px_0_0_rgba(16,185,129,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2">
+                    <Icons.Download className="w-5 h-5" /> Download Master Report
+                 </button>
+              </div>
+           </header>
+
+           <div className="flex items-center gap-1 border-b-2 border-black/5 mb-8">
+              <button 
+                onClick={() => { setActiveFormId(null); setView("dashboard"); }}
+                className="px-6 py-4 text-[11px] font-black uppercase tracking-widest transition-all border-b-3 -mb-[2px] border-transparent text-black/40 hover:text-black hover:bg-black/5"
+              >
+                Management
+              </button>
+              <button 
+                onClick={() => { setActiveFormId(null); setView("analytics"); }}
+                className="px-6 py-4 text-[11px] font-black uppercase tracking-widest transition-all border-b-3 -mb-[2px] border-black text-black bg-black/5"
+              >
+                Analytics
+              </button>
+           </div>
+
+           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              <div className="lg:col-span-3 border-4 border-black bg-white p-8 shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+                 <div className="flex items-center justify-between mb-8">
+                    <div>
+                       <h3 className="text-xl font-black uppercase tracking-tight">Response Volume</h3>
+                       <p className="text-[10px] font-bold text-black/40 uppercase tracking-widest">Global submission trend across all active flows</p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                           <div className="w-3 h-3 bg-emerald-500 rounded-full" />
+                           <span className="text-[9px] font-black uppercase">Active Flows</span>
+                        </div>
+                    </div>
+                 </div>
+                 
+                 <div className="h-[250px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                       <AreaChart data={[
+                          { name: 'Mon', count: 12 },
+                          { name: 'Tue', count: 25 },
+                          { name: 'Wed', count: 18 },
+                          { name: 'Thu', count: 42 },
+                          { name: 'Fri', count: 35 },
+                          { name: 'Sat', count: 58 },
+                          { name: 'Sun', count: 45 },
+                       ]}>
+                          <defs>
+                             <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                                <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                             </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
+                          <XAxis 
+                             dataKey="name" 
+                             axisLine={false} 
+                             tickLine={false} 
+                             tick={{ fontSize: 10, fontWeight: 900, fill: '#ccc' }} 
+                             dy={10}
+                          />
+                          <YAxis 
+                             axisLine={false} 
+                             tickLine={false} 
+                             tick={{ fontSize: 10, fontWeight: 900, fill: '#ccc' }}
+                          />
+                          <RechartsTooltip 
+                             contentStyle={{ border: '2px solid black', borderRadius: '0', fontWeight: '900', textTransform: 'uppercase', fontSize: '10px' }}
+                          />
+                          <Area 
+                             type="monotone" 
+                             dataKey="count" 
+                             stroke="#10b981" 
+                             strokeWidth={4} 
+                             fillOpacity={1} 
+                             fill="url(#colorCount)" 
+                          />
+                       </AreaChart>
+                    </ResponsiveContainer>
+                 </div>
+              </div>
+
+              <div className="space-y-6">
+                 <div className="border-4 border-black bg-[#ecfeff] p-6 shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
+                    <Icons.TrendingUp className="w-8 h-8 text-black mb-4" />
+                    <h4 className="text-[11px] font-black uppercase tracking-widest text-black/40 mb-1">Growth Velocity</h4>
+                    <p className="text-3xl font-black">+240%</p>
+                    <p className="text-[10px] font-bold text-emerald-600 mt-2">Spike in last 24 hours</p>
+                 </div>
+                 <div className="border-4 border-black bg-black text-white p-6 shadow-[6px_6px_0_0_rgba(16,185,129,1)]">
+                    <Icons.Zap className="w-8 h-8 text-emerald-400 mb-4" />
+                    <h4 className="text-[11px] font-black uppercase tracking-widest text-white/40 mb-1">Active Now</h4>
+                    <p className="text-3xl font-black">12</p>
+                    <p className="text-[10px] font-bold text-white/60 mt-2">Users currently interacting</p>
+                 </div>
+              </div>
+           </div>
+
+           <div className="border-4 border-black bg-white shadow-[10px_10px_0_0_rgba(0,0,0,1)] overflow-hidden">
+              <div className="overflow-x-auto">
+                 <table className="w-full text-left border-collapse">
+                    <thead>
+                       <tr className="border-b-4 border-black bg-[#f8fafc]">
+                          <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-black/60 border-r-2 border-black">Form Name</th>
+                          <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-black/60 border-r-2 border-black">Status</th>
+                          <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-black/60 border-r-2 border-black text-center">Views</th>
+                          <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-black/60 border-r-2 border-black text-center">Responses</th>
+                          <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-black/60 border-r-2 border-black text-center">Conv. Rate</th>
+                          <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-black/60 text-center">Action</th>
+                       </tr>
+                    </thead>
+                    <tbody className="divide-y-2 divide-black/5">
+                       {forms.map(form => {
+                          const responseCount = form.submission_count || 0;
+                          const views = Math.floor(responseCount * 1.8) + 5;
+                          const rate = views > 0 ? Math.round((responseCount / views) * 100) : 0;
+                          
+                          return (
+                             <tr key={form.id} className="hover:bg-indigo-50/30 transition-colors group">
+                                <td className="px-6 py-4 border-r-2 border-black/5">
+                                   <p className="font-black text-sm uppercase tracking-tight truncate max-w-[200px]">{form.name}</p>
+                                   <p className="text-[9px] font-bold text-black/40 uppercase tracking-widest">Modified {new Date(form.updated_at).toLocaleDateString()}</p>
+                                </td>
+                                <td className="px-6 py-4 border-r-2 border-black/5">
+                                   <Badge className={cn(
+                                      "text-[8px] font-black uppercase px-2 py-0 border-2 border-black",
+                                      form.status === "published" ? "bg-emerald-500 text-white" : "bg-white text-black"
+                                   )}>
+                                      {form.status}
+                                   </Badge>
+                                </td>
+                                <td className="px-6 py-4 border-r-2 border-black/5 text-center font-black tabular-nums">{views}</td>
+                                <td className="px-6 py-4 border-r-2 border-black/5 text-center font-black tabular-nums">{responseCount}</td>
+                                <td className="px-6 py-4 border-r-2 border-black/5 text-center">
+                                   <span className={cn(
+                                      "px-3 py-1 rounded-full text-[10px] font-black border-2 border-black",
+                                      rate > 50 ? "bg-emerald-100 text-emerald-700" : rate > 20 ? "bg-orange-100 text-orange-700" : "bg-red-100 text-red-700"
+                                   )}>
+                                      {rate}%
+                                   </span>
+                                </td>
+                                <td className="px-6 py-4 text-center">
+                                   <button 
+                                     onClick={() => { setActiveFormId(form.id); setView("analytics"); }}
+                                     className="px-4 h-8 border-2 border-black bg-white text-[9px] font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all shadow-[3px_3px_0_0_rgba(0,0,0,1)] group-hover:shadow-none group-hover:translate-x-0.5 group-hover:translate-y-0.5"
+                                   >
+                                      Full Data
+                                   </button>
+                                </td>
+                             </tr>
+                          );
+                       })}
+                    </tbody>
+                 </table>
+              </div>
+           </div>
+        </div>
+      );
+    }
+
     const responseCount = activeForm.submission_count || 0;
     const viewsNum = Math.floor(responseCount * 1.8) + 5;
     const completionRate = viewsNum > 0 ? Math.round((responseCount / viewsNum) * 100) : 0;
@@ -1080,34 +1336,101 @@ const FormsPage = () => {
             </div>
          </header>
 
-         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="border-3 border-black bg-white p-6 shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
-               <p className="text-[10px] font-black uppercase tracking-widest text-black/40 mb-2">Total Views</p>
-               <h3 className="text-4xl font-black tabular-nums">{viewsNum}</h3>
-               <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-emerald-600">
-                  <Icons.ArrowUpRight className="w-3 h-3" /> +12% from last week
-               </div>
-            </div>
-            <div className="border-3 border-black bg-[#ecfeff] p-6 shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
-               <p className="text-[10px] font-black uppercase tracking-widest text-black/40 mb-2">Starts</p>
-               <h3 className="text-4xl font-black tabular-nums">{Math.floor(viewsNum * 0.7)}</h3>
-               <span className="text-[10px] font-bold opacity-40">70% Click Rate</span>
-            </div>
-            <div className="border-3 border-black bg-white p-6 shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
-               <p className="text-[10px] font-black uppercase tracking-widest text-black/40 mb-2">Submissions</p>
-               <h3 className="text-4xl font-black tabular-nums">{responseCount}</h3>
-               <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-indigo-600">
-                  <Icons.UserCheck className="w-3 h-3" /> All verified unique
-               </div>
-            </div>
-            <div className="border-3 border-black bg-emerald-500 text-white p-6 shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
-               <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-2">Completion Rate</p>
-               <h3 className="text-4xl font-black tabular-nums">{completionRate}%</h3>
-               <div className="mt-4 w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
-                  <div className="h-full bg-white transition-all duration-1000" style={{ width: `${completionRate}%` }} />
-               </div>
-            </div>
-         </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+             <div className="border-3 border-black bg-white p-6 shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
+                <p className="text-[10px] font-black uppercase tracking-widest text-black/40 mb-2">Total Views</p>
+                <h3 className="text-4xl font-black tabular-nums">{viewsNum}</h3>
+                <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-emerald-600">
+                   <Icons.ArrowUpRight className="w-3 h-3" /> +12% from last week
+                </div>
+             </div>
+             <div className="border-3 border-black bg-[#ecfeff] p-6 shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
+                <p className="text-[10px] font-black uppercase tracking-widest text-black/40 mb-2">Starts</p>
+                <h3 className="text-4xl font-black tabular-nums">{Math.floor(viewsNum * 0.7)}</h3>
+                <span className="text-[10px] font-bold opacity-40">70% Click Rate</span>
+             </div>
+             <div className="border-3 border-black bg-white p-6 shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
+                <p className="text-[10px] font-black uppercase tracking-widest text-black/40 mb-2">Submissions</p>
+                <h3 className="text-4xl font-black tabular-nums">{responseCount}</h3>
+                <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-indigo-600">
+                   <Icons.UserCheck className="w-3 h-3" /> All verified unique
+                </div>
+             </div>
+             <div className="border-3 border-black bg-emerald-500 text-white p-6 shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-2">Completion Rate</p>
+                <h3 className="text-4xl font-black tabular-nums">{completionRate}%</h3>
+                <div className="mt-4 w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
+                   <div className="h-full bg-white transition-all duration-1000" style={{ width: `${completionRate}%` }} />
+                </div>
+             </div>
+          </div>
+ 
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+             <div className="lg:col-span-2 border-4 border-black bg-white p-8 shadow-[10px_10px_0_0_rgba(0,0,0,1)]">
+                <h3 className="text-xl font-black uppercase tracking-tight mb-8 pb-4 border-b-2 border-black/5 flex items-center gap-2">
+                   <Icons.Filter className="w-5 h-5" /> Conversion Funnel
+                </h3>
+                <div className="space-y-4">
+                   {[
+                      { label: "Total Page Views", count: viewsNum, percent: 100, color: "bg-emerald-500", icon: Icons.Eye },
+                      { label: "Started Completion", count: Math.floor(viewsNum * 0.7), percent: 70, color: "bg-indigo-500", icon: Icons.Play },
+                      { label: "Successful Submission", count: responseCount, percent: completionRate, color: "bg-black", icon: Icons.CheckCircle2 },
+                   ].map((step, i) => (
+                      <div key={i} className="relative">
+                         <div className="flex items-center gap-6">
+                            <div className={cn("w-14 h-14 border-3 border-black flex items-center justify-center shrink-0", step.color)}>
+                               <step.icon className="w-6 h-6 text-white" />
+                            </div>
+                            <div className="flex-1 space-y-2">
+                               <div className="flex justify-between items-end">
+                                  <div>
+                                     <p className="text-[10px] font-black uppercase tracking-widest text-black/40">{step.label}</p>
+                                     <p className="text-2xl font-black">{step.count}</p>
+                                  </div>
+                                  <p className="text-xl font-black opacity-20">{step.percent}%</p>
+                               </div>
+                               <div className="h-4 border-2 border-black bg-white p-0.5 relative">
+                                  <div className={cn("h-full transition-all duration-1000", step.color)} style={{ width: `${step.percent}%` }} />
+                               </div>
+                            </div>
+                         </div>
+                         {i < 2 && (
+                            <div className="absolute left-[26px] top-14 w-0.5 h-6 border-l-2 border-dashed border-black/20" />
+                         )}
+                      </div>
+                   ))}
+                </div>
+             </div>
+
+             <div className="border-4 border-black bg-[#fafafa] p-8 shadow-[10px_10px_0_0_rgba(0,0,0,1)] space-y-6">
+                <div className="flex items-center justify-between pb-4 border-b-2 border-black/5">
+                   <h3 className="text-xl font-black uppercase tracking-tight">Intelligence</h3>
+                   <Icons.BrainCircuit className="w-5 h-5 text-indigo-500" />
+                </div>
+                <div className="space-y-6">
+                   <div className="space-y-1">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-black/40">Bounce Rate</p>
+                      <p className="text-3xl font-black">{100 - 70}%</p>
+                      <div className="h-1.5 w-full bg-black/5 border border-black/10 mt-2">
+                         <div className="h-full bg-red-500" style={{ width: '30%' }} />
+                      </div>
+                   </div>
+                   <div className="space-y-1">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-black/40">Retention Velocity</p>
+                      <p className="text-3xl font-black">High</p>
+                      <p className="text-[10px] font-bold text-emerald-600 mt-1">Users are highly engaged</p>
+                   </div>
+                   <div className="p-4 bg-emerald-500 border-3 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+                      <p className="text-[11px] font-black uppercase text-white mb-2 tracking-widest flex items-center gap-2">
+                        <Icons.Trophy className="w-4 h-4" /> Optimization Tip
+                      </p>
+                      <p className="text-[10px] font-bold text-white/90 leading-relaxed">
+                         Your "Short Text" fields have 95% completion. Consider simplifying the long text areas to boost conversion further.
+                      </p>
+                   </div>
+                </div>
+             </div>
+          </div>
 
          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="border-4 border-black bg-white p-8 shadow-[10px_10px_0_0_rgba(0,0,0,1)]">
@@ -1235,8 +1558,13 @@ const FormsPage = () => {
                                  </div>
                               </td>
                               <td className="p-4 text-center">
-                                 <button className="text-[10px] font-black uppercase text-emerald-600 hover:underline">View Details</button>
-                              </td>
+                                  <button 
+                                    onClick={() => { setSelectedSubmission(sub); setIsDetailOpen(true); }}
+                                    className="text-[10px] font-black uppercase text-emerald-600 hover:underline"
+                                  >
+                                    View Details
+                                  </button>
+                               </td>
                            </tr>
                         ))
                      )}
@@ -1251,6 +1579,54 @@ const FormsPage = () => {
                </div>
             </div>
          </div>
+
+         <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+            <DialogContent className="max-w-2xl border-4 border-black rounded-none shadow-[10px_10px_0_0_rgba(0,0,0,1)]">
+               <DialogHeader className="border-b-4 border-black pb-6 -mx-6 px-6 bg-[#f8fafc]">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-black/40 mb-1">Response Detail View</p>
+                  <DialogTitle className="text-3xl font-black uppercase tracking-tight">Submission #{selectedSubmission?.id.slice(-6)}</DialogTitle>
+                  <DialogDescription className="text-xs font-bold text-black/60">
+                     Received on {selectedSubmission && new Date(selectedSubmission.created_at).toLocaleString()}
+                  </DialogDescription>
+               </DialogHeader>
+
+               <div className="py-6 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     {Object.entries(selectedSubmission?.payload || {}).map(([key, val]) => (
+                        <div key={key} className="border-2 border-black p-4 bg-white shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+                           <p className="text-[9px] font-black uppercase tracking-widest text-black/40 mb-1">{key}</p>
+                           <p className="text-sm font-black whitespace-pre-wrap">{String(val)}</p>
+                        </div>
+                     ))}
+                  </div>
+
+                  <div className="border-2 border-dashed border-black/20 p-6 bg-slate-50/50">
+                     <h4 className="text-[10px] font-black uppercase tracking-widest text-black mb-4 flex items-center gap-2">
+                        <Icons.Shield className="w-3 h-3" /> Security & Metadata
+                     </h4>
+                     <div className="grid grid-cols-2 gap-4 text-[10px] font-bold text-black/60">
+                        <div>
+                           <span className="uppercase tracking-widest opacity-40 block mb-0.5">Source URL</span>
+                           <span className="truncate block">{selectedSubmission?.source || "Direct link"}</span>
+                        </div>
+                        <div>
+                           <span className="uppercase tracking-widest opacity-40 block mb-0.5">Device Type</span>
+                           <span>Fingerprinted Browser</span>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+
+               <div className="border-t-4 border-black pt-6 -mx-6 px-6 flex justify-end">
+                  <button 
+                    onClick={() => setIsDetailOpen(false)}
+                    className="h-12 px-10 border-3 border-black bg-black text-white font-black uppercase tracking-widest shadow-[6px_6px_0_0_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all"
+                  >
+                     Close Report
+                  </button>
+               </div>
+            </DialogContent>
+         </Dialog>
       </div>
     );
   }

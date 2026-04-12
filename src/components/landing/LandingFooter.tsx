@@ -1,100 +1,95 @@
 import { motion } from "framer-motion";
-import { Instagram, Twitter, Github, Linkedin, Rocket, Compass, Layers, ShieldCheck, Zap, Send } from "lucide-react";
+import { Instagram, Twitter, Github, Linkedin, Rocket, Compass, Layers, ShieldCheck, Zap, Send, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 export const LandingFooter = () => {
    return (
-      <footer className="bg-white py-40 border-t-8 border-black relative flex flex-col items-center overflow-hidden">
-         {/* Background Typography Marquee */}
-         <div className="absolute inset-0 opacity-[0.03] pointer-events-none flex items-center justify-center">
+      <footer className="bg-[#060608] py-40 border-t border-white/10 relative flex flex-col items-center overflow-hidden font-sans">
+         {/* Background Typography Marquee - Subtler for Dark Theme */}
+         <div className="absolute inset-0 opacity-[0.02] pointer-events-none flex items-center justify-center">
             <motion.div 
-               animate={{ x: [-1000, 1000] }}
-               transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-               className="text-[400px] font-[1000] uppercase whitespace-nowrap text-black italic tracking-tighter"
+               animate={{ x: [-500, 500] }}
+               transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+               className="text-[300px] font-black uppercase whitespace-nowrap text-white italic tracking-tighter"
             >
                BIOTRA BIOTRA BIOTRA BIOTRA BIOTRA
             </motion.div>
          </div>
 
-         <div className="container max-w-[1400px] mx-auto px-10 relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-32 mb-40">
-            {/* Brand Info */}
-            <div className="flex flex-col gap-12 items-start">
-               <Link to="/" className="flex items-center gap-4 hover:scale-105 transition-transform">
-                  <div className="w-16 h-16 bg-emerald-400 border-4 border-black rounded-[20px] flex items-center justify-center shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
-                      <Zap className="text-black w-10 h-10 fill-black" />
+         <div className="container max-w-[1300px] mx-auto px-6 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-20 mb-40">
+            {/* Brand Info (4 cols) */}
+            <div className="lg:col-span-4 flex flex-col gap-10 items-start">
+               <Link to="/" className="flex items-center gap-4 group">
+                  <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center shadow-2xl transition-transform duration-500 group-hover:rotate-12">
+                      <Sparkles className="w-8 h-8 text-white fill-white/20" />
                   </div>
-                  <span className="font-[1000] text-3xl tracking-tighter uppercase italic text-black">BIOTRA</span>
+                  <span className="font-black text-3xl tracking-tighter uppercase italic text-white font-display">BIOTRA</span>
                </Link>
-               <p className="text-sm font-black uppercase text-black/50 tracking-[0.2em] leading-relaxed">
-                  The Ultimate Digital OS for Creators. <br /> Build your bio, storefront, and community in one place.
+               <p className="text-[14px] font-semibold text-white/40 uppercase tracking-[0.2em] leading-loose max-w-sm">
+                  The mission-control for elite creators. Orchestrate your digital commerce, content nodes, and audience intelligence.
                </p>
-               <div className="flex gap-6">
-                  {[
-                     { Icon: Instagram, color: "bg-pink-300" },
-                     { Icon: Twitter, color: "bg-sky-400" },
-                     { Icon: Github, color: "bg-yellow-400" },
-                     { Icon: Linkedin, color: "bg-[#D1FAE5]" }
-                  ].map(({ Icon, color }, i) => (
+               <div className="flex gap-4">
+                  {[Instagram, Twitter, Github, Linkedin].map((Icon, i) => (
                      <motion.div 
                         key={i}
-                        whileHover={{ y: -6, rotate: 6 }}
-                        className={cn("w-14 h-14 border-4 border-black rounded-2xl flex items-center justify-center transition-all cursor-pointer text-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]", color)}
+                        whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.05)" }}
+                        className="w-12 h-12 border border-white/10 rounded-xl flex items-center justify-center text-white/40 hover:text-white transition-all cursor-pointer shadow-lg"
                      >
-                        <Icon size={24} strokeWidth={3} />
+                        <Icon size={20} />
                      </motion.div>
                   ))}
                </div>
             </div>
 
-            {/* Links */}
-            <div className="grid grid-cols-2 gap-20">
-               <div className="space-y-10">
-                  <h4 className="inline-block px-4 py-2 bg-yellow-400 text-black border-2 border-black rounded-lg text-[10px] font-black uppercase tracking-[0.5em] italic shadow-[4px_4px_0_0_rgba(0,0,0,1)]">PLATFORM</h4>
-                  <div className="flex flex-col gap-6 text-[12px] font-black uppercase tracking-widest text-black/60">
-                     <a href="/#studio" className="hover:text-black hover:translate-x-2 transition-all">Studio</a>
-                     <a href="/#forge" className="hover:text-black hover:translate-x-2 transition-all">QR Forge</a>
-                     <a href="/#solutions" className="hover:text-black hover:translate-x-2 transition-all">Solutions</a>
-                     <Link to="/faq" className="hover:text-black hover:translate-x-2 transition-all">Knowledge Base</Link>
+            {/* Links (4 cols) */}
+            <div className="lg:col-span-4 grid grid-cols-2 gap-10 md:gap-20">
+               <div className="space-y-8">
+                  <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">Protocols</h4>
+                  <div className="flex flex-col gap-5 text-[12px] font-bold uppercase tracking-widest text-white/40">
+                     <a href="/#studio" className="hover:text-primary transition-all">Studio</a>
+                     <a href="/#forge" className="hover:text-primary transition-all">QR Forge</a>
+                     <a href="/#solutions" className="hover:text-primary transition-all">Solutions</a>
+                     <Link to="/faq" className="hover:text-primary transition-all">Knowledge</Link>
                   </div>
                </div>
-               <div className="space-y-10">
-                  <h4 className="inline-block px-4 py-2 bg-pink-300 text-black border-2 border-black rounded-lg text-[10px] font-black uppercase tracking-[0.5em] italic shadow-[4px_4px_0_0_rgba(0,0,0,1)]">COMMUNITY</h4>
-                  <div className="flex flex-col gap-6 text-[12px] font-black uppercase tracking-widest text-black/60">
-                     <Link to="/privacy" className="hover:text-black hover:translate-x-2 transition-all">Privacy Policy</Link>
-                     <Link to="/security" className="hover:text-black hover:translate-x-2 transition-all">Security Hub</Link>
-                     <a href="/register" className="hover:text-black hover:translate-x-2 transition-all">Beta Access</a>
-                     <a href="mailto:support@biotra.cc" className="hover:text-black hover:translate-x-2 transition-all">Support</a>
+               <div className="space-y-8">
+                  <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">Sovereignty</h4>
+                  <div className="flex flex-col gap-5 text-[12px] font-bold uppercase tracking-widest text-white/40">
+                     <Link to="/privacy" className="hover:text-primary transition-all">Privacy</Link>
+                     <Link to="/security" className="hover:text-primary transition-all">Security</Link>
+                     <a href="/register" className="hover:text-primary transition-all">Beta Access</a>
+                     <a href="mailto:support@biotra.cc" className="hover:text-primary transition-all">Support</a>
                   </div>
                </div>
             </div>
 
-            {/* Newsletter */}
-            <div className="bg-[#FBCFE8] p-12 rounded-[40px] border-8 border-black flex flex-col items-start gap-8 text-black shadow-[24px_24px_0_0_rgba(0,0,0,1)] rotate-3 hover:rotate-0 transition-transform duration-500">
-               <h4 className="text-4xl font-[1000] uppercase italic tracking-tighter leading-[0.9]">JOIN THE <br /> CREATOR HUB.</h4>
-               <p className="text-[11px] font-black uppercase tracking-widest text-black/60 leading-relaxed">Weekly creator insights, AI tools, and growth tactics.</p>
+            {/* Newsletter (4 cols) */}
+            <div className="lg:col-span-4 bg-white/[0.02] border border-white/5 p-10 rounded-[40px] flex flex-col items-start gap-8 text-white relative overflow-hidden group">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
+               <h4 className="text-3xl font-black uppercase italic tracking-tighter leading-none">JOIN THE <br /> <span className="text-primary italic font-display lowercase">network</span>.</h4>
+               <p className="text-[11px] font-bold uppercase tracking-widest text-white/30 leading-relaxed">Weekly creator insights, AI tools, and growth tactics.</p>
                <div className="w-full relative">
-                  <input type="text" placeholder="HELLO@CREATOR.COM" className="w-full bg-white border-4 border-black p-5 rounded-2xl text-[10px] font-black uppercase tracking-widest focus:outline-none shadow-[8px_8px_0_0_rgba(0,0,0,1)] focus:shadow-none focus:translate-x-[4px] focus:translate-y-[4px] transition-all" />
-                  <button className="absolute right-3 top-2 w-12 h-12 bg-emerald-400 border-4 border-black rounded-xl flex items-center justify-center hover:translate-y-1 transition-all active:scale-95 cursor-pointer">
-                     <Send size={20} strokeWidth={4} />
+                  <input type="email" placeholder="ARCHITECT@NETWORK.CC" className="w-full bg-white/[0.03] border border-white/10 p-5 rounded-2xl text-[11px] font-bold uppercase tracking-widest focus:outline-none focus:border-primary/40 focus:bg-white/[0.05] transition-all shadow-2xl" />
+                  <button className="absolute right-2 top-2 w-12 h-12 bg-primary rounded-xl flex items-center justify-center hover:brightness-110 transition-all active:scale-95 shadow-lg cursor-pointer">
+                     <Send size={18} className="text-white" />
                   </button>
                </div>
             </div>
          </div>
 
          {/* Bottom Bar */}
-         <div className="w-full border-t-8 border-black pt-20 px-10 flex flex-col items-center gap-12 bg-[#FEF08A] mb-[-160px] pb-[160px]">
-            <div className="flex items-center gap-6 text-black/20">
-               <Rocket size={48} strokeWidth={2} />
-               <Compass size={48} strokeWidth={2} />
-               <Layers size={48} strokeWidth={2} />
-               <ShieldCheck size={48} strokeWidth={2} />
+         <div className="w-full border-t border-white/5 pt-12 px-10 flex flex-col items-center gap-10">
+            <div className="flex items-center gap-8 text-white/5">
+               <Rocket size={32} />
+               <Compass size={32} />
+               <Layers size={32} />
+               <ShieldCheck size={32} />
             </div>
-            <div className="flex flex-col md:flex-row gap-12 text-[10px] items-center font-black uppercase tracking-[0.4em] text-black text-center md:text-left leading-relaxed">
-               <span>© 2024 BIOTRA – THE #1 AI-POWERED PLATFORM FOR MODERN CREATORS</span>
-               <div className="flex gap-4 md:gap-8 flex-wrap justify-center">
-                  <Link to="/privacy" className="hover:text-pink-600 transition-colors bg-white px-4 py-2 border-2 border-black rounded-lg shadow-[4px_4px_0_0_rgba(0,0,0,1)]">PRIVACY POLICY</Link>
-                  <Link to="/security" className="hover:text-emerald-600 transition-colors bg-white px-4 py-2 border-2 border-black rounded-lg shadow-[4px_4px_0_0_rgba(0,0,0,1)]">SECURITY HUB</Link>
+            <div className="flex flex-col md:flex-row gap-8 text-[10px] items-center font-black uppercase tracking-[0.4em] text-white/20 text-center md:text-left">
+               <span>© 2026 BIOTRA PROTOCOL — ARCHITECTING SOVEREIGNTY.</span>
+               <div className="flex gap-6">
+                  {["Privacy", "Security", "Terms"].map(v => <span key={v} className="hover:text-white cursor-pointer transition-colors uppercase tracking-[0.3em]">{v}</span>)}
                </div>
             </div>
          </div>

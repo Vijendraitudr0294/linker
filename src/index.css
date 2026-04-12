@@ -14,9 +14,9 @@
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
 
-    /* Brand Green - #2fd6a1 */
-    --primary: 161 66% 51%; 
-    --primary-foreground: 0 0% 0%;
+    /* Brand Purple/Blue - inspired by Biotra.cc */
+    --primary: 252 78% 63%; /* #6C5CE7 */
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222 47% 11.2%;
@@ -24,12 +24,12 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 161 66% 51%;
-    --accent-foreground: 0 0% 0%;
+    --accent: 252 78% 63%;
+    --accent-foreground: 0 0% 100%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 161 66% 51%;
+    --ring: 252 78% 63%;
 
     --radius: 1.5rem;
     
@@ -39,26 +39,46 @@
     /* Vibrant Accents */
     --vibrant-pink: 326 100% 60%;
     --vibrant-yellow: 48 100% 50%;
-    --vibrant-lime: 151 66% 51%;
+    --vibrant-blue: 198 93% 46%; /* #0984E3 */
     --vibrant-cyan: 191 91% 50%;
     
     --surface-glass: rgba(0, 0, 0, 0.02);
-    --surface-border: rgba(0, 0, 0, 0.06);
+    --surface-border: rgba(0, 0, 0, 0.08);
 
     --font-display: 'Plus Jakarta Sans', sans-serif;
     --font-body: 'Plus Jakarta Sans', sans-serif;
     --font-mono: 'Space Mono', monospace;
-
-    /* Bruddle UI Palette */
-    --bruddle-green: #D1FAE5;
-    --bruddle-yellow: #FEF9C3;
-    --bruddle-pink: #FCE7F3;
-    --bruddle-blue: #E0F2FE;
-    --bruddle-gray: #F3F4F6;
-    --bruddle-dark: #111827;
   }
 
-  /* Forster Light Mode as Default Only */
+  .dark {
+    --background: 240 10% 2.3%; /* #060608 */
+    --foreground: 0 0% 98%;
+    
+    --card: 240 10% 3.5%;
+    --card-foreground: 0 0% 98%;
+    
+    --popover: 240 10% 3.5%;
+    --popover-foreground: 0 0% 98%;
+    
+    --primary: 252 71% 63%; /* #6C5CE7 Premium */
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 240 4% 15%;
+    --secondary-foreground: 0 0% 98%;
+    
+    --muted: 240 4% 12%;
+    --muted-foreground: 240 5% 64.9%;
+    
+    --accent: 240 4% 15%;
+    --accent-foreground: 0 0% 98%;
+    
+    --border: 240 4% 15%;
+    --input: 240 4% 15%;
+    --ring: 252 71% 63%;
+    
+    --surface-glass: rgba(255, 255, 255, 0.02);
+    --surface-border: rgba(255, 255, 255, 0.08);
+  }
 }
 
 @layer base {

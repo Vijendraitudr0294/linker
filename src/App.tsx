@@ -41,6 +41,7 @@ import SocialflowPage from "./pages/dashboard/SocialflowPage";
 import QRForgePage from "./pages/dashboard/QRForgePage";
 import FormsPage from "./pages/dashboard/FormsPage";
 import TemplatesPage from "./pages/dashboard/TemplatesPage";
+import AppearancePage from "./pages/dashboard/AppearancePage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import PublicRoute from "./components/auth/PublicRoute";
 import PublicRouteErrorBoundary from "./components/PublicRouteErrorBoundary";
@@ -115,7 +116,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <AppInit>
             <Routes>
               <Route path="/" element={<Index />} />
@@ -137,13 +138,14 @@ const App = () => (
               <Route path="/forms/:slug" element={<PublicFormPage />} />
               <Route path="/p/:username" element={<PublicRouteErrorBoundary><PublicProfile /></PublicRouteErrorBoundary>} />
               <Route path="/p/:username/services" element={<PublicRouteErrorBoundary><PublicServices /></PublicRouteErrorBoundary>} />
+              <Route path="/forms" element={<Navigate to="/dashboard/forms" replace />} />
               <Route path="/dashboard" element={<ProtectedRoute><DashboardRouteErrorBoundary><DashboardLayout /></DashboardRouteErrorBoundary></ProtectedRoute>}>
                 <Route index element={<DashboardOverview />} />
                 <Route path="apps" element={<AppsIntegrationsPage />} />
                 <Route path="links" element={<LinkEditor />} />
                 <Route path="forms" element={<FormsPage />} />
-                <Route path="appearance" element={<Navigate to="/dashboard/links" replace />} />
-                <Route path="templates" element={<Navigate to="/dashboard/links" replace />} />
+                <Route path="appearance" element={<AppearancePage />} />
+                <Route path="templates" element={<TemplatesPage />} />
                 <Route path="analytics" element={<AnalyticsPage />} />
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="messages" element={<MessagesPage />} />

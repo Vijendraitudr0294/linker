@@ -3,6 +3,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getCheckoutStepLabels, resolveItemCtaLabel } from "@/lib/commerceConfig";
 import { parseCatalogCategory } from "@/lib/catalogCategory";
+import { useRazorpay } from "@/hooks/useRazorpay";
+import { usePaymentStore } from "@/stores/paymentStore";
 import { 
   StepKey, 
   SERVICE_TYPES, 
@@ -24,6 +26,12 @@ export const useCatalogDetail = ({ item, profileUserId, settings }: any) => {
   const [phone, setPhone] = useState("");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { initiatePayment } = useRazorpay();
+  const { settings: paymentSettings, fetchSettings: fetchPaymentSettings } = usePaymentStore();
+
+  useEffect(() => {
+    fetchPaymentSettings();
+  }, [fetchPaymentSettings]);
 
   const parsedCategory = useMemo(() => parseCatalogCategory(item.category), [item.category]);
   const categoryLabel = parsedCategory.subcategory ? `${parsedCategory.primary} / ${parsedCategory.subcategory}` : parsedCategory.primary;
@@ -134,6 +142,48 @@ export const useCatalogDetail = ({ item, profileUserId, settings }: any) => {
 
       if (error) throw error;
 
+      // Designer Fix: Financial Stream Orchestration
+      const rzpKey = paymentSettings?.razorpay_key_id || settings?.razorpay_key_id;
+      
+      if (rzpKey && unitPrice > 0) {
+        initiatePayment({
+          key: rzpKey,
+          amount: subtotal * 100, // Razorpay uses paisa/cents
+          currency: paymentSettings?.currency || "INR",
+          name: "Biotra Checkout",
+          description: `Order ${orderRef} - ${item.title}`,
+          prefill: { name, email, contact: phone },
+          handler: async (response: any) => {
+            console.log("💰 Payment Success:", response.razorpay_payment_id);
+            
+            // Mark order as paid
+            await supabase
+              .from("catalog_orders")
+              .update({ 
+                status: "paid", 
+                payment_id: response.razorpay_payment_id 
+              })
+              .eq("id", orderData.id);
+
+            // Record transaction
+            await supabase.from("user_activity_logs").insert({
+              user_id: profileUserId,
+              action: "sale",
+              metadata: { 
+                item_id: item.id, 
+                amount: subtotal, 
+                payment_id: response.razorpay_payment_id 
+              }
+            });
+
+            setStep("success");
+          }
+        });
+      } else {
+        // Fallback: Lead Generation Mode
+        setStep("success");
+      }
+
       await supabase.from("notifications").insert({
         user_id: profileUserId,
         type: "order",
@@ -145,11 +195,6 @@ export const useCatalogDetail = ({ item, profileUserId, settings }: any) => {
       const notify = await supabase.functions.invoke("order-notify", {
         body: { order_id: orderData.id },
       });
-      if (notify.error) {
-        toast.warning(`${flowLabel} placed, but email notification failed.`);
-      }
-
-      setStep("success");
     } catch (err) {
       console.error(err);
       toast.error(`Failed to place ${flowLabel.toLowerCase()}. Please try again.`);

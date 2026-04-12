@@ -1,130 +1,161 @@
-import InfoPageLayout from "@/components/InfoPageLayout";
 import { motion } from "framer-motion";
-import { Sparkles, ShoppingBag, Palette, BarChart3, Zap, Shield, MessageCircle, Image } from "lucide-react";
+import { Sparkles, ShoppingBag, Palette, BarChart3, Zap, MessageCircle, Image, Star } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import BiotraCCNavbar from "@/components/landing/legacy/BiotraCCNavbar";
+import BiotraCCFooter from "@/components/landing/legacy/BiotraCCFooter";
 
-const updates = [
+const FALLBACK_UPDATES = [
   {
     version: "2.4.0",
     date: "Mar 5, 2026",
     icon: Sparkles,
-    title: "AI Chatbot & Quick Replies",
+    color: "bg-[#FBCFE8]",
+    title: "AI CHATBOT & QUICK REPLIES",
     changes: [
-      "Added AI-powered chatbot on landing page with streaming responses",
-      "Quick reply suggestion buttons for common questions",
-      "Improved typing indicator animation",
+      "ADDED AI-POWERED CHATBOT ON LANDING PAGE WITH STREAMING RESPONSES",
+      "QUICK REPLY SUGGESTION BUTTONS FOR COMMON QUESTIONS",
+      "IMPROVED TYPING INDICATOR ANIMATION",
     ],
   },
   {
     version: "2.3.0",
     date: "Mar 1, 2026",
     icon: Palette,
-    title: "Glassmorphism Redesign",
+    color: "bg-[#FDE047]",
+    title: "NEON BRUTALISM REDESIGN",
     changes: [
-      "Complete landing page redesign with glass effects and glow animations",
-      "Scroll-based reveal animations for all sections",
-      "Parallax background orbs with depth effect",
-      "Infinite marquee for category pills",
-      "Floating rounded navbar on scroll",
-      "Section dots navigator and scroll-to-top button",
+      "COMPLETE PLATFORM REDESIGN WITH BRUTALIST EFFECTS AND THICK BORDERS",
+      "PHYSICAL HOVER ANIMATIONS FOR ALL INTERACTIVE ELEMENTS",
+      "HIGH-CONTRAST NEON COLOR PALETTE",
     ],
   },
   {
     version: "2.2.0",
     date: "Feb 20, 2026",
     icon: ShoppingBag,
-    title: "Catalog & Inventory",
+    color: "bg-[#22C55E]",
+    title: "CATALOG & INVENTORY",
     changes: [
-      "Product variant support (size, color, etc.)",
-      "Automatic inventory tracking with stock decrement",
-      "Low-stock email alerts at threshold of 5 items",
-      "Bulk order management in dashboard",
+      "PRODUCT VARIANT SUPPORT (SIZE, COLOR, ETC.)",
+      "AUTOMATIC INVENTORY TRACKING WITH STOCK DECREMENT",
+      "LOW-STOCK EMAIL ALERTS AT THRESHOLD OF 5 ITEMS",
     ],
   },
   {
     version: "2.1.0",
     date: "Feb 10, 2026",
     icon: BarChart3,
-    title: "Advanced Analytics",
+    color: "bg-[#CCFBF1]",
+    title: "ADVANCED ANALYTICS",
     changes: [
-      "Real-time analytics charts with Recharts",
-      "Date range filtering for all analytics",
-      "Catalog item view and click tracking",
-      "Referrer and country tracking for profile views",
+      "REAL-TIME ANALYTICS CHARTS WITH RECHARTS",
+      "DATE RANGE FILTERING FOR ALL ANALYTICS",
+      "CATALOG ITEM VIEW AND CLICK TRACKING",
     ],
   },
   {
     version: "2.0.0",
     date: "Jan 28, 2026",
     icon: Image,
-    title: "AI Background Generator",
+    color: "bg-[#E9D5FF]",
+    title: "THEME ENGINE",
     changes: [
-      "Generate custom backgrounds with AI prompts",
-      "8 animated gradient theme presets",
-      "15 photo-based theme presets with high-quality images",
-      "Background overlay opacity controls",
+      "GENERATE CUSTOM BACKGROUNDS OR USE FALLBACK PRESETS",
+      "ANIMATED GRADIENT PRESETS AND SOLID COLORS",
+      "HIGH-FIDELITY BORDER AND SHAPE CONTROLS FOR USER PROFILES",
     ],
-  },
-  {
-    version: "1.5.0",
-    date: "Jan 15, 2026",
-    icon: MessageCircle,
-    title: "Contact Forms & Notifications",
-    changes: [
-      "Built-in contact form on public profiles",
-      "Email notifications via Resend for orders, messages, and low stock",
-      "Dashboard inbox for managing messages",
-    ],
-  },
-  {
-    version: "1.0.0",
-    date: "Jan 1, 2026",
-    icon: Zap,
-    title: "Initial Launch",
-    changes: [
-      "Link-in-bio page builder with 60+ themes",
-      "User authentication and profile management",
-      "Social media links with icon support",
-      "Admin dashboard with user management",
-      "Mobile-responsive design",
-    ],
-  },
+  }
 ];
 
-const Changelog = () => (
-  <InfoPageLayout title="Changelog" subtitle="What's new in BIOTRA — every update, every feature.">
-    <div className="not-prose space-y-8">
-      {updates.map((update, i) => (
-        <motion.div
-          key={update.version}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.06 }}
-          className="relative pl-8 border-l-2 border-border/30"
-        >
-          {/* Timeline dot */}
-          <div className="absolute -left-[13px] top-0 w-6 h-6 rounded-full bg-primary/15 flex items-center justify-center border-2 border-background">
-            <update.icon className="w-3 h-3 text-primary" />
-          </div>
+const Changelog = () => {
+  const [updates, setUpdates] = useState(FALLBACK_UPDATES);
 
-          <div className="glass rounded-2xl p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">v{update.version}</span>
-              <span className="text-xs text-muted-foreground">{update.date}</span>
-            </div>
-            <h3 className="font-heading font-bold text-foreground text-lg mb-3">{update.title}</h3>
-            <ul className="space-y-1.5">
-              {update.changes.map((change) => (
-                <li key={change} className="flex items-start gap-2 text-sm text-muted-foreground">
-                  <span className="text-primary mt-1">•</span>
-                  {change}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </motion.div>
-      ))}
-    </div>
-  </InfoPageLayout>
-);
+  useEffect(() => {
+    const fetchChangelog = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("changelog_entries")
+          .select("*")
+          .eq("published", true)
+          .order("release_date", { ascending: false });
+          
+        if (error) throw error;
+        if (data && data.length > 0) {
+          const formatted = data.map(entry => ({
+            version: entry.version || "1.0.0",
+            date: new Date(entry.release_date).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }),
+            icon: Star, // Fallback icon
+            color: entry.color_code || "bg-[#FBCFE8]",
+            title: entry.title,
+            changes: Array.isArray(entry.changes) ? entry.changes : []
+          }));
+          setUpdates(formatted);
+        }
+      } catch (e) {
+        console.log("No changelog table found, using fallbacks");
+      }
+    };
+    fetchChangelog();
+  }, []);
+
+  return (
+  <div className="min-h-screen bg-[#F3F4F6] font-sans selection:bg-[#22C55E] selection:text-black">
+    <BiotraCCNavbar />
+
+    <main className="pt-36 pb-24 px-6 box-border">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-20">
+          <span className="inline-block px-4 py-2 bg-[#22C55E] border-4 border-black rounded-full text-[10px] font-black uppercase tracking-widest shadow-[4px_4px_0_0_rgba(0,0,0,1)] mb-6">
+            PLATFORM UPDATES
+          </span>
+          <h1 className="text-[72px] md:text-[120px] font-black tracking-tighter text-black uppercase leading-[0.85]">
+            CHANGELOG.
+          </h1>
+        </div>
+
+        <div className="space-y-12 relative before:absolute before:inset-0 before:ml-10 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-2 before:bg-black before:rounded-full">
+          {updates.map((update, i) => (
+            <motion.div
+              key={update.version}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ delay: i * 0.1 }}
+              className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active"
+            >
+              {/* Icon Marker */}
+              <div className={`flex items-center justify-center w-20 h-20 rounded-full border-8 border-black ${update.color} shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-[8px_8px_0_0_rgba(0,0,0,1)] z-10 mx-auto absolute left-0 md:left-1/2 -ml-10 md:ml-0 group-hover:scale-110 transition-transform`}>
+                <update.icon className="w-8 h-8 text-black" />
+              </div>
+
+              {/* Card */}
+              <div className="w-[calc(100%-6rem)] md:w-[calc(50%-4rem)] p-8 rounded-[32px] border-8 border-black bg-white shadow-[12px_12px_0_0_rgba(0,0,0,1)] group-hover:-translate-y-2 group-hover:shadow-[16px_16px_0_0_rgba(0,0,0,1)] transition-all ml-auto md:ml-0">
+                 <div className="flex flex-wrap gap-3 mb-6 items-center">
+                    <span className="px-4 py-1 border-4 border-black rounded-xl text-xs font-black uppercase tracking-widest bg-black text-white">
+                      v{update.version}
+                    </span>
+                    <span className="text-[10px] font-black text-black/40 uppercase tracking-[0.2em]">{update.date}</span>
+                 </div>
+                 <h3 className="text-2xl font-black uppercase tracking-tight text-black mb-6">{update.title}</h3>
+                 <ul className="space-y-3">
+                    {update.changes.map((change, idx) => (
+                      <li key={idx} className="flex gap-4 items-start">
+                         <span className="w-2 h-2 rounded-full bg-[#22C55E] mt-2 shrink-0 border border-black" />
+                         <span className="text-xs font-bold text-black/60 uppercase tracking-widest leading-relaxed">{change}</span>
+                      </li>
+                    ))}
+                 </ul>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </main>
+
+    <BiotraCCFooter />
+  </div>
+  );
+};
 
 export default Changelog;

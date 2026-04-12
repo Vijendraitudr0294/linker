@@ -1,34 +1,101 @@
-import { LandingNav } from "@/components/landing/LandingNav";
-import { LandingFooter } from "@/components/landing/LandingFooter";
+import { Link } from "react-router-dom";
+import BiotraCCNavbar from "@/components/landing/legacy/BiotraCCNavbar";
+import BiotraCCFooter from "@/components/landing/legacy/BiotraCCFooter";
+
+const sections = [
+  {
+    title: "MAIN PAGES",
+    color: "bg-[#22C55E]",
+    links: [
+      { label: "HOME", path: "/" },
+      { label: "PRICING", path: "/#pricing" },
+      { label: "BLOG", path: "/blog" },
+      { label: "CONTACT", path: "/contact" },
+      { label: "FAQ", path: "/#faq" },
+    ],
+  },
+  {
+    title: "PLATFORM",
+    color: "bg-[#FDE047]",
+    links: [
+      { label: "CREATOR STUDIO", path: "/dashboard" },
+      { label: "LINK EDITOR", path: "/dashboard/links" },
+      { label: "SHOP / CATALOG", path: "/dashboard/catalog" },
+      { label: "QR FORGE", path: "/dashboard/qrforge" },
+      { label: "ANALYTICS", path: "/dashboard/analytics" },
+      { label: "FORMS", path: "/dashboard/forms" },
+    ],
+  },
+  {
+    title: "LEGAL & TRUST",
+    color: "bg-[#FBCFE8]",
+    links: [
+      { label: "PRIVACY POLICY", path: "/privacy" },
+      { label: "TERMS OF SERVICE", path: "/terms" },
+      { label: "SECURITY", path: "/security" },
+      { label: "COOKIES", path: "/cookies" },
+    ],
+  },
+  {
+    title: "RESOURCES",
+    color: "bg-[#CCFBF1]",
+    links: [
+      { label: "HELP CENTER", path: "/help" },
+      { label: "API DOCS", path: "/api-docs" },
+      { label: "STATUS PAGE", path: "/status" },
+      { label: "CHANGELOG", path: "/changelog" },
+    ],
+  },
+];
 
 export default function SitemapPage() {
-    const sections = [
-        { title: "Core Substrate", links: ["/home", "/studio", "/forge", "/solutions"] },
-        { title: "Network & Directory", links: ["/marketplace", "/pricing", "/features"] },
-        { title: "Dashboard Modules", links: ["/dashboard", "/dashboard/links", "/dashboard/qrforge", "/dashboard/socialflow"] },
-        { title: "Knowledge & Trust", links: ["/faq", "/privacy", "/security", "/help", "/api-docs"] },
-    ];
+  return (
+    <div className="min-h-screen bg-[#F3F4F6] font-sans selection:bg-[#22C55E] selection:text-black">
+      <BiotraCCNavbar />
 
-    return (
-        <div className="bg-white min-h-screen text-black selection:bg-black selection:text-white font-sans">
-            <LandingNav />
-            <main className="pt-40 pb-40 px-10 max-w-[1400px] mx-auto min-h-[80vh]">
-                <div className="inline-block px-4 py-2 bg-yellow-400 text-black font-black text-[10px] uppercase tracking-widest mb-8 border-2 border-black rounded-lg shadow-[4px_4px_0_0_rgba(0,0,0,1)]">INDEX_MAP</div>
-                <h1 className="text-[60px] md:text-[100px] font-[1000] tracking-tighter uppercase leading-[0.85] mb-20">SITEMAP</h1>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
-                    {sections.map((section, idx) => (
-                        <div key={idx} className="bg-white border-8 border-black p-10 rounded-[32px] shadow-[16px_16px_0_0_rgba(0,0,0,1)] hover:-translate-y-2 hover:shadow-[24px_24px_0_0_rgba(0,0,0,1)] transition-all">
-                            <h2 className="text-2xl font-black uppercase tracking-widest mb-8">{section.title}</h2>
-                            <div className="flex flex-col gap-4">
-                                {section.links.map((link) => (
-                                    <a key={link} href={link} className="text-lg font-bold hover:text-emerald-500 hover:translate-x-2 transition-all block border-b-2 border-black/10 pb-2">{link}</a>
-                                ))}
-                            </div>
-                        </div>
-                    ))}
+      <main className="pt-36 pb-24 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-16">
+            <span className="inline-block px-4 py-2 bg-[#FDE047] border-4 border-black rounded-full text-[10px] font-black uppercase tracking-widest shadow-[4px_4px_0_0_rgba(0,0,0,1)] mb-6">
+              INDEX MAP
+            </span>
+            <h1 className="text-[72px] md:text-[120px] font-black tracking-tighter text-black uppercase leading-[0.85]">
+              SITEMAP.
+            </h1>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {sections.map((section) => (
+              <div
+                key={section.title}
+                className={`${section.color} border-8 border-black rounded-[40px] p-10 shadow-[12px_12px_0_0_rgba(0,0,0,1)] hover:-translate-y-1 hover:shadow-[16px_16px_0_0_rgba(0,0,0,1)] transition-all`}
+              >
+                <h2 className="text-xl font-black uppercase tracking-[0.3em] text-black mb-8 border-b-4 border-black pb-4">
+                  {section.title}
+                </h2>
+                <div className="space-y-3">
+                  {section.links.map((link) => (
+                    <Link
+                      key={link.label}
+                      to={link.path}
+                      className="flex items-center justify-between group py-2 border-b-2 border-black/10 hover:border-black transition-all"
+                    >
+                      <span className="text-sm font-black uppercase tracking-widest text-black group-hover:translate-x-2 transition-transform">
+                        {link.label}
+                      </span>
+                      <span className="text-[10px] font-black text-black/30 group-hover:text-black transition-colors uppercase">
+                        {link.path}
+                      </span>
+                    </Link>
+                  ))}
                 </div>
-            </main>
-            <LandingFooter />
+              </div>
+            ))}
+          </div>
         </div>
-    );
+      </main>
+
+      <BiotraCCFooter />
+    </div>
+  );
 }

@@ -5,7 +5,7 @@ import fallbackData from '../../../data_dump.json';
 
 // Initialize LocalStorage with data_dump if empty
 function initializeDB() {
-  const CURRENT_DB_VERSION = 'v1.0.3'; // Forced increment for JSON structure fix
+  const CURRENT_DB_VERSION = 'v1.0.4'; // Forced increment for Blog & FAQ seeding
   const isSetup = localStorage.getItem('local_db_loaded');
   const storedVersion = localStorage.getItem('local_db_version');
 

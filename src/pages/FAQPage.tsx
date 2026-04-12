@@ -1,39 +1,59 @@
-import { LandingNav } from "@/components/landing/LandingNav";
-import { LandingFooter } from "@/components/landing/LandingFooter";
-import { useState } from "react";
-import { ChevronDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import BiotraCCNavbar from "@/components/landing/legacy/BiotraCCNavbar";
+import BiotraCCFooter from "@/components/landing/legacy/BiotraCCFooter";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
-export default function FAQPage() {
-    const [open, setOpen] = useState<number | null>(0);
-    const faqs = [
-        { q: "WHAT DOES OWNING MY PAGE MEAN?", a: "IT MEANS YOU OWN YOUR ENTIRE ONLINE PRESENCE. NO ONE CAN TAKE YOUR LINKS, FANS, OR MONEY FROM YOU. YOU ARE IN TOTAL CONTROL, WITHOUT PAYING ANY FEES." },
-        { q: "HOW DO THE 0% FEES WORK?", a: "WE TAKE ZERO MONEY FROM YOUR SALES. UNLIKE OTHER SITES THAT TAKE 15% OF WHAT YOU MAKE, WE TAKE NOTHING. YOU KEEP 100% OF YOUR PROFIT." },
-        { q: "CAN I MAKE IT LOOK PROFESSIONAL?", a: "YES. IT IS VERY EASY TO CUSTOMIZE. NO CODING NEEDED. JUST CLICK TO CHANGE COLORS, BORDERS, AND FONTS TO MATCH YOUR STYLE." },
-        { q: "HOW DOES AI HELP ME?", a: "OUR SYSTEM HELPS SMART AI TOOLS LIKE CHATGPT FIND YOUR PAGE EASILY. THIS MEANS MORE PEOPLE WILL FIND YOU AND YOUR WORK ON THE INTERNET." }
-    ];
+const faqs = [
+  { q: "IS BIOTRA REALLY FREE?", a: "YES. THE FREE PLAN IS PERMANENTLY FREE WITH NO CREDIT CARD REQUIRED. ALL CORE FEATURES ARE AVAILABLE WITHOUT PAYING A SINGLE DOLLAR." },
+  { q: "IS THIS REALLY FREE?", a: "YES. YOU CAN BUILD YOUR PROFILE AND USE OUR TOOLS WITHOUT ANY MONTHLY SUBSCRIPTIONS OR HIDDEN UPCHARGES." },
+  { q: "CAN I USE MY OWN DOMAIN?", a: "YES — ON THE STAGE PLAN. CONNECT ANY CUSTOM DOMAIN TO YOUR BIOTRA PROFILE FOR FULL WHITE-LABEL BRANDING." },
+  { q: "WHAT HAPPENS IF I CANCEL?", a: "YOUR DATA STAYS INTACT. IF YOU DOWNGRADE FROM STAGE TO FREE, PREMIUM FEATURES DEACTIVATE BUT YOUR CONTENT REMAINS SAFE AND ACCESSIBLE." },
+  { q: "HOW DOES AI OPTIMIZATION WORK?", a: "BIOTRA PROFILES ARE STRUCTURED TO BE READABLE BY AI AGENTS AND LARGE LANGUAGE MODELS, INCREASING YOUR ORGANIC REACH BEYOND TRADITIONAL SEARCH ENGINES." },
+  { q: "IS MY DATA PRIVATE?", a: "ABSOLUTELY. WE DO NOT SELL OR SHARE YOUR PERSONAL DATA. WE COLLECT ONLY WHAT IS NECESSARY TO OPERATE THE PLATFORM. READ OUR FULL PRIVACY POLICY FOR DETAILS." },
+];
 
-    return (
-        <div className="bg-white min-h-screen text-black selection:bg-black selection:text-white font-sans">
-            <LandingNav />
-            <main className="pt-40 pb-40 px-10 max-w-[1400px] mx-auto min-h-[80vh]">
-                <div className="inline-block px-4 py-2 bg-pink-300 text-black font-black text-[10px] uppercase tracking-widest mb-8 border-2 border-black rounded-lg shadow-[4px_4px_0_0_rgba(0,0,0,1)]">QUESTIONS</div>
-                <h1 className="text-[60px] md:text-[100px] font-[1000] tracking-tighter uppercase leading-[0.85] mb-20">ANSWERS<br />HERE.</h1>
-                <div className="flex flex-col gap-6 max-w-4xl">
-                    {faqs.map((faq, i) => (
-                        <div key={i} className="bg-white border-4 border-black rounded-2xl overflow-hidden shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
-                            <button onClick={() => setOpen(open === i ? null : i)} className="w-full text-left px-8 py-6 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span className="text-xl md:text-2xl font-black uppercase">{faq.q}</span>
-                                <ChevronDown className={cn("w-8 h-8 transition-transform duration-300", open === i && "rotate-180")} />
-                            </button>
-                            <div className={cn("overflow-hidden transition-all duration-300 px-8 text-lg font-medium text-black/70 bg-gray-50", open === i ? "max-h-[500px] py-6 border-t-4 border-black" : "max-h-0 py-0")}>
-                                {faq.a}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </main>
-            <LandingFooter />
+const FAQPage = () => {
+  return (
+    <div className="min-h-screen bg-[#F3F4F6] font-sans selection:bg-[#22C55E] selection:text-black">
+      <BiotraCCNavbar />
+
+      <main className="pt-36 pb-24 px-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-16 space-y-4">
+            <span className="inline-block px-4 py-2 bg-[#CCFBF1] border-4 border-black rounded-full text-[10px] font-black uppercase tracking-widest shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+              QUESTIONS & ANSWERS
+            </span>
+            <h1 className="text-[72px] md:text-[120px] font-black tracking-tighter text-black uppercase leading-[0.85]">
+              FAQ.
+            </h1>
+          </div>
+
+          <Accordion type="single" collapsible className="space-y-4">
+            {faqs.map((faq, i) => (
+              <AccordionItem
+                key={i}
+                value={`item-${i}`}
+                className="border-4 border-black rounded-3xl px-8 py-2 bg-white shadow-[6px_6px_0_0_rgba(0,0,0,1)] data-[state=open]:shadow-none data-[state=open]:translate-x-1 data-[state=open]:translate-y-1 transition-all"
+              >
+                <AccordionTrigger className="hover:no-underline py-6">
+                  <span className="text-base font-black uppercase tracking-tight text-left">{faq.q}</span>
+                </AccordionTrigger>
+                <AccordionContent className="pb-6">
+                  <p className="font-bold text-black/50 uppercase tracking-widest leading-relaxed text-sm">{faq.a}</p>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
-    );
-}
+      </main>
+
+      <BiotraCCFooter />
+    </div>
+  );
+};
+
+export default FAQPage;

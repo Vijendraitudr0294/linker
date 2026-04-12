@@ -35,6 +35,7 @@ import { useEffect, useMemo, useState } from "react";
 import { linkSchema, normalizeUrl } from "@/lib/validation";
 import ShareProfile from "@/components/dashboard/ShareProfile";
 import ProfilePreview from "@/components/dashboard/ProfilePreview";
+import { useCatalogItems } from "@/hooks/useCatalogApi";
 import { useAuthStore } from "@/stores/authStore";
 import { useAppearanceStore } from "@/stores/appearanceStore";
 import { usePlatformStore } from "@/stores/platformStore";
@@ -95,6 +96,7 @@ const getSuggestedLinkTitle = (platform: SocialPlatform) => {
 const LinkEditor = () => {
   const user = useAuthStore((s) => s.user);
   const { data: links = [], isLoading: loading } = useLinks(user?.user_id);
+  const { data: catalogItems = [] } = useCatalogItems(user?.user_id);
   const { addLink, updateLink, deleteLink, toggleLink, reorderLinks } = useLinkMutations(user?.user_id);
   const { settings } = useAppearanceStore();
   const platformSettings = usePlatformStore((s) => s.settings);
@@ -113,8 +115,40 @@ const LinkEditor = () => {
   const [newPlatform, setNewPlatform] = useState<SocialPlatform>("website");
   const [newLayout, setNewLayout] = useState<string>("default");
   const [saving, setSaving] = useState(false);
+  const [viewMode, setViewMode] = useState<"list" | "card">("list");
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // Thumbnail detector for card view
+  const getThumbnail = (url: string, platform: string) => {
+    const p = platform.split('|')[0];
+    
+    if (p === 'youtube') {
+      const match = url.match(/(?:v=|vi\/|youtu\.be\/|embed\/)([^?&"'>]+)/);
+      if (match) return `https://img.youtube.com/vi/${match[1]}/mqdefault.jpg`;
+    }
+    
+    if (p === 'spotify') {
+      // Spotify doesn't have a simple public thumbnail URL by ID alone without API
+      // But we can try to use a placeholder or some known pattern if available
+      return "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&h=400&fit=crop";
+    }
+
+    if (p === 'instagram') {
+      return "https://images.unsplash.com/photo-1611262588024-d12430b98920?w=400&h=400&fit=crop";
+    }
+
+    if (p === 'apple-music') {
+       return "https://images.unsplash.com/photo-1543674892-7d64d45df18b?w=400&h=400&fit=crop";
+    }
+
+    if (p === 'tiktok') {
+      return "https://images.unsplash.com/photo-1596720426673-e47ec429252c?w=400&h=400&fit=crop";
+    }
+
+    // Default based on platform or generic
+    return `https://images.unsplash.com/photo-1614850523296-d8c1af93d400?w=400&h=400&fit=crop&q=80`;
+  };
 
   const moveLink = (index: number, direction: 'up' | 'down') => {
     const newLinks = [...links];
@@ -421,6 +455,7 @@ const LinkEditor = () => {
       settings={settings}
       user={user}
       links={links.filter(l => l.enabled).map(l => ({ id: l.id, title: l.title, platform: l.platform || 'website', url: l.url }))}
+      catalogItems={catalogItems.filter(i => i.enabled)}
       compact
     />
   );
@@ -462,6 +497,8 @@ const LinkEditor = () => {
           {/* Link Filters */}
           {links.length > 0 && (
             <LinksToolbar
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
               linksCount={links.length}
               visibleCount={visibleLinks.length}
               filteredCount={filteredLinks.length}
@@ -593,167 +630,225 @@ const LinkEditor = () => {
           {isFilteredView && (
             <p className="text-xs text-muted-foreground px-1">Reordering is disabled while filters are active. Clear filters to reorder your full list.</p>
           )}
-          <div className="space-y-4">
+          <div className={cn(
+            viewMode === "card" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"
+          )}>
             {visibleLinks.map(({ link, index }, renderIndex) => (
               <motion.div
                 key={link.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: renderIndex * 0.035 }}
               >
-                <Card className={cn(
-                  "bruddle-card p-5 flex items-center gap-5 hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:-translate-y-1 transition-all duration-300 relative group overflow-hidden",
-                  !link.enabled && "opacity-60 grayscale-[0.5]"
-                )}>
-                  
-                  {/* Reorder Controls */}
-                  <div className="flex flex-col gap-1 shrink-0 z-10 scale-90">
-                    <Button 
-                      size="icon" variant="ghost" className="h-6 w-6 rounded-lg hover:bg-primary/10 hover:text-primary transition-all active:scale-90"
-                      onClick={() => moveLink(index, 'up')}
-                      disabled={isFilteredView || index === 0}
-                    >
-                      <ChevronUp className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button 
-                      size="icon" variant="ghost" className="h-6 w-6 rounded-lg hover:bg-primary/10 hover:text-primary transition-all active:scale-90"
-                      onClick={() => moveLink(index, 'down')}
-                      disabled={isFilteredView || index === links.length - 1}
-                    >
-                      <ChevronDown className="w-3.5 h-3.5" />
-                    </Button>
-                  </div>
-
-                  {/* Icon Area */}
-                  <div className="relative shrink-0 z-10">
-                    <div className="w-12 h-12 rounded-xl bg-[#1d1d1f] border border-white/10 flex items-center justify-center shadow-lg group-hover:scale-105 group-hover:rotate-3 transition-all duration-500">
-                      <SocialIcon 
-                        platform={(link.platform || "").split("|")[0] as SocialPlatform} 
-                        className={cn("w-6 h-6", link.enabled ? "text-primary" : "text-muted-foreground/40")} 
+                {viewMode === "card" && editingId !== link.id ? (
+                  // CARD VIEW
+                  <Card className={cn(
+                    "bruddle-card overflow-hidden group hover:shadow-[10px_10px_0_0_rgba(0,0,0,1)] hover:-translate-y-1 transition-all duration-300 border-4 border-black",
+                    !link.enabled && "opacity-60 grayscale"
+                  )}>
+                    <div className="relative aspect-video overflow-hidden border-b-4 border-black">
+                      <img 
+                        src={getThumbnail(link.url, link.platform || "")} 
+                        alt={link.title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
-                    </div>
-                  </div>
-                  {editingId === link.id ? (
-                    <div className="flex-1 space-y-2">
-                      <div className="grid grid-cols-2 gap-2">
-                        <Select value={editPlatform} onValueChange={(v) => setEditPlatform(v as SocialPlatform)}>
-                        <SelectTrigger className="h-9 rounded-xl border-border/50">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {platformOptions.map((p) => (
-                            <SelectItem key={p.value} value={p.value} className="rounded-lg">
-                              <div className="flex items-center gap-2">
-                                <SocialIcon platform={p.value} className="w-4 h-4" />
-                                {p.label}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                        </Select>
-                        <Select value={editLayout} onValueChange={(v) => setEditLayout(v)}>
-                          <SelectTrigger className="h-9 rounded-xl border-border/50">
-                            <SelectValue placeholder="Display Style" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="default" className="rounded-lg">Default Button</SelectItem>
-                            <SelectItem value="video" className="rounded-lg">Video Card</SelectItem>
-                            <SelectItem value="article" className="rounded-lg">Article Card</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      <div className="absolute inset-0 bg-black/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm">
+                         <Button 
+                           onClick={() => startEdit(link)}
+                           className="bg-white border-2 border-black rounded-xl font-black text-[10px] uppercase text-black hover:bg-black hover:text-white shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:shadow-none translate-y-2 group-hover:translate-y-0 transition-all"
+                         >
+                            Edit Node
+                         </Button>
                       </div>
-                      <div className="space-y-1">
-                        <Label className="text-[10px] uppercase font-semibold opacity-40">Block Title</Label>
-                        <Input
-                          value={editTitle}
-                          disabled={saving}
-                          onChange={(e) => {
-                            setEditTitle(e.target.value);
-                            setEditErrors((prev) => ({ ...prev, title: undefined }));
-                          }}
-                          className={`h-9 text-sm rounded-xl border-border/50 ${editErrors.title ? "border-destructive/50 bg-destructive/5" : ""}`}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[10px] uppercase font-semibold opacity-40">Destination URL or Embed Code</Label>
-                        <textarea
-                          value={editUrl}
-                          disabled={saving}
-                          onChange={(e) => {
-                            setEditUrl(e.target.value);
-                            setEditErrors((prev) => ({ ...prev, url: undefined }));
-                          }}
-                          placeholder={getUrlPlaceholder(editPlatform)}
-                          className="flex min-h-[60px] w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 border-border/50"
-                        />
-                      </div>
-                      {editErrors.url && (
-                        <p className="text-xs text-destructive flex items-center gap-1 font-medium">
-                          <AlertCircle className="w-3 h-3" /> {editErrors.url}
-                        </p>
-                      )}
-                      <div className="flex gap-2">
-                        <Button size="sm" onClick={saveEdit} disabled={saving} className="rounded-lg h-9 flex-1 font-bold">
-                          {saving ? <Loader2 className="w-3 h-3 animate-spin mr-1.5" /> : <Check className="w-3 h-3 mr-1.5" />} 
-                          {saving ? "Saving" : "Save"}
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => setEditingId(null)} disabled={saving} className="rounded-lg h-9 font-bold">
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex-1 min-w-0 z-10 space-y-1">
-                      <h3 className="text-[17px] font-black tracking-tight text-foreground truncate group-hover:text-primary transition-colors">{link.title}</h3>
-                      <p className="text-[12px] font-medium text-muted-foreground/50 truncate max-w-[300px]">{link.url}</p>
-                      {link.layout && link.layout !== 'default' && (
-                        <Badge variant="outline" className="mt-1.5 text-[9px] font-black uppercase tracking-widest bg-white/5 border-white/10 text-muted-foreground/40 px-2 py-0">
-                          {link.layout} BLOCK
-                        </Badge>
-                      )}
-                    </div>
-                  )}
-
-                  {editingId !== link.id && (
-                    <div className="flex items-center gap-3 shrink-0 z-10">
-                      <div className="hidden md:flex flex-col items-end gap-1.5 mr-2">
-                         <span className="text-[10px] font-black tracking-tighter text-muted-foreground/30 uppercase leading-none">Visibility</span>
-                         <Switch 
+                      <div className="absolute top-4 right-4">
+                        <Switch 
                            checked={link.enabled} 
                            onCheckedChange={() => toggleLink.mutate({ id: link.id, enabled: !link.enabled })}
-                           className="data-[state=checked]:bg-primary shadow-lg shadow-primary/10 h-5 w-9 scale-90 origin-right"
+                           className="data-[state=checked]:bg-emerald-400 border-2 border-black shadow-[3px_3px_0_0_rgba(0,0,0,1)]"
                          />
                       </div>
+                    </div>
+                    <div className="p-5 flex items-start justify-between gap-4">
+                       <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                             <SocialIcon platform={(link.platform || "").split('|')[0] as SocialPlatform} className="w-4 h-4" />
+                             <span className="text-[10px] font-black uppercase text-black/40 tracking-widest">{(link.platform || "").split('|')[0]}</span>
+                          </div>
+                          <h3 className="text-lg font-black text-black truncate">{link.title}</h3>
+                          <p className="text-[11px] font-bold text-black/30 truncate mt-1">{link.url}</p>
+                       </div>
+                       <div className="flex flex-col gap-2">
+                          <Button 
+                            variant="ghost" size="icon" className="w-9 h-9 border-2 border-black rounded-xl hover:bg-emerald-100"
+                            onClick={() => copyLinkUrl(link.url)}
+                          >
+                             <Copy className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" size="icon" className="w-9 h-9 border-2 border-black rounded-xl hover:bg-red-100"
+                            onClick={() => handleDelete(link.id)}
+                          >
+                             <Trash2 className="w-4 h-4" />
+                          </Button>
+                       </div>
+                    </div>
+                  </Card>
+                ) : (
+                  // LIST VIEW (The default logic)
+                  <Card className={cn(
+                    "bruddle-card p-5 flex items-center gap-5 hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:-translate-y-1 transition-all duration-300 relative group overflow-hidden",
+                    !link.enabled && "opacity-60 grayscale-[0.5]"
+                  )}>
+                    
+                    {/* Reorder Controls */}
+                    <div className="flex flex-col gap-1 shrink-0 z-10 scale-90">
+                      <Button 
+                        size="icon" variant="ghost" className="h-6 w-6 rounded-lg hover:bg-primary/10 hover:text-primary transition-all active:scale-90"
+                        onClick={() => moveLink(index, 'up')}
+                        disabled={isFilteredView || index === 0}
+                      >
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button 
+                        size="icon" variant="ghost" className="h-6 w-6 rounded-lg hover:bg-primary/10 hover:text-primary transition-all active:scale-90"
+                        onClick={() => moveLink(index, 'down')}
+                        disabled={isFilteredView || index === links.length - 1}
+                      >
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
 
-                      <div className="flex items-center gap-1.5">
-                        <Button 
-                          size="icon" variant="ghost" 
-                          className="h-10 w-10 rounded-xl hover:bg-white/5 hover:text-foreground transition-all active:scale-90" 
-                          onClick={() => startEdit(link)} 
-                          title="Edit Block"
-                        >
-                          <Pencil className="w-4.5 h-4.5 opacity-60 group-hover:opacity-100" />
-                        </Button>
-                        <Button 
-                          size="icon" variant="ghost" 
-                          className="h-10 w-10 rounded-xl hover:bg-white/5 hover:text-foreground transition-all active:scale-90" 
-                          onClick={() => copyLinkUrl(link.url)} 
-                          title="Copy Link Address"
-                        >
-                          <Copy className="w-4.5 h-4.5 opacity-60 group-hover:opacity-100" />
-                        </Button>
-                        <Button 
-                          size="icon" variant="ghost" 
-                          className="h-10 w-10 rounded-xl hover:bg-red-500/10 hover:text-red-500 transition-all active:scale-90" 
-                          onClick={() => handleDelete(link.id)} 
-                          title="Delete Block"
-                        >
-                          <Trash2 className="w-4.5 h-4.5 opacity-60 group-hover:opacity-100" />
-                        </Button>
+                    {/* Icon Area */}
+                    <div className="relative shrink-0 z-10">
+                      <div className="w-12 h-12 rounded-xl bg-[#1d1d1f] border border-white/10 flex items-center justify-center shadow-lg group-hover:scale-105 group-hover:rotate-3 transition-all duration-500">
+                        <SocialIcon 
+                          platform={(link.platform || "").split("|")[0] as SocialPlatform} 
+                          className={cn("w-6 h-6", link.enabled ? "text-primary" : "text-muted-foreground/40")} 
+                        />
                       </div>
                     </div>
-                  )}
-                </Card>
+                    {editingId === link.id ? (
+                      <div className="flex-1 space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          <Select value={editPlatform} onValueChange={(v) => setEditPlatform(v as SocialPlatform)}>
+                          <SelectTrigger className="h-9 rounded-xl border-border/50">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {platformOptions.map((p) => (
+                              <SelectItem key={p.value} value={p.value} className="rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <SocialIcon platform={p.value} className="w-4 h-4" />
+                                  {p.label}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                          </Select>
+                          <Select value={editLayout} onValueChange={(v) => setEditLayout(v)}>
+                            <SelectTrigger className="h-9 rounded-xl border-border/50">
+                              <SelectValue placeholder="Display Style" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="default" className="rounded-lg">Default Button</SelectItem>
+                              <SelectItem value="video" className="rounded-lg">Video Card</SelectItem>
+                              <SelectItem value="article" className="rounded-lg">Article Card</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[10px] uppercase font-semibold opacity-40">Block Title</Label>
+                          <Input
+                            value={editTitle}
+                            disabled={saving}
+                            onChange={(e) => {
+                              setEditTitle(e.target.value);
+                              setEditErrors((prev) => ({ ...prev, title: undefined }));
+                            }}
+                            className={`h-9 text-sm rounded-xl border-border/50 ${editErrors.title ? "border-destructive/50 bg-destructive/5" : ""}`}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[10px] uppercase font-semibold opacity-40">Destination URL or Embed Code</Label>
+                          <textarea
+                            value={editUrl}
+                            disabled={saving}
+                            onChange={(e) => {
+                              setEditUrl(e.target.value);
+                              setEditErrors((prev) => ({ ...prev, url: undefined }));
+                            }}
+                            placeholder={getUrlPlaceholder(editPlatform)}
+                            className="flex min-h-[60px] w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 border-border/50"
+                          />
+                        </div>
+                        {editErrors.url && (
+                          <p className="text-xs text-destructive flex items-center gap-1 font-medium">
+                            <AlertCircle className="w-3 h-3" /> {editErrors.url}
+                          </p>
+                        )}
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={saveEdit} disabled={saving} className="rounded-lg h-9 flex-1 font-bold">
+                            {saving ? <Loader2 className="w-3 h-3 animate-spin mr-1.5" /> : <Check className="w-4 h-4 mr-1.5" />} 
+                            {saving ? "Saving" : "Save"}
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => setEditingId(null)} disabled={saving} className="rounded-lg h-9 font-bold">
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex-1 min-w-0 z-10 space-y-1">
+                        <h3 className="text-[17px] font-black tracking-tight text-foreground truncate group-hover:text-primary transition-colors">{link.title}</h3>
+                        <p className="text-[12px] font-medium text-muted-foreground/50 truncate max-w-[300px]">{link.url}</p>
+                        {link.layout && link.layout !== 'default' && (
+                          <Badge variant="outline" className="mt-1.5 text-[9px] font-black uppercase tracking-widest bg-white/5 border-white/10 text-muted-foreground/40 px-2 py-0">
+                            {link.layout} BLOCK
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+
+                    {editingId !== link.id && (
+                      <div className="flex items-center gap-3 shrink-0 z-10">
+                        <div className="hidden md:flex flex-col items-end gap-1.5 mr-2">
+                           <span className="text-[10px] font-black tracking-tighter text-muted-foreground/30 uppercase leading-none">Visibility</span>
+                           <Switch 
+                             checked={link.enabled} 
+                             onCheckedChange={() => toggleLink.mutate({ id: link.id, enabled: !link.enabled })}
+                             className="data-[state=checked]:bg-primary shadow-lg shadow-primary/10 h-5 w-9 scale-90 origin-right"
+                           />
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <Button 
+                            size="icon" variant="ghost" 
+                            className="h-10 w-10 rounded-xl hover:bg-white/5 hover:text-foreground transition-all active:scale-90" 
+                            onClick={() => startEdit(link)} 
+                            title="Edit Block"
+                          >
+                            <Pencil className="w-4.5 h-4.5 opacity-60 group-hover:opacity-100" />
+                          </Button>
+                          <Button 
+                            size="icon" variant="ghost" 
+                            className="h-10 w-10 rounded-xl hover:bg-white/5 hover:text-foreground transition-all active:scale-90" 
+                            onClick={() => copyLinkUrl(link.url)} 
+                            title="Copy Link Address"
+                          >
+                            <Copy className="w-4.5 h-4.5 opacity-60 group-hover:opacity-100" />
+                          </Button>
+                          <Button 
+                            size="icon" variant="ghost" 
+                            className="h-10 w-10 rounded-xl hover:bg-red-500/10 hover:text-red-500 transition-all active:scale-90" 
+                            onClick={() => handleDelete(link.id)} 
+                            title="Delete Block"
+                          >
+                            <Trash2 className="w-4.5 h-4.5 opacity-60 group-hover:opacity-100" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </Card>
+                )}
               </motion.div>
             ))}
           </div>

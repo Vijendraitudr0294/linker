@@ -59,7 +59,7 @@ const AppearancePage = () => {
   const platformInitialized = usePlatformStore((s) => s.initialized);
   const fetchPlatformSettings = usePlatformStore((s) => s.fetchSettings);
   const [showMobilePreview, setShowMobilePreview] = useState(false);
-  const [activeTab, setActiveTab] = useState("industry-niche");
+  const [activeTab, setActiveTab] = useState("themes");
   const [lastThemeAppliedAt, setLastThemeAppliedAt] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
 

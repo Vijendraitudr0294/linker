@@ -4,7 +4,19 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Play, Sparkles, Zap, ShieldCheck, Heart } from "lucide-react";
 import heroCreator from "@/assets/landing_page_hero.png";
 
-const RedesignedHero = () => {
+interface RedesignedHeroProps {
+  title?: string;
+  subtitle?: string;
+  ctaLabel?: string;
+  ctaHref?: string;
+}
+
+const RedesignedHero = ({ 
+  title = "Orchestrate your Influence.",
+  subtitle = "The mission-control for elite creators. Unify your digital commerce, content nodes, and audience intelligence into a single, high-fidelity workspace.",
+  ctaLabel = "Secure Alias",
+  ctaHref = "#"
+}: RedesignedHeroProps) => {
   const [username, setUsername] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -74,8 +86,12 @@ const RedesignedHero = () => {
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
               className="text-[52px] md:text-[76px] lg:text-[96px] font-black leading-[0.92] tracking-tighter text-white mb-2"
             >
-              Orchestrate <br className="hidden md:block" />
-              your <span className="bg-gradient-to-r from-primary via-[#FFA15C] to-primary bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient-slow italic">Influence.</span>
+              {(title || "").split('Influence.').map((part, i, arr) => (
+                <span key={i}>
+                  {part}
+                  {i < arr.length - 1 && <span className="bg-gradient-to-r from-primary via-vibrant-blue to-primary bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient-slow italic">Influence.</span>}
+                </span>
+              ))}
             </motion.h1>
 
             <motion.p
@@ -84,7 +100,7 @@ const RedesignedHero = () => {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="text-[17px] md:text-xl text-white/50 font-semibold leading-relaxed max-w-[520px] mx-auto lg:mx-0"
             >
-              The mission-control for elite creators. Unify your digital commerce, content nodes, and audience intelligence into a single, high-fidelity workspace.
+              {subtitle}
             </motion.p>
 
             <motion.div
@@ -104,7 +120,7 @@ const RedesignedHero = () => {
                     className="w-full h-15 pl-32 pr-4 bg-white/[0.04] border border-white/10 rounded-2xl text-[14px] font-bold text-white focus:outline-none focus:border-primary/60 focus:bg-white/[0.06] transition-all placeholder-white/10 shadow-3xl"
                    />
                    <Button type="button" className="absolute right-2 top-2 h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-white font-black text-[11px] uppercase tracking-widest shadow-2xl shadow-primary/30 hidden sm:flex">
-                     Secure Alias
+                     {ctaLabel}
                    </Button>
                 </div>
               </form>

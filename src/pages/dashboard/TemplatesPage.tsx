@@ -281,9 +281,61 @@ const PREBUILT_TEMPLATES: PageTemplate[] = [
       layoutType: "list",
     },
   },
+  {
+    id: "real-estate-elite",
+    name: "Real Estate Elite",
+    description: "Premium property showcase with maps, inquiry forms, and featured listings.",
+    category: "Real Estate",
+    preview: "linear-gradient(135deg, #f3f4f6 0%, #d1d5db 100%)",
+    accent: "#1e3a8a",
+    components: [
+      { id: "h7", type: "header", label: "Agent Profile", enabled: true },
+      { id: "ib7", type: "image-banner", label: "Featured Property", enabled: true },
+      { id: "fp7", type: "featured-product", label: "Hot Listing", enabled: true },
+      { id: "sh7", type: "shop", label: "Property Grid", enabled: true },
+      { id: "loc7", type: "location", label: "Office Map", enabled: true },
+      { id: "c7", type: "contact", label: "Booking Visit", enabled: true },
+    ],
+    themeOverrides: {
+      backgroundColor: "#ffffff",
+      textColor: "#1f2937",
+      buttonBg: "#1e3a8a",
+      buttonText: "#ffffff",
+      buttonStyle: "rounded",
+      cardColor: "#f9fafb",
+      fontFamily: "Poppins",
+      layoutType: "bento",
+    },
+  },
+  {
+    id: "hospitality-pro",
+    name: "Hospitality Pro",
+    description: "Elegant layout for hotels, rentals, and luxury stays.",
+    category: "Hospitality",
+    preview: "linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)",
+    accent: "#92400e",
+    components: [
+      { id: "h8", type: "header", label: "Hotel Profile", enabled: true },
+      { id: "ib8", type: "image-banner", label: "Room Showcase", enabled: true },
+      { id: "class8", type: "class-schedule", label: "Available Slots", enabled: true },
+      { id: "prod8", type: "product-grid-2-col", label: "Room Types", enabled: true },
+      { id: "t8", type: "testimonials", label: "Guest Reviews", enabled: true },
+      { id: "c8", type: "contact", label: "Reservation Inquiry", enabled: true },
+    ],
+    themeOverrides: {
+      backgroundColor: "#fffcf2",
+      textColor: "#403d39",
+      buttonBg: "#92400e",
+      buttonText: "#ffffff",
+      buttonStyle: "pill",
+      cardColor: "#ffffff",
+      fontFamily: "Lora",
+      layoutType: "list",
+    },
+  },
 ];
 
-const TEMPLATE_CATEGORIES = ["All", "Creator", "Business", "Music", "Lifestyle", "Health"];
+const TEMPLATE_CATEGORIES = ["All", "Creator", "Business", "Music", "Lifestyle", "Health", "Real Estate", "Hospitality"];
 
 // ═══════════════════════════
 // PAGE COMPONENT

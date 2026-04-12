@@ -97,6 +97,79 @@ const DashboardOverview = () => {
             ))}
         </div>
 
+        {/* MODULE HUB / QUICK START */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <motion.div 
+                whileHover={{ scale: 1.01 }}
+                onClick={() => navigate('/dashboard/appearance')}
+                className="bg-white border-4 border-black p-6 shadow-[10px_10px_0_0_rgba(249,168,212,1)] cursor-pointer hover:shadow-none transition-all flex items-center justify-between"
+            >
+                <div>
+                   <p className="text-[10px] font-black uppercase tracking-widest text-black/60 mb-1">Visual Identity</p>
+                   <h3 className="text-xl font-black uppercase tracking-tight text-black">Choose Theme</h3>
+                </div>
+                <div className="w-12 h-12 bg-pink-100 border-2 border-black rounded-2xl flex items-center justify-center">
+                   <Palette className="w-6 h-6 text-black" />
+                </div>
+            </motion.div>
+
+            <motion.div 
+                whileHover={{ scale: 1.01 }}
+                onClick={() => navigate('/dashboard/links')}
+                className="bg-white border-4 border-black p-6 shadow-[10px_10px_0_0_rgba(16,185,129,1)] cursor-pointer hover:shadow-none transition-all flex items-center justify-between"
+            >
+                <div>
+                   <p className="text-[10px] font-black uppercase tracking-widest text-black/60 mb-1">Link Curation</p>
+                   <h3 className="text-xl font-black uppercase tracking-tight text-black">Add Your Links</h3>
+                </div>
+                <div className="w-12 h-12 bg-emerald-100 border-2 border-black rounded-2xl flex items-center justify-center">
+                   <Link2 className="w-6 h-6 text-black" />
+                </div>
+            </motion.div>
+
+            <motion.div 
+                whileHover={{ scale: 1.01 }}
+                onClick={() => navigate('/dashboard/catalog')}
+                className="bg-white border-4 border-black p-6 shadow-[10px_10px_0_0_rgba(254,240,138,1)] cursor-pointer hover:shadow-none transition-all flex items-center justify-between"
+            >
+                <div>
+                   <p className="text-[10px] font-black uppercase tracking-widest text-black/60 mb-1">Commerce</p>
+                   <h3 className="text-xl font-black uppercase tracking-tight text-black">Add Shop Items</h3>
+                </div>
+                <div className="w-12 h-12 bg-yellow-100 border-2 border-black rounded-2xl flex items-center justify-center">
+                   <ShoppingBag className="w-6 h-6 text-black" />
+                </div>
+            </motion.div>
+
+            <motion.div 
+                whileHover={{ scale: 1.01 }}
+                onClick={() => navigate('/dashboard/analytics')}
+                className="bg-white border-4 border-black p-6 shadow-[10px_10px_0_0_rgba(191,219,254,1)] cursor-pointer hover:shadow-none transition-all flex items-center justify-between"
+            >
+                <div>
+                   <p className="text-[10px] font-black uppercase tracking-widest text-black/60 mb-1">Performance</p>
+                   <h3 className="text-xl font-black uppercase tracking-tight text-black">Check Analytics</h3>
+                </div>
+                <div className="w-12 h-12 bg-blue-100 border-2 border-black rounded-2xl flex items-center justify-center">
+                   <BarChart3 className="w-6 h-6 text-black" />
+                </div>
+            </motion.div>
+
+            <motion.div 
+                whileHover={{ scale: 1.01 }}
+                onClick={() => navigate('/dashboard/settings')}
+                className="bg-white border-4 border-black p-6 shadow-[10px_10px_0_0_rgba(224,231,255,1)] cursor-pointer hover:shadow-none transition-all flex items-center justify-between"
+            >
+                <div>
+                   <p className="text-[10px] font-black uppercase tracking-widest text-black/60 mb-1">Personal Info</p>
+                   <h3 className="text-xl font-black uppercase tracking-tight text-black">Update Profile</h3>
+                </div>
+                <div className="w-12 h-12 bg-indigo-100 border-2 border-black rounded-2xl flex items-center justify-center">
+                   <Users2 className="w-6 h-6 text-black" />
+                </div>
+            </motion.div>
+        </div>
+
         {/* REACH CHART SUBSTRATE */}
         <div className="bruddle-card p-10 bg-white shadow-2xl">
             <div className="flex items-center justify-between mb-12">
@@ -133,7 +206,10 @@ const DashboardOverview = () => {
                     ))}
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all bg-black/5 backdrop-blur-[2px]">
-                   <button className="px-8 py-3 bg-white border-2 border-black rounded-xl font-black text-[10px] uppercase tracking-widest hover:translate-x-1 hover:translate-y-1 hover:shadow-none shadow-[4px_4px_0_0_rgba(0,0,0,1)] transition-all">
+                   <button 
+                     onClick={() => navigate('/dashboard/analytics')}
+                     className="px-8 py-3 bg-white border-2 border-black rounded-xl font-black text-[10px] uppercase tracking-widest hover:translate-x-1 hover:translate-y-1 hover:shadow-none shadow-[4px_4px_0_0_rgba(0,0,0,1)] transition-all"
+                   >
                       Expand Analytics
                    </button>
                 </div>
@@ -276,11 +352,15 @@ const DashboardOverview = () => {
               <div className="space-y-4">
                  <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-black/30 mb-6">Social Schedule</h4>
                  {[
-                    { time: "09:00", task: "Product Update V1", color: "border-l-pink-400" },
-                    { time: "11:30", task: "Sovereign Sync", color: "border-l-emerald-400" },
-                    { time: "14:00", task: "Community Node", color: "border-l-yellow-400" },
+                    { time: "09:00", task: "Product Update V1", color: "border-l-pink-400", path: "/dashboard/catalog" },
+                    { time: "11:30", task: "Sovereign Sync", color: "border-l-emerald-400", path: "/dashboard/links" },
+                    { time: "14:00", task: "Community Node", color: "border-l-yellow-400", path: "/dashboard/apps" },
                  ].map((t) => (
-                    <div key={t.task} className={cn("bg-white border-2 border-black p-4 rounded-2xl flex items-center justify-between border-l-[8px]", t.color)}>
+                    <div 
+                      key={t.task} 
+                      onClick={() => navigate(t.path)}
+                      className={cn("bg-white border-2 border-black p-4 rounded-2xl flex items-center justify-between border-l-[8px] cursor-pointer hover:translate-x-1 transition-all", t.color)}
+                    >
                        <div className="flex flex-col">
                            <span className="text-[9px] font-black text-black/30">{t.time} AM</span>
                            <span className="text-xs font-black">{t.task}</span>

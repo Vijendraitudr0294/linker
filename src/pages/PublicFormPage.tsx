@@ -247,10 +247,31 @@ const PublicFormPage = () => {
   if (alreadySubmitted) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 bg-[#f2f3f5] font-sans">
-        <div className="border-4 border-black bg-white p-12 shadow-[15px_15px_0_0_rgba(0,0,0,1)] text-center max-w-sm">
-           <Icons.ShieldAlert className="w-16 h-16 mx-auto mb-4 text-emerald-500" />
-           <h2 className="text-2xl font-black uppercase mb-2">Notice</h2>
-           <p className="text-sm font-bold opacity-60">You have already submitted this form.</p>
+        <div className="border-4 border-black bg-white p-12 shadow-[15px_15px_0_0_rgba(0,0,0,1)] text-center max-w-sm animate-in zoom-in fade-in duration-500">
+           <div className="relative inline-block mb-6">
+              <Icons.ShieldAlert className="w-16 h-16 mx-auto text-emerald-500" />
+              <div className="absolute -top-1 -right-1 w-5 h-5 bg-black rounded-full border-2 border-white flex items-center justify-center">
+                 <Icons.Check className="w-3 h-3 text-white" />
+              </div>
+           </div>
+           <h2 className="text-3xl font-black uppercase tracking-tighter mb-2">Unique Only</h2>
+           <p className="text-sm font-bold opacity-60 mb-8 leading-relaxed">
+              To ensure data integrity, each visitor can only submit this form once. You have already completed this flow.
+           </p>
+           <div className="grid grid-cols-1 gap-4">
+              <button 
+                onClick={() => window.location.href = "/"}
+                className="h-14 bg-black text-white font-black uppercase tracking-widest text-xs border-2 border-black hover:bg-emerald-500 transition-all shadow-[6px_6px_0_0_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none flex items-center justify-center gap-2"
+              >
+                 <Icons.Home className="w-4 h-4" /> Go Back Home
+              </button>
+              <button 
+                onClick={() => window.history.back()}
+                className="h-14 bg-white text-black font-black uppercase tracking-widest text-xs border-2 border-black hover:bg-gray-50 transition-all shadow-[6px_6px_0_0_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+              >
+                 Return to Previous Page
+              </button>
+           </div>
         </div>
       </div>
     );
@@ -319,7 +340,20 @@ const PublicFormPage = () => {
                  </div>
               )}
             </div>
-            <button onClick={() => window.location.reload()} className="w-full h-14 text-xs font-black uppercase tracking-[0.2em] border-2 border-black hover:bg-black hover:text-white transition-all shadow-[6px_6px_0_0_rgba(0,0,0,1)]">Restart Form</button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+               <button 
+                 onClick={() => window.location.href = "/"}
+                 className="h-14 text-xs font-black uppercase tracking-[0.2em] bg-black text-white border-2 border-black hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all shadow-[6px_6px_0_0_rgba(16,185,129,1)] flex items-center justify-center gap-2"
+               >
+                  <Icons.ArrowLeft className="w-4 h-4" /> Go Back Home
+               </button>
+               <button 
+                 onClick={() => { localStorage.removeItem(`submitted_${slug}`); window.location.reload(); }}
+                 className="h-14 text-xs font-black uppercase tracking-[0.2em] border-2 border-black hover:bg-black hover:text-white transition-all shadow-[6px_6px_0_0_rgba(0,0,0,1)] flex items-center justify-center gap-2"
+               >
+                  <Icons.RotateCcw className="w-4 h-4" /> Restart Form
+               </button>
+            </div>
           </div>
         ) : (
           <div className="space-y-8 min-h-[300px] flex flex-col">

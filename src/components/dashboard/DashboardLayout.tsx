@@ -62,7 +62,7 @@ const DashboardLayout = () => {
                 <SidebarTrigger className="h-10 w-10 md:h-12 md:w-12 border-2 border-black bg-white rounded-xl shadow-[4px_4px_0_0_rgba(0,0,0,1)] flex items-center justify-center hover:bg-black hover:text-white hover:shadow-none hover:translate-y-[4px] hover:translate-x-[4px] transition-all" />
               </div>
               <div>
-                <h2 className="text-[10px] md:text-sm font-black text-black/20 uppercase tracking-[0.25em] md:tracking-[0.4em] mb-1">My Link Page</h2>
+                <h2 className="text-[10px] md:text-sm font-black text-black/20 uppercase tracking-[0.25em] md:tracking-[0.4em] mb-1">My Bio</h2>
                 <h1 className="text-xl md:text-2xl font-black text-black tracking-tight">{title}</h1>
 
               </div>

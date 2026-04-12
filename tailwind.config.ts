@@ -21,6 +21,7 @@ export default {
       fontFamily: {
         heading: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
         body: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Outfit', 'Plus Jakarta Sans', 'sans-serif'],
       },
       spacing: {
         'xs': '4px',
@@ -86,6 +87,12 @@ export default {
           sky: "hsl(200, 80%, 55%)",
           rose: "hsl(350, 65%, 50%)",
         },
+        vibrant: {
+          pink: "hsl(var(--vibrant-pink))",
+          yellow: "hsl(var(--vibrant-yellow))",
+          blue: "hsl(var(--vibrant-blue))",
+          cyan: "hsl(var(--vibrant-cyan))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -127,6 +134,14 @@ export default {
           "0%, 100%": { boxShadow: "0 0 0 0 hsl(var(--primary) / 0.4)" },
           "50%": { boxShadow: "0 0 20px 5px hsl(var(--primary) / 0.2)" },
         },
+        marquee: {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-100%)" },
+        },
+        marquee2: {
+          "0%": { transform: "translateX(100%)" },
+          "100%": { transform: "translateX(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -135,6 +150,8 @@ export default {
         "slide-up": "slide-up 0.4s ease-out",
         "scale-in": "scale-in 0.3s ease-out",
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
+        marquee: "marquee 25s linear infinite",
+        marquee2: "marquee2 25s linear infinite",
       },
     },
   },

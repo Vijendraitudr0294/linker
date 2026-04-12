@@ -1,59 +1,49 @@
-import InfoPageLayout from "@/components/InfoPageLayout";
-import { motion } from "framer-motion";
-import { Search, Link2, Palette, BarChart3, ShoppingBag, MessageCircle, Sparkles, Shield, Mail } from "lucide-react";
 import { useState } from "react";
+import { motion } from "framer-motion";
+import { Link2, Palette, ShoppingBag, BarChart3, MessageCircle, Shield, Mail } from "lucide-react";
+import BiotraCCNavbar from "@/components/landing/legacy/BiotraCCNavbar";
+import BiotraCCFooter from "@/components/landing/legacy/BiotraCCFooter";
 
 const helpTopics = [
   {
-    icon: Link2,
-    title: "Getting Started",
+    icon: Link2, color: "bg-[#22C55E]",
+    title: "GETTING STARTED",
     articles: [
-      { q: "How do I create an account?", a: "Click 'Sign up free' on the homepage. Enter your email, password, and choose a username. That's it — your page is live instantly." },
-      { q: "How do I add links?", a: "Go to Dashboard → Links. Click 'Add Link', enter the title and URL, then drag to reorder. Toggle visibility with the switch." },
-      { q: "Can I change my username?", a: "Yes! Go to Dashboard → Settings and update your username. Your public URL will update immediately." },
+      { q: "HOW DO I CREATE AN ACCOUNT?", a: "CLICK 'GET STARTED FREE' ON THE HOMEPAGE. ENTER YOUR EMAIL, PASSWORD, AND CHOOSE A USERNAME. YOUR PAGE GOES LIVE INSTANTLY." },
+      { q: "HOW DO I ADD LINKS?", a: "GO TO DASHBOARD → LINKS. CLICK 'ADD LINK', ENTER THE TITLE AND URL, THEN DRAG TO REORDER." },
+      { q: "CAN I CHANGE MY USERNAME?", a: "YES! GO TO DASHBOARD → SETTINGS AND UPDATE YOUR USERNAME. YOUR PUBLIC URL UPDATES IMMEDIATELY." },
     ],
   },
   {
-    icon: Palette,
-    title: "Themes & Appearance",
+    icon: Palette, color: "bg-[#FBCFE8]",
+    title: "THEMES & APPEARANCE",
     articles: [
-      { q: "How many themes are available?", a: "We offer 60+ themes across categories: Minimal, Dark, Neon, Pastel, Business, Nature, Gradient, Retro, Photo, and Animated." },
-      { q: "Can I customize colors?", a: "Absolutely. Go to Dashboard → Appearance to customize background, text, button colors, fonts, and more." },
-      { q: "Can I upload a custom background?", a: "Yes! In the Appearance page, you can upload any image or use our AI background generator." },
+      { q: "HOW MANY THEMES ARE AVAILABLE?", a: "WE OFFER 60+ THEMES ACROSS CATEGORIES: MINIMAL, DARK, NEON, PASTEL, BUSINESS, NATURE, GRADIENT, RETRO, AND ANIMATED." },
+      { q: "CAN I CUSTOMIZE COLORS?", a: "ABSOLUTELY. GO TO DASHBOARD → APPEARANCE TO CUSTOMIZE BACKGROUND, TEXT, AND BUTTON COLORS." },
     ],
   },
   {
-    icon: ShoppingBag,
-    title: "Catalog & Orders",
+    icon: ShoppingBag, color: "bg-[#FDE047]",
+    title: "CATALOG & ORDERS",
     articles: [
-      { q: "How do I add products?", a: "Go to Dashboard → Catalog and click 'Add Item'. Fill in the details, set a price, upload an image, and publish." },
-      { q: "How do orders work?", a: "When a visitor places an order through your page, you'll see it in Dashboard → Orders. You'll also get an email notification." },
-      { q: "Can I track inventory?", a: "Yes! Enable 'Track Inventory' on any item. Stock decrements automatically with each order, and you'll get low-stock alerts." },
+      { q: "HOW DO I ADD PRODUCTS?", a: "GO TO DASHBOARD → CATALOG AND CLICK 'ADD ITEM'. FILL IN THE DETAILS, SET A PRICE, AND PUBLISH." },
+      { q: "HOW DO ORDERS WORK?", a: "WHEN A VISITOR PLACES AN ORDER, YOU SEE IT IN DASHBOARD → ORDERS AND GET AN EMAIL NOTIFICATION." },
     ],
   },
   {
-    icon: BarChart3,
-    title: "Analytics",
+    icon: BarChart3, color: "bg-[#CCFBF1]",
+    title: "ANALYTICS",
     articles: [
-      { q: "What analytics do I get?", a: "Track page views, link clicks, top referrers, visitor locations, and catalog item views — all in real-time charts." },
-      { q: "Can I filter by date?", a: "Yes. Use the date range picker at the top of the Analytics page to filter data by any time period." },
+      { q: "WHAT ANALYTICS DO I GET?", a: "TRACK PAGE VIEWS, LINK CLICKS, TOP REFERRERS, VISITOR LOCATIONS, AND CATALOG ITEM VIEWS IN REAL-TIME." },
+      { q: "CAN I FILTER BY DATE?", a: "YES. USE THE DATE RANGE PICKER AT THE TOP OF THE ANALYTICS PAGE TO FILTER DATA BY ANY TIME PERIOD." },
     ],
   },
   {
-    icon: MessageCircle,
-    title: "Contact Form & Messages",
+    icon: Shield, color: "bg-[#E9D5FF]",
+    title: "ACCOUNT & SECURITY",
     articles: [
-      { q: "How do visitors message me?", a: "Your public profile includes a contact form. Messages appear in Dashboard → Messages, and you get email notifications." },
-      { q: "Can I disable the contact form?", a: "Platform administrators can toggle the contact form feature in Platform Settings." },
-    ],
-  },
-  {
-    icon: Shield,
-    title: "Account & Security",
-    articles: [
-      { q: "How do I reset my password?", a: "Click 'Forgot password?' on the login page. We'll send a reset link to your email." },
-      { q: "Is my data secure?", a: "Yes. We use enterprise-grade encryption, row-level security, and GDPR-compliant practices." },
-      { q: "How do I delete my account?", a: "Go to Dashboard → Settings and scroll to the danger zone. Account deletion is permanent." },
+      { q: "HOW DO I RESET MY PASSWORD?", a: "CLICK 'FORGOT PASSWORD?' ON THE LOGIN PAGE. WE'LL SEND A RESET LINK TO YOUR EMAIL." },
+      { q: "IS MY DATA SECURE?", a: "YES. WE USE ENTERPRISE-GRADE ENCRYPTION AND GDPR-COMPLIANT PRACTICES." },
     ],
   },
 ];
@@ -62,50 +52,73 @@ const HelpCenter = () => {
   const [openTopic, setOpenTopic] = useState<number | null>(null);
 
   return (
-    <InfoPageLayout title="Help Center" subtitle="Find answers to common questions.">
-      <div className="not-prose space-y-4">
-        {helpTopics.map((topic, i) => (
-          <motion.div
-            key={topic.title}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
-            className="glass rounded-2xl overflow-hidden"
-          >
-            <button
-              onClick={() => setOpenTopic(openTopic === i ? null : i)}
-              className="w-full flex items-center gap-3 p-5 text-left hover:bg-white/5 transition-colors"
-            >
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                <topic.icon className="w-5 h-5 text-primary" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-heading font-bold text-foreground">{topic.title}</h3>
-                <p className="text-xs text-muted-foreground">{topic.articles.length} articles</p>
-              </div>
-              <span className="text-muted-foreground text-xl">{openTopic === i ? "−" : "+"}</span>
-            </button>
-            {openTopic === i && (
-              <div className="px-5 pb-5 space-y-4 border-t border-border/20 pt-4">
-                {topic.articles.map((article) => (
-                  <div key={article.q}>
-                    <h4 className="text-sm font-semibold text-foreground mb-1">{article.q}</h4>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{article.a}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </motion.div>
-        ))}
-      </div>
+    <div className="min-h-screen bg-[#F3F4F6] font-sans selection:bg-[#22C55E] selection:text-black">
+      <BiotraCCNavbar />
 
-      <div className="not-prose glass rounded-2xl p-8 text-center mt-10">
-        <Mail className="w-8 h-8 text-primary mx-auto mb-3" />
-        <h3 className="font-heading font-bold text-foreground mb-2">Still need help?</h3>
-        <p className="text-sm text-muted-foreground mb-1">Email us at <span className="text-primary">support@BIOTRA.com</span></p>
-        <p className="text-xs text-muted-foreground">We typically respond within 24 hours.</p>
-      </div>
-    </InfoPageLayout>
+      <main className="pt-36 pb-24 px-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-16">
+            <span className="inline-block px-4 py-2 bg-[#22C55E] border-4 border-black rounded-full text-[10px] font-black uppercase tracking-widest shadow-[4px_4px_0_0_rgba(0,0,0,1)] mb-6">
+              SUPPORT DOCS
+            </span>
+            <h1 className="text-[72px] md:text-[120px] font-black tracking-tighter text-black uppercase leading-[0.85]">
+              HELP CENTER.
+            </h1>
+          </div>
+
+          <div className="space-y-4">
+            {helpTopics.map((topic, i) => (
+              <motion.div
+                key={topic.title}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.06 }}
+                className={`border-4 border-black rounded-3xl overflow-hidden shadow-[6px_6px_0_0_rgba(0,0,0,1)] transition-all ${openTopic === i ? "shadow-none translate-x-1 translate-y-1" : ""}`}
+              >
+                <button
+                  onClick={() => setOpenTopic(openTopic === i ? null : i)}
+                  className="w-full flex items-center gap-5 p-6 bg-white text-left hover:bg-gray-50 transition-colors"
+                >
+                  <div className={`w-12 h-12 ${topic.color} border-2 border-black rounded-xl flex items-center justify-center shrink-0 shadow-[3px_3px_0_0_rgba(0,0,0,1)]`}>
+                    <topic.icon className="w-6 h-6 text-black" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-black text-base uppercase tracking-widest text-black">{topic.title}</h3>
+                    <p className="text-[10px] font-black text-black/30 uppercase tracking-widest">{topic.articles.length} ARTICLES</p>
+                  </div>
+                  <span className="text-2xl font-black text-black/40">{openTopic === i ? "−" : "+"}</span>
+                </button>
+                {openTopic === i && (
+                  <div className="border-t-4 border-black divide-y-2 divide-black/10 bg-[#F3F4F6] px-6 py-4 space-y-4">
+                    {topic.articles.map((article) => (
+                      <div key={article.q} className="pt-4 first:pt-0">
+                        <h4 className="font-black text-sm uppercase tracking-wide text-black mb-2">{article.q}</h4>
+                        <p className="font-bold text-black/50 text-sm uppercase tracking-widest leading-relaxed">{article.a}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Still need help */}
+          <div className="mt-16 bg-black border-4 border-black rounded-[40px] p-12 text-center shadow-[12px_12px_0_0_rgba(34,197,94,1)]">
+            <Mail className="w-12 h-12 text-[#22C55E] mx-auto mb-6" />
+            <h3 className="text-3xl font-black uppercase tracking-tight text-white mb-4">STILL NEED HELP?</h3>
+            <p className="text-sm font-black uppercase tracking-widest text-white/40 mb-8">EMAIL US — WE TYPICALLY RESPOND WITHIN 24 HOURS.</p>
+            <a
+              href="mailto:support@biotra.ai"
+              className="inline-flex items-center gap-3 h-16 px-12 bg-[#22C55E] text-black font-black uppercase tracking-widest border-4 border-white/20 rounded-2xl shadow-[6px_6px_0_0_rgba(255,255,255,0.1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
+            >
+              SUPPORT@BIOTRA.AI
+            </a>
+          </div>
+        </div>
+      </main>
+
+      <BiotraCCFooter />
+    </div>
   );
 };
 

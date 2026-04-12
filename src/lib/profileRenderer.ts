@@ -41,6 +41,7 @@ export interface ProfileAppearance {
   animation_class?: string;
   layout_type?: string;
   card_style?: string;
+  theme_id?: string;
 }
 
 // ── Palette ──

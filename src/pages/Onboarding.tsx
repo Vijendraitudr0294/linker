@@ -230,7 +230,7 @@ const Onboarding = () => {
 
   return (
     <div className="min-h-screen lg:h-[100dvh] overflow-y-auto lg:overflow-hidden bg-[#F3F4F6] text-black">
-      <div className="mx-auto min-h-screen lg:h-full max-w-[1280px] px-3 py-2 md:px-4 md:py-3">
+      <div className="mx-auto min-h-screen lg:h-full max-w-[960px] px-3 py-2 md:px-4 md:py-3">
         <div className="space-y-3 lg:min-h-0 flex flex-col">
           <div className="bruddle-card bg-white p-4 md:p-5">
             <div className="grid gap-4 lg:grid-cols-[60%_30%] lg:justify-between lg:items-center">
@@ -239,8 +239,8 @@ const Onboarding = () => {
                   <Sparkles className="h-3.5 w-3.5" />
                   Setup Flow
                 </div>
-                <h1 className="mt-3 text-3xl md:text-4xl font-black tracking-tight uppercase">Identity Setup</h1>
-                <p className="mt-1 text-sm font-bold text-black/60">Build your public page in 4 simple steps.</p>
+                <h1 className="mt-1.5 text-2xl md:text-3xl font-black tracking-tight uppercase">Identity Setup</h1>
+                <p className="mt-0.5 text-[13px] font-bold text-black/60">Build your public page in 4 simple steps.</p>
               </div>
               <div className="rounded-2xl border-4 border-black bg-[#F3F4F6] p-4">
                 <div className="flex items-end justify-between">
@@ -262,34 +262,34 @@ const Onboarding = () => {
             <div className="min-h-0 flex-1 lg:overflow-y-auto pr-1 space-y-6">
             {step === 0 && (
               <div className="space-y-6 lg:space-y-0 lg:grid lg:grid-cols-[30%_60%] lg:justify-between lg:gap-4 lg:items-start">
-                <div className="lg:pt-2">
-                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-emerald-700">Step 1</p>
-                  <h2 className="text-2xl md:text-3xl font-black tracking-tight">What do you want to build?</h2>
-                  <p className="text-sm font-bold text-black/60">Choose one goal to start.</p>
+                <div className="lg:pt-0">
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">Step 1</p>
+                  <h2 className="text-xl md:text-2xl font-black tracking-tight">What do you want to build?</h2>
+                  <p className="text-[13px] font-bold text-black/60">Choose one goal to start.</p>
                 </div>
-                <div className="flex gap-4 overflow-x-auto pb-2 pr-1 snap-x snap-mandatory">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pb-1">
                   {goalCards.map((card) => (
                     <button
                       key={card.id}
                       type="button"
                       onClick={() => setGoal(card.id)}
                       className={cn(
-                        "shrink-0 snap-start w-[88%] sm:w-[70%] lg:w-[calc(50%-0.5rem)] rounded-2xl border-4 border-black bg-white p-5 text-left shadow-[4px_4px_0_0_rgba(0,0,0,1)] transition-all",
+                        "rounded-2xl border-[3px] border-black bg-white p-4 text-left shadow-[4px_4px_0_0_rgba(0,0,0,1)] transition-all",
                         goal === card.id ? "bg-[#D1FAE5]" : "hover:-translate-y-0.5"
                       )}
                     >
                       <div className="flex items-start justify-between">
-                        <div className={cn("inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br border-2 border-black", card.accent)}>
-                          <card.icon className="h-5 w-5 text-white" />
+                        <div className={cn("inline-flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br border-2 border-black", card.accent)}>
+                          <card.icon className="h-4 w-4 text-white" />
                         </div>
                         {goal === card.id && (
-                          <div className="h-7 w-7 rounded-full border-2 border-black bg-black text-white flex items-center justify-center">
-                            <BadgeCheck className="h-4 w-4" />
+                          <div className="h-6 w-6 rounded-full border-2 border-black bg-black text-white flex items-center justify-center">
+                            <BadgeCheck className="h-3 w-3" />
                           </div>
                         )}
                       </div>
-                      <h3 className="mt-4 text-base font-black">{card.title}</h3>
-                      <p className="mt-1 text-sm font-bold text-black/60">{card.description}</p>
+                      <h3 className="mt-3 text-sm font-black">{card.title}</h3>
+                      <p className="mt-1 text-[11px] leading-tight font-bold text-black/60">{card.description}</p>
                     </button>
                   ))}
                 </div>
@@ -299,31 +299,27 @@ const Onboarding = () => {
             {step === 1 && (
               <div className="space-y-6">
                 <div>
-                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-emerald-700">Step 2</p>
-                  <h2 className="text-2xl md:text-3xl font-black tracking-tight">Add your basic details</h2>
-                  <p className="text-sm font-bold text-black/60">This is what visitors will see first.</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">Step 2</p>
+                  <h2 className="text-xl md:text-2xl font-black tracking-tight">Add your basic details</h2>
+                  <p className="text-[13px] font-bold text-black/60">This is what visitors will see first.</p>
                 </div>
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="space-y-5">
-                    <div className="space-y-2">
-                      <Label className="text-[11px] font-black uppercase tracking-[0.18em] text-black/50">Display Name</Label>
-                      <Input value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="Your name or brand" className="h-14 rounded-xl border-4 border-black bg-white font-bold" />
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-black uppercase tracking-[0.18em] text-black/50">Display Name</Label>
+                      <Input value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="Your name" className="h-11 rounded-xl border-[3px] border-black bg-white font-bold" />
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-[11px] font-black uppercase tracking-[0.18em] text-black/50">Short Bio</Label>
-                      <Textarea value={bio} onChange={(event) => setBio(event.target.value.slice(0, 160))} placeholder="Tell people what you do." rows={4} className="rounded-xl border-4 border-black bg-white font-bold" />
-                      <div className="text-right text-[11px] font-black text-black/40">{bio.length}/160</div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-black uppercase tracking-[0.18em] text-black/50">Short Bio</Label>
+                      <Textarea value={bio} onChange={(event) => setBio(event.target.value.slice(0, 160))} placeholder="What do you do?" rows={3} className="rounded-xl border-[3px] border-black bg-white font-bold text-sm" />
                     </div>
                   </div>
-                  <div className="rounded-2xl border-4 border-black bg-[#F3F4F6] p-5 space-y-4">
+                  <div className="rounded-2xl border-[3px] border-black bg-[#F3F4F6] p-4 space-y-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full border-2 border-black bg-[#D1FAE5] flex items-center justify-center">
-                        <Link2 className="h-4 w-4" />
-                      </div>
-                      <p className="text-[11px] font-black uppercase tracking-[0.18em]">Main Social Link</p>
+                      <p className="text-[10px] font-black uppercase tracking-[0.18em]">Social Link</p>
                     </div>
                     <Select value={socialPlatform} onValueChange={(value) => setSocialPlatform(value as SocialPlatform)}>
-                      <SelectTrigger className="h-12 rounded-xl border-4 border-black bg-white font-bold">
+                      <SelectTrigger className="h-10 rounded-xl border-[3px] border-black bg-white font-bold">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -336,7 +332,7 @@ const Onboarding = () => {
                           ))}
                       </SelectContent>
                     </Select>
-                    <Input value={socialUrl} onChange={(event) => setSocialUrl(event.target.value)} placeholder="https://your-link.com" className="h-12 rounded-xl border-4 border-black bg-white font-bold" />
+                    <Input value={socialUrl} onChange={(event) => setSocialUrl(event.target.value)} placeholder="https://..." className="h-10 rounded-xl border-[3px] border-black bg-white font-bold" />
                   </div>
                 </div>
               </div>
@@ -345,13 +341,13 @@ const Onboarding = () => {
             {step === 2 && (
               <div className="space-y-6">
                 <div>
-                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-emerald-700">Step 3</p>
-                  <h2 className="text-2xl md:text-3xl font-black tracking-tight">Pick your starting theme</h2>
-                  <p className="text-sm font-bold text-black/60">You can change this later.</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">Step 3</p>
+                  <h2 className="text-xl md:text-2xl font-black tracking-tight">Pick your starting theme</h2>
+                  <p className="text-[13px] font-bold text-black/60">You can change this later.</p>
                 </div>
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
                   {featuredThemes.map((theme) => (
-                    <ThemePreviewCard key={theme.id} theme={theme} selected={selectedThemeId === theme.id} onSelect={(picked) => setSelectedThemeId(picked.id)} />
+                    <ThemePreviewCard key={theme.id} theme={theme} selected={selectedThemeId === theme.id} onSelect={(picked) => setSelectedThemeId(picked.id)} compact={true} />
                   ))}
                 </div>
               </div>

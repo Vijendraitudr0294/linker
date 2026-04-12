@@ -1,57 +1,60 @@
-import InfoPageLayout from "@/components/InfoPageLayout";
+import BiotraCCNavbar from "@/components/landing/legacy/BiotraCCNavbar";
+import BiotraCCFooter from "@/components/landing/legacy/BiotraCCFooter";
 
-const TermsOfService = () => (
-  <InfoPageLayout title="Terms of Service" subtitle="Please read these terms carefully before using BIOTRA." lastUpdated="March 29, 2026">
-    <h2>1. Acceptance of Terms</h2>
-    <p>By accessing or using BIOTRA, you agree to be bound by these Terms of Service. If you do not agree, please do not use our services.</p>
+const TermsOfService = () => {
+  return (
+    <div className="min-h-screen bg-[#F3F4F6] font-sans selection:bg-[#22C55E] selection:text-black">
+      <BiotraCCNavbar />
+      
+      <main className="py-24 px-6">
+        <div className="max-w-4xl mx-auto border-8 border-black bg-white p-12 md:p-20 rounded-[48px] shadow-[24px_24px_0_0_rgba(0,0,0,1)]">
+          <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-black uppercase mb-16 leading-[0.85]">
+            TERMS OF <br /> SERVICE.
+          </h1>
 
-    <h2>2. Description of Service</h2>
-    <p>BIOTRA provides a free link-in-bio platform that allows users to create personalized pages with links, product catalogs, contact forms, and analytics. All core features are provided free of charge.</p>
+          <div className="space-y-12">
+            <section className="space-y-4">
+              <h2 className="text-2xl font-black uppercase tracking-tight">1. SERVICE DESCRIPTION</h2>
+              <p className="font-bold text-black/60 uppercase tracking-widest leading-relaxed text-sm">
+                BIOTRA PROVIDES A COMMISSION-FREE LINK-IN-BIO PLATFORM INCLUDING PROFILE BUILDING, PRODUCT CATALOGS, CONTACT FORMS, 
+                AND ANALYTICS TOOLS. WE MAINTAIN A COMPLETELY FREE TIER TO EMPOWER ALL CREATORS GLOBALLY.
+              </p>
+            </section>
 
-    <h2>3. User Accounts</h2>
-    <p>To use certain features, you must create an account. You are responsible for:</p>
-    <ul>
-      <li>Maintaining the confidentiality of your account credentials</li>
-      <li>All activities that occur under your account</li>
-      <li>Providing accurate and complete registration information</li>
-      <li>Notifying us immediately of any unauthorized use</li>
-    </ul>
+            <section className="space-y-4">
+              <h2 className="text-2xl font-black uppercase tracking-tight">2. USER OWNERSHIP</h2>
+              <p className="font-bold text-black/60 uppercase tracking-widest leading-relaxed text-sm">
+                YOU RETAIN FULL OWNERSHIP OF ALL CONTENT, LINKS, AND PRODUCTS UPLOADED TO BIOTRA. BY USING OUR SERVICE, 
+                YOU GRANT US A NON-EXCLUSIVE LICENSE TO HOST AND DISPLAY THIS CONTENT TO THE AUDIENCES YOU DIRECT TO YOUR PAGE.
+              </p>
+            </section>
 
-    <h2>4. User Content</h2>
-    <p>You retain ownership of content you create on BIOTRA. By posting content, you grant us a non-exclusive, worldwide license to display, distribute, and promote your content as part of the service. You are solely responsible for your content and must not post anything that:</p>
-    <ul>
-      <li>Violates any law or regulation</li>
-      <li>Infringes on intellectual property rights</li>
-      <li>Contains malicious code or spam</li>
-      <li>Harasses, threatens, or discriminates against others</li>
-      <li>Contains misleading or fraudulent information</li>
-    </ul>
+            <section className="space-y-4">
+              <h2 className="text-2xl font-black uppercase tracking-tight">3. PROHIBITED CONDUCT</h2>
+              <p className="font-bold text-black/60 uppercase tracking-widest leading-relaxed text-sm">
+                PROHIBITED ACTIVITIES INCLUDE THE DISTRIBUTION OF MALWARE, ILLEGAL CONTENT, HARASSMENT, IMPERSONATION, 
+                AND UNAUTHORIZED AUTOMATED SCRAPING OF THE BIOTRA NETWORK.
+              </p>
+            </section>
 
-    <h2>5. Prohibited Uses</h2>
-    <p>You agree not to use BIOTRA to:</p>
-    <ul>
-      <li>Engage in any illegal activity</li>
-      <li>Distribute malware or phishing content</li>
-      <li>Attempt to gain unauthorized access to our systems</li>
-      <li>Scrape or harvest user data without consent</li>
-      <li>Impersonate any person or entity</li>
-    </ul>
+            <section className="space-y-4">
+              <h2 className="text-2xl font-black uppercase tracking-tight">4. LIMITATION OF LIABILITY</h2>
+              <p className="font-bold text-black/60 uppercase tracking-widest leading-relaxed text-sm">
+                BIOTRA IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND. WE ARE NOT RESPONSIBLE FOR THE CONDUCT OF USERS 
+                ON THE NETWORK OR THE ACCURACY OF CONTENT HOSTED ON INDIVIDUAL PAGES.
+              </p>
+            </section>
 
-    <h2>6. Termination</h2>
-    <p>We reserve the right to suspend or terminate your account at any time for violations of these terms, with or without notice. You may delete your account at any time through your settings.</p>
+            <div className="pt-12 border-t-4 border-black/5">
+              <p className="text-[10px] font-black tracking-[0.4em] text-black/20 uppercase">LAST UPDATED: MARCH 29, 2026</p>
+            </div>
+          </div>
+        </div>
+      </main>
 
-    <h2>7. Disclaimer of Warranties</h2>
-    <p>BIOTRA is provided "as is" without warranties of any kind, either express or implied. We do not guarantee that the service will be uninterrupted, secure, or error-free.</p>
-
-    <h2>8. Limitation of Liability</h2>
-    <p>To the maximum extent permitted by law, BIOTRA shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the service.</p>
-
-    <h2>9. Changes to Terms</h2>
-    <p>We may update these terms from time to time. We will notify you of significant changes via email or through the service. Continued use after changes constitutes acceptance.</p>
-
-    <h2>10. Contact</h2>
-    <p>For questions about these Terms of Service, contact us at legal@biotra.ai.</p>
-  </InfoPageLayout>
-);
+      <BiotraCCFooter />
+    </div>
+  );
+};
 
 export default TermsOfService;

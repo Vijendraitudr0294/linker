@@ -488,39 +488,11 @@ Rules:
     } catch { toast.error("Failed"); }
   };
 
-  const handleApplyGallery = async (theme: ThemePreset) => {
-    await (useAppearanceStore.getState().applyTheme as any)(theme);
-    toast.success(`Applied "${theme.name}"`);
-  };
-
-  const clearImage = () => {
-    setImagePreview(null);
-    setPalette(null);
-    setGeneratedTheme(null);
-    if (fileRef.current) fileRef.current.value = "";
-  };
-
   const tabs = [
     { id: "generate" as GalleryTab, label: "Generator", icon: Brush },
     { id: "gallery"  as GalleryTab, label: "Gallery",   icon: LayoutGrid },
     ...(isAdmin ? [{ id: "admin" as GalleryTab, label: "Admin", icon: Globe }] : []),
   ];
-
-  // ── What the mini live preview looks like using extracted colours ──────────
-  const previewTheme: ThemePreset | null = generatedTheme ? {
-    id:              "preview",
-    name:            generatedTheme.name,
-    category:        "AI Lab",
-    backgroundColor: generatedTheme.backgroundColor,
-    cardColor:       generatedTheme.cardColor,
-    textColor:       generatedTheme.textColor,
-    buttonStyle:     generatedTheme.buttonStyle,
-    buttonBg:        generatedTheme.buttonBg,
-    buttonText:      generatedTheme.buttonText,
-    gradientFrom:    generatedTheme.gradientFrom,
-    gradientTo:      generatedTheme.gradientTo,
-    fontFamily:      generatedTheme.fontFamily,
-  } : null;
 
   // ─────────────────────────────────────────────────────────────────────────
 

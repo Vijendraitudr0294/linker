@@ -3,8 +3,22 @@ import { useRef } from "react";
 import { ShoppingBag, Sparkles, User, Play, ArrowRight, Zap, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import heroCreator from "@/assets/landing_page_hero.png";
+import { cn } from "@/lib/utils";
 
-const ProductPreview = () => {
+interface ProductPreviewProps {
+  title?: string;
+  description?: string;
+  features?: { id: string; title: string; description: string; icon: string; color: string }[];
+}
+
+const ProductPreview = ({
+  title = "Designed for Impact.",
+  description = "A seamless blend of aesthetics and utility. Your profile is more than just links—it's your command center.",
+  features = [
+    { id: '1', title: 'Fluid Glass Design', description: 'Native-app feel built for every mobile device and desktop screen.', icon: 'Sparkles', color: 'orange-500/10' },
+    { id: '2', title: 'Instant Interactions', description: 'Zero friction, sub-100ms transitions, and high-conversion layouts.', icon: 'Zap', color: 'emerald-500/10' }
+  ]
+}: ProductPreviewProps) => {
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start end", "end start"] });
   const yTranslate = useTransform(scrollYProgress, [0, 1], [100, -100]);
@@ -82,36 +96,38 @@ const ProductPreview = () => {
                    <Target className="w-4 h-4 text-secondary" />
                    <span className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">Product Preview</span>
                 </div>
-                <h3 className="text-[44px] md:text-[56px] font-black leading-[1.05] tracking-tight text-foreground mb-8">
-                   Designed for <span className="text-secondary">Impact.</span>
-                </h3>
-                <p className="text-xl text-muted-foreground font-medium leading-relaxed max-w-[480px]">
-                   A seamless blend of aesthetics and utility. Your profile is more than just links—it's your command center.
-                </p>
-             </motion.div>
+             <h3 className="text-[44px] md:text-[56px] font-black leading-[1.05] tracking-tight text-foreground mb-8">
+                {(title || "").split('Impact').map((p, i, a) => (
+                  <span key={i}>
+                    {p}{i < a.length - 1 && <span className="text-secondary">Impact.</span>}
+                  </span>
+                ))}
+             </h3>
+             <p className="text-xl text-muted-foreground font-medium leading-relaxed max-w-[480px]">
+                {description}
+             </p>
+          </motion.div>
 
-             <motion.div
-               initial={{ opacity: 0, y: 15 }}
-               whileInView={{ opacity: 1, y: 0 }}
-               viewport={{ once: true }}
-               transition={{ delay: 0.2 }}
-               className="grid grid-cols-1 md:grid-cols-2 gap-10"
-             >
-                <div className="space-y-4">
-                   <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center">
-                      <Sparkles className="w-5 h-5 text-orange-400" />
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-10"
+          >
+             {(features || []).map(f => {
+               const Icon = f.icon === 'Zap' ? Zap : f.icon === 'Sparkles' ? Sparkles : Sparkles;
+               return (
+                <div key={f.id} className="space-y-4">
+                   <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", f.color)}>
+                      <Icon className="w-5 h-5" />
                    </div>
-                   <h5 className="text-[17px] font-black text-foreground uppercase tracking-widest">Fluid Glass Design</h5>
-                   <p className="text-sm text-muted-foreground font-medium">Native-app feel built for every mobile device and desktop screen.</p>
+                   <h5 className="text-[17px] font-black text-foreground uppercase tracking-widest">{f.title}</h5>
+                   <p className="text-sm text-muted-foreground font-medium">{f.description}</p>
                 </div>
-                <div className="space-y-4">
-                   <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                      <Zap className="w-5 h-5 text-emerald-400" />
-                   </div>
-                   <h5 className="text-[17px] font-black text-foreground uppercase tracking-widest">Instant Interactions</h5>
-                   <p className="text-sm text-muted-foreground font-medium">Zero friction, sub-100ms transitions, and high-conversion layouts.</p>
-                </div>
-             </motion.div>
+               );
+             })}
+          </motion.div>
 
              <motion.div
                initial={{ opacity: 0 }}

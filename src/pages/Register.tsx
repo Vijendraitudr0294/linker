@@ -76,7 +76,7 @@ const Register = () => {
               <div className="w-12 h-12 bg-emerald-400 border-4 border-black rounded-[12px] flex items-center justify-center shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
                 <Globe className="w-7 h-7 text-black stroke-[3]" />
               </div>
-              <p className="font-[1000] text-xs uppercase tracking-tight leading-snug text-black">No platform fee on your sales</p>
+              <p className="font-[1000] text-xs uppercase tracking-tight leading-snug text-black">No limits to your creativity</p>
             </div>
             <div className="p-5 bg-white border-4 border-black rounded-[16px] shadow-[8px_8px_0_0_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all flex flex-col gap-4">
               <div className="w-12 h-12 bg-pink-400 border-4 border-black rounded-[12px] flex items-center justify-center shadow-[4px_4px_0_0_rgba(0,0,0,1)]">

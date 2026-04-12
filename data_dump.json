@@ -579,6 +579,103 @@
   ],
   "forms": [],
   "form_submissions": [],
+  "blog_posts": [
+    {
+      "id": "1",
+      "title": "How to Get More Clicks on Your Bio Link",
+      "excerpt": "Learn the psychology behind high-converting link-in-bio pages. From button placement to color contrast, these 7 tips can double your click-through rate.",
+      "content": "# Maximizing Your Bio Link\n\nYour link-in-bio is the digital gateway to your universe. Most people get it wrong by cluttering it with too many choices. \n\n### 1. The Power of One\nFocus on your most important link first. Use a high-contrast button to make it pop.\n\n### 2. Strategic Color Theory\nDon't just use your brand colors. Use colors that drive action. Red for urgency, blue for trust, and emerald for 'Go'.\n\n### 3. Clear Call to Actions\nInstead of 'My YouTube', use 'Watch the Newest Episode'. Be specific.",
+      "category": "Growth",
+      "image_url": "",
+      "author_id": "9ec4e865-939b-4431-a16f-0611665798eb",
+      "slug": "how-to-get-more-clicks",
+      "published": true,
+      "created_at": "2026-03-05T10:00:00Z",
+      "read_time": "5 min read"
+    },
+    {
+      "id": "2",
+      "title": "Why We Made BIOTRA 100% Free",
+      "excerpt": "Most link-in-bio tools charge $5-20/month for basic features. Here's why we decided to make everything free — and how we sustain it.",
+      "content": "# The Free Mission\n\nAt BIOTRA, we believe that your online identity should be yours, without a monthly tax. \n\n### Our Philosophy\nBuilding a community shouldn't be gated by a subscription. \n\n### How we survive\nWe focus on premium custom themes and white-labeling for enterprises, while keeping the core tools free for every creator on earth.",
+      "category": "Company",
+      "image_url": "",
+      "author_id": "9ec4e865-939b-4431-a16f-0611665798eb",
+      "slug": "why-we-made-biotra-free",
+      "published": true,
+      "created_at": "2026-02-28T12:00:00Z",
+      "read_time": "4 min read"
+    }
+  ],
+  "faq_items": [
+    {
+      "id": "1",
+      "question": "WHAT DOES OWNING MY PAGE MEAN?",
+      "answer": "IT MEANS YOU OWN YOUR ENTIRE ONLINE PRESENCE. NO ONE CAN TAKE YOUR LINKS, FANS, OR MONEY FROM YOU. YOU ARE IN TOTAL CONTROL, WITHOUT PAYING ANY FEES.",
+      "sort_order": 0,
+      "published": true
+    },
+    {
+      "id": "2",
+      "question": "HOW DO THE 0% FEES WORK?",
+      "answer": "WE TAKE ZERO MONEY FROM YOUR SALES. UNLIKE OTHER SITES THAT TAKE 15% OF WHAT YOU MAKE, WE TAKE NOTHING. YOU KEEP 100% OF YOUR PROFIT.",
+      "sort_order": 1,
+      "published": true
+    }
+  ],
+  "marketing_content": [
+    {
+      "id": "home",
+      "slug": "home",
+      "title": "Home Page",
+      "sections": [
+        {
+          "id": "hero-1",
+          "type": "hero",
+          "enabled": true,
+          "order": 0,
+          "content": {
+            "title": "OWN YOUR REACH.",
+            "subtitle": "THE ELITE LINK-IN-BIO PLATFORM FOR MODERATOR CREATORS. 0% FEES. 100% OWNERSHIP.",
+            "primaryCTA": { "label": "Initialize Page", "href": "/register" }
+          }
+        }
+      ]
+    }
+  ],
+  "pricing_plans": [
+    {
+      "id": "1",
+      "name": "ENTRY LEVEL",
+      "price": "0",
+      "description": "Perfect for baseline digital identity.",
+      "features": ["Basic profile builder", "60+ visual layouts", "Contact forms", "Standard analytics"],
+      "button_text": "Initialize Free",
+      "is_popular": false,
+      "sort_order": 0,
+      "published": true
+    },
+    {
+      "id": "2",
+      "name": "PROFESSIONAL",
+      "price": "12",
+      "currency": "$",
+      "billing_cycle": "/MO",
+      "description": "Advanced tools for elite digital influence.",
+      "features": ["Everything in Free", "Advanced graph metrics", "Custom domain setup", "White-label profiles"],
+      "button_text": "Upgrade Stage",
+      "is_popular": true,
+      "sort_order": 1,
+      "published": true
+    }
+  ],
+  "platform_settings": {
+    "site_name": "BIOTRA",
+    "site_description": "The elite link-in-bio platform for modern creators.",
+    "contact_email": "support@biotra.dev",
+    "maintenance_mode": false,
+    "theme_variant": "luxury-dark"
+  },
   "links": [
     {
       "id": "9ed583f8-e26c-467e-87f6-72f896f2d48a",
