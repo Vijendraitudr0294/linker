@@ -35,7 +35,7 @@ type NavGroup = {
 
 const primaryNavGroups: NavGroup[] = [
   {
-    group: "Build",
+    group: "Forge",
     items: [
       { icon: Link2, label: "Links", path: "/dashboard/links", feature: null },
       { icon: FileText, label: "Forms", path: "/dashboard/forms", feature: null, badge: "New" },
