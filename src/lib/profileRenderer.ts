@@ -39,17 +39,29 @@ export interface ProfileAppearance {
   background_overlay?: string;
   animated_gradient?: string;
   animation_class?: string;
+  layout_type?: string;
+  card_style?: string;
 }
 
 // ── Palette ──
 
 export function computePalette(appearance: ProfileAppearance): ProfilePalette {
   const cardBg = appearance.card_color;
-  const cardText = appearance.text_color;
+  // Designer Fix: Always ensure card text is readable against the card background
+  const cardText = getContrastColor(cardBg);
   const cardSub = `${cardText}aa`;
-  const cardBorder = `${cardText}15`;
+  
+  // Smarter border: Use high contrast if it's a brutalism/minimal theme
+  const themeId = (appearance.theme_id || "").toLowerCase();
+  const isBrutalism = appearance.layout_type === "brutalism" || 
+                     themeId.includes("brutal") || 
+                     themeId.includes("poster") || 
+                     themeId.includes("retro");
+  const cardBorder = isBrutalism ? "#000000" : `${cardText}30`; 
+  
   const btnBg = appearance.button_bg;
-  const btnText = appearance.button_text;
+  // Designer Fix: Always ensure button text is readable against the button background
+  const btnText = getContrastColor(btnBg);
   return { cardBg, cardText, cardSub, cardBorder, btnBg, btnText };
 }
 
@@ -95,6 +107,68 @@ export function getLinkButtonClasses(buttonStyle: ButtonStyleType): string {
       // rounded, outline, shadow all use rounded corners
       return "rounded-2xl";
   }
+}
+
+// ── Card Styling Engine ──
+
+export function getProfileCardStyle(
+  appearance: ProfileAppearance, 
+  palette: ProfilePalette, 
+  isHover: boolean = false
+): React.CSSProperties {
+  const themeId = (appearance.theme_id || "").toLowerCase();
+  const isBrutalism = appearance.layout_type === "brutalism" || 
+                     themeId.includes("brutal") || 
+                     themeId.includes("poster") || 
+                     themeId.includes("retro");
+  
+  const cardStyle = appearance.card_style || "classic";
+  const isDarkTheme = appearance.background_image || appearance.animated_gradient || themeId.includes("galaxy");
+  const isLight = palette.cardBg === "#ffffff" || palette.cardBg === "rgba(255,255,255,1)";
+  
+  // Base style with premium bezier curve
+  const style: React.CSSProperties = {
+    transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+  };
+
+  if (isBrutalism) {
+    // Designer Fix: Adaptive Brutalism (Dark themes get dark brutalist cards)
+    const isDarkBrutal = isDarkTheme && !isLight;
+    style.backgroundColor = isDarkBrutal ? "#111111" : "#ffffff";
+    style.color = isDarkBrutal ? "#ffffff" : "#000000";
+    style.border = `4px solid ${isDarkBrutal ? "#ffffff" : "#000000"}`;
+    style.borderRadius = "0px";
+    style.boxShadow = isHover ? "none" : `8px 8px 0 0 ${isDarkBrutal ? "rgba(255,255,255,1)" : "rgba(0,0,0,1)"}`;
+    style.transform = isHover ? "translate(4px, 4px)" : "none";
+    return style;
+  }
+
+  // Handle Glassmorphism & Luxe Themes
+  if (cardStyle.includes("glass") || (isDarkTheme && isLight)) {
+    const glassBg = isHover ? "rgba(255, 255, 255, 0.14)" : "rgba(255, 255, 255, 0.08)";
+    style.backgroundColor = glassBg;
+    style.borderColor = "rgba(255, 255, 255, 0.15)";
+    style.backdropFilter = "blur(24px) saturate(180%)";
+    style.WebkitBackdropFilter = "blur(24px) saturate(180%)";
+    
+    // Designer Shadow Stack (Physical Depth)
+    style.boxShadow = isHover 
+      ? "0 20px 50px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.1)" 
+      : "0 10px 30px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(255,255,255,0.05)";
+  } else {
+    // Classic/Solid Style
+    style.backgroundColor = palette.cardBg;
+    style.borderColor = palette.cardBorder;
+    style.boxShadow = isHover 
+      ? "0 15px 35px rgba(0,0,0,0.15)" 
+      : "0 5px 15px rgba(0,0,0,0.08)";
+  }
+
+  if (isHover) {
+    style.transform = "translateY(-4px)";
+  }
+
+  return style;
 }
 
 export function getContrastColor(hexColor: string): string {

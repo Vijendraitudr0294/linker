@@ -118,9 +118,18 @@ const CTA_TYPE_ALIASES: Record<string, string> = {
   car: "car",
 };
 
-export const resolveItemCtaLabel = (itemType: string, settings: unknown, fallback = "Buy Now"): string => {
+export const resolveItemCtaLabel = (itemType: string, settings: unknown, fallback = "Buy Now", externalUrl?: string): string => {
+  const url = (externalUrl || "").toLowerCase();
+  if (url.includes("play.google.com/store/apps")) return "Get it on Play Store";
+  if (url.includes("apps.apple.com")) return "Get it on App Store";
+
   const labels = getCtaLabels(settings);
   const normalized = (itemType || "").toLowerCase();
+  
+  if (normalized === "digital" || normalized === "digital_product") {
+     return labels[normalized] || "Get Now";
+  }
+
   if (labels[normalized]) return labels[normalized];
   const alias = CTA_TYPE_ALIASES[normalized];
   if (alias && labels[alias]) return labels[alias];

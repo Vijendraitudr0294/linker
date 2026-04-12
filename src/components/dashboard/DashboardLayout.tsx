@@ -19,7 +19,6 @@ const pageTitles: Record<string, string> = {
   "/dashboard/catalog": "Shop",
   "/dashboard/orders": "Orders",
   "/dashboard/analytics": "Analytics",
-  "/dashboard/appearance": "Design",
   "/dashboard/messages": "Messages",
   "/dashboard/settings": "Settings",
   "/dashboard/admin": "Admin",
@@ -57,7 +56,7 @@ const DashboardLayout = () => {
         
         <div className="flex-1 flex flex-col min-w-0 relative z-10">
           
-          <header className="min-h-[84px] md:h-24 flex items-center justify-between px-4 md:px-10 py-3 md:py-0 bg-transparent shrink-0">
+          <header className="min-h-[72px] md:h-20 flex items-center justify-between px-4 md:px-6 py-3 md:py-0 bg-transparent shrink-0">
             <div className="flex items-center gap-3 md:gap-6">
               <div>
                 <SidebarTrigger className="h-10 w-10 md:h-12 md:w-12 border-2 border-black bg-white rounded-xl shadow-[4px_4px_0_0_rgba(0,0,0,1)] flex items-center justify-center hover:bg-black hover:text-white hover:shadow-none hover:translate-y-[4px] hover:translate-x-[4px] transition-all" />
@@ -65,29 +64,7 @@ const DashboardLayout = () => {
               <div>
                 <h2 className="text-[10px] md:text-sm font-black text-black/20 uppercase tracking-[0.25em] md:tracking-[0.4em] mb-1">My Link Page</h2>
                 <h1 className="text-xl md:text-2xl font-black text-black tracking-tight">{title}</h1>
-                <div className="mt-2 md:mt-3 inline-flex items-center gap-1 rounded-full border-2 border-black bg-white p-1 overflow-x-auto max-w-[75vw] md:max-w-none">
-                  {[
-                    { label: "Links", path: "/dashboard/links" },
-                    { label: "Forms", path: "/dashboard/forms" },
-                    { label: "Shop", path: "/dashboard/catalog" },
-                    { label: "Design", path: "/dashboard/appearance" },
-                  ].map((item) => {
-                    const active = location.pathname.startsWith(item.path);
-                    return (
-                      <Link
-                        key={item.path}
-                        to={item.path}
-                        className={`px-3 md:px-4 py-1.5 rounded-full text-[10px] md:text-[11px] font-black uppercase tracking-wider border transition-all whitespace-nowrap ${
-                          active
-                            ? "bg-black text-white border-black"
-                            : "bg-white text-black border-transparent hover:border-black/30"
-                        }`}
-                      >
-                        {item.label}
-                      </Link>
-                    );
-                  })}
-                </div>
+
               </div>
             </div>
             
@@ -112,7 +89,7 @@ const DashboardLayout = () => {
             </div>
           </header>
 
-          <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-10 pt-0 scroll-smooth">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8 pt-0 scroll-smooth">
             <motion.div
               key={location.pathname}
               initial={{ opacity: 0, y: 15 }}

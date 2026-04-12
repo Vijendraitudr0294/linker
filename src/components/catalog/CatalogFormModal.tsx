@@ -9,10 +9,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Plus, Upload, Trash2, Check, ExternalLink, ImageIcon, Tags } from "lucide-react";
+import { Loader2, Plus, Upload, Trash2, Check, ExternalLink, ImageIcon, Tags, Music, QrCode, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/stores/authStore";
+import { cn } from "@/lib/utils";
 
 type CatalogMediaInput = { type: "image" | "video"; url: string };
 type ItemTypeOption = { value: string; label: string; icon: any };
@@ -22,7 +23,7 @@ const EMPTY_CATEGORY_VALUE = "__lv_category_empty__";
 const EMPTY_SUBCATEGORY_VALUE = "__lv_subcategory_empty__";
 
 const SELLABLE_ITEM_TYPE_KEYS = new Set(["physical", "food", "service", "digital", "boat", "car"]);
-const CONTENT_ITEM_TYPE_KEYS = new Set(["video", "article", "music", "post", "reel", "blog", "social"]);
+const CONTENT_ITEM_TYPE_KEYS = new Set(["video", "article", "music", "post", "reel", "blog", "social", "qr", "map"]);
 
 const isHttpUrl = (value: string): boolean => {
   if (!value.trim()) return false;
@@ -37,6 +38,95 @@ const isHttpUrl = (value: string): boolean => {
 const isVideoUrl = (value: string): boolean => isHttpUrl(value.trim());
 const normalizeValue = (value: string): string => value.trim().toLowerCase();
 const isSellableItemType = (value: string) => SELLABLE_ITEM_TYPE_KEYS.has(normalizeValue(value));
+
+const getMediaThumbnail = (url: string) => {
+  const cleanUrl = url.trim();
+  if (!cleanUrl) return null;
+
+  // YouTube
+  const ytMatch = cleanUrl.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
+  if (ytMatch?.[1]) {
+    return { 
+      url: `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`,
+      type: "video" as const,
+      platform: "youtube",
+      kind: "video" as ItemType
+    };
+  }
+
+  // Spotify
+  if (cleanUrl.includes("spotify.com")) {
+    return {
+      url: "https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg",
+      type: "music" as const,
+      platform: "spotify",
+      kind: "music" as ItemType
+    };
+  }
+
+  // Apple Music
+  if (cleanUrl.includes("music.apple.com")) {
+    return {
+      url: "https://upload.wikimedia.org/wikipedia/commons/2/2a/Apple_Music_logo.svg",
+      type: "music" as const,
+      platform: "apple",
+      kind: "music" as ItemType
+    };
+  }
+
+  // Google Maps
+  if (cleanUrl.includes("google.com/maps") || cleanUrl.includes("goo.gl/maps")) {
+    return {
+      url: "https://upload.wikimedia.org/wikipedia/commons/a/aa/Google_Maps_icon_%282020%29.svg",
+      type: "image" as const,
+      platform: "google-maps",
+      kind: "map" as ItemType
+    };
+  }
+
+  // SoundCloud
+  if (cleanUrl.includes("soundcloud.com")) {
+    return {
+      url: "https://upload.wikimedia.org/wikipedia/commons/a/a2/Antu_soundcloud.svg",
+      type: "music" as const,
+      platform: "soundcloud",
+      kind: "music" as ItemType
+    };
+  }
+
+  // Vimeo
+  const vimeoMatch = cleanUrl.match(/(?:vimeo\.com\/|player\.vimeo\.com\/video\/)([0-9]+)/i);
+  if (vimeoMatch?.[1]) {
+    return { 
+      url: `https://vumbnail.com/${vimeoMatch[1]}.jpg`,
+      type: "video" as const,
+      platform: "vimeo",
+      kind: "video" as ItemType
+    };
+  }
+
+  // Google Play Store
+  if (cleanUrl.includes("play.google.com/store/apps")) {
+    return {
+      url: "https://upload.wikimedia.org/wikipedia/commons/d/d0/Google_Play_Arrow_logo.svg",
+      type: "image" as const,
+      platform: "playstore",
+      kind: "digital" as ItemType
+    };
+  }
+
+  // Apple App Store
+  if (cleanUrl.includes("apps.apple.com")) {
+    return {
+      url: "https://upload.wikimedia.org/wikipedia/commons/6/67/App_Store_%28iOS%29.svg",
+      type: "image" as const,
+      platform: "appstore",
+      kind: "digital" as ItemType
+    };
+  }
+
+  return null;
+};
 
 interface CatalogFormProps {
   initialData?: CatalogItem;
@@ -82,6 +172,8 @@ export function CatalogFormModal({
     duration: "",
     schedule: "",
     location: "",
+    display_mode: "minimal" as "minimal" | "full",
+    metadata: {} as Record<string, any>,
   };
 
   const [form, setForm] = useState(() => {
@@ -107,6 +199,8 @@ export function CatalogFormModal({
         duration: initialData.duration || "",
         schedule: initialData.schedule || "",
         location: initialData.location || "",
+        display_mode: initialData.display_mode || "minimal",
+        metadata: initialData.metadata || {},
       };
     }
     return defaultFormState;
@@ -256,6 +350,8 @@ export function CatalogFormModal({
       duration: form.duration.trim(),
       schedule: form.schedule.trim(),
       location: form.location.trim(),
+      display_mode: form.display_mode,
+      metadata: form.metadata,
     };
 
     await onSave(payload, !!initialData);
@@ -406,15 +502,62 @@ export function CatalogFormModal({
         <div className="space-y-2">
           <Label className="flex items-center gap-2"><ImageIcon className="w-4 h-4" /> Image</Label>
           <div className="flex gap-2 items-center">
-            {form.image_url && (
-              <img src={form.image_url} alt="" className="w-16 h-16 rounded-lg object-cover border border-border" />
+            {(form.image_url || getMediaThumbnail(form.image_url)?.url) && (
+              <img 
+                src={getMediaThumbnail(form.image_url)?.url || form.image_url} 
+                alt="" 
+                className={cn(
+                  "w-16 h-16 rounded-lg object-cover border border-border bg-muted p-1",
+                  getMediaThumbnail(form.image_url)?.type === "music" && "p-2 opacity-50"
+                )} 
+                onError={(e) => (e.currentTarget.style.display = "none")}
+              />
             )}
             <Button size="sm" variant="outline" onClick={() => fileRef.current?.click()} disabled={uploading}>
               {uploading ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Upload className="w-4 h-4 mr-1" />}
               Upload
             </Button>
             <span className="text-xs text-muted-foreground">or</span>
-            <Input placeholder="Image URL" value={form.image_url} onChange={(e) => setForm((f) => ({ ...f, image_url: e.target.value }))} className="flex-1 h-9 text-xs" />
+            <div className="flex-1 relative">
+              <Input 
+                placeholder="Paste Image, Youtube, or Spotify Link..." 
+                value={form.image_url} 
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const meta = getMediaThumbnail(val);
+                  
+                  if (meta) {
+                    setForm(f => ({ 
+                      ...f, 
+                      image_url: meta.url,
+                      // If it's music, auto-switch type
+                      item_type: meta.type === "music" ? "music" : f.item_type
+                    }));
+                    toast.success(`${meta.platform} image caught!`);
+                  } else {
+                    const detected = getMediaThumbnail(val);
+                    if (detected) {
+                      setForm(f => ({ 
+                         ...f, 
+                         image_url: detected.url,
+                         item_type: detected.kind || f.item_type,
+                         display_mode: "full"
+                      }));
+                      toast.success(`Detected ${detected.platform}!`);
+                    } else {
+                      setForm(f => ({ ...f, image_url: val }));
+                    }
+                  }
+                }} 
+                className="h-9 text-xs" 
+              />
+              {getMediaThumbnail(form.image_url) && (
+                 <div className="absolute right-2 top-1.5 flex items-center gap-1 opacity-60">
+                    <Check className="w-3 h-3 text-primary" />
+                    <span className="text-[8px] font-black uppercase text-primary">Caught</span>
+                 </div>
+              )}
+            </div>
           </div>
           <input ref={fileRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
         </div>
@@ -438,13 +581,47 @@ export function CatalogFormModal({
           </div>
         )}
         {!isSellableItemType(form.item_type) && CONTENT_ITEM_TYPE_KEYS.has(normalizeValue(form.item_type)) && (
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <ExternalLink className="w-4 h-4" /> 
-              {form.item_type === "article" ? "Read Full Article Link" : "View Source Link"}
-            </Label>
-            <Input placeholder="https://..." value={form.external_url} onChange={(e) => setForm((f) => ({ ...f, external_url: e.target.value }))} />
-            <p className="text-[10px] text-muted-foreground">Optional: Link to the original post, video, or article.</p>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <ExternalLink className="w-4 h-4 text-primary" /> 
+                {form.item_type === "article" ? "Read Full Article Link" : "Content URL (Music, YouTube, etc.)"}
+              </Label>
+              <Input 
+                placeholder="https://..." 
+                value={form.external_url} 
+                onChange={(e) => {
+                   const val = e.target.value;
+                   const detected = getMediaThumbnail(val);
+                   setForm(f => ({ 
+                     ...f, 
+                     external_url: val,
+                     item_type: detected?.kind || f.item_type,
+                     display_mode: detected ? "full" : f.display_mode
+                   }));
+                   if (detected) toast.success(`Smart-detected ${detected.platform} content!`);
+                }} 
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 p-4 rounded-2xl bg-primary/5 border border-primary/10">
+               <div className="flex items-center gap-3 flex-1">
+                 <Switch 
+                   checked={form.display_mode === "full"} 
+                   onCheckedChange={(v) => setForm(f => ({ ...f, display_mode: v ? "full" : "minimal" }))} 
+                 />
+                 <div>
+                    <Label className="text-sm font-bold flex items-center gap-2">
+                      {form.display_mode === "full" ? "Full Embedded View" : "Minimal Link Mode"}
+                    </Label>
+                    <p className="text-[10px] text-muted-foreground">
+                      {form.display_mode === "full" 
+                        ? "Show the embedded player, map, or QR code directly." 
+                        : "Show a clean card with a thumbnail that opens the link."}
+                    </p>
+                 </div>
+               </div>
+            </div>
           </div>
         )}
 
@@ -563,16 +740,61 @@ export function CatalogFormModal({
                         placeholder={m.type === "image" ? "Image URL (direct link)" : "Video URL (YouTube, Vimeo, or mp4)"}
                         value={m.url}
                         onChange={(e) => {
+                          const val = e.target.value;
                           const updated = [...form.media];
-                          updated[mi] = { ...updated[mi], url: e.target.value };
-                          setForm((current) => ({ ...current, media: updated }));
+                          updated[mi] = { ...updated[mi], url: val };
+                          
+                          const meta = getMediaThumbnail(val);
+                          
+                          // Auto-detect thumbnail and type
+                          if (meta) {
+                            if (meta.type === "video" && !form.image_url) {
+                              setForm(curr => ({ ...curr, image_url: meta.url, media: updated }));
+                              toast.info("Auto-set video thumbnail as cover");
+                            } else if (meta.type === "music") {
+                              setForm(curr => ({ ...curr, item_type: "music", media: updated }));
+                              toast.info(`Detected ${meta.platform} link`);
+                            } else {
+                              setForm(current => ({ ...current, media: updated }));
+                            }
+                          } else {
+                            setForm((current) => ({ ...current, media: updated }));
+                          }
                         }}
                         className="h-9 rounded-lg text-xs border-border/40 focus-visible:ring-primary/20"
                       />
-                      <p className="text-[10px] text-muted-foreground">
-                        {m.type === "video" ? "Video uses URL only. Paste YouTube/Vimeo/mp4 URL." : "Use upload or paste direct image URL."}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-[10px] text-muted-foreground flex-1">
+                          {m.type === "video" ? "Video uses URL only. Paste YouTube/Vimeo/mp4 URL." : "Use upload or paste direct image URL."}
+                        </p>
+                        {m.url && getMediaThumbnail(m.url) && (
+                          <div className={cn(
+                            "flex items-center gap-1.5 px-2 py-0.5 rounded-full border animate-pulse",
+                            getMediaThumbnail(m.url)?.type === "music" ? "bg-green-500/10 border-green-500/20 text-green-600" : "bg-primary/10 border-primary/20 text-primary"
+                          )}>
+                             {getMediaThumbnail(m.url)?.type === "music" ? <Music className="w-2.5 h-2.5" /> : <Check className="w-2.5 h-2.5" />}
+                             <span className="text-[8px] font-black uppercase">
+                               {getMediaThumbnail(m.url)?.platform} Detected
+                             </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
+
+                    {(m.type === "video" || m.url) && (
+                      <div className="w-12 h-12 rounded-lg overflow-hidden border border-border/50 shrink-0 bg-muted flex items-center justify-center p-1">
+                        {getMediaThumbnail(m.url)?.type === "music" ? (
+                           <Music className="w-6 h-6 opacity-40 text-black" />
+                        ) : (
+                          <img 
+                            src={getMediaThumbnail(m.url)?.url || m.url} 
+                            alt="" 
+                            className="w-full h-full object-cover" 
+                            onError={(e) => (e.currentTarget.style.display = "none")}
+                          />
+                        )}
+                      </div>
+                    )}
 
                     {m.type === "image" && (
                       <>

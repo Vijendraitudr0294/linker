@@ -4,7 +4,7 @@ import { parseCatalogCategory } from "@/lib/catalogCategory";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Trash2, ExternalLink, FileText, ShoppingBag, UtensilsCrossed, Dumbbell, Download, Ship, Car, Users, FileText as FileTextIcon, Video, Newspaper, Music, MessageSquare, Clapperboard } from "lucide-react";
+import { Pencil, Trash2, ExternalLink, FileText, ShoppingBag, UtensilsCrossed, Dumbbell, Download, Ship, Car, Users, FileText as FileTextIcon, Video, Newspaper, Music, MessageSquare, Clapperboard, QrCode, MapPin } from "lucide-react";
 
 export const TYPE_ICONS: Record<ItemType, typeof ShoppingBag> = {
   physical: ShoppingBag,
@@ -20,6 +20,8 @@ export const TYPE_ICONS: Record<ItemType, typeof ShoppingBag> = {
   music: Music,
   post: MessageSquare,
   reel: Clapperboard,
+  qr: QrCode,
+  map: MapPin,
 };
 
 interface CatalogGridProps {
@@ -89,6 +91,11 @@ export function CatalogGrid({ items, onEdit, onDelete, onToggle }: CatalogGridPr
                           <Icon className="w-3 h-3 text-black/50" />
                           {item.item_type}
                         </Badge>
+                        {item.display_mode === "full" && (
+                          <Badge className="bg-primary/20 border-2 border-primary text-[9px] h-5 text-primary font-black uppercase tracking-widest shadow-[2px_2px_0_0_rgba(0,0,0,0.1)]">
+                            Full Mode
+                          </Badge>
+                        )}
                       </div>
                     </div>
 

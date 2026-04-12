@@ -5,7 +5,7 @@ export default function SitemapPage() {
     const sections = [
         { title: "Core Substrate", links: ["/home", "/studio", "/forge", "/solutions"] },
         { title: "Network & Directory", links: ["/marketplace", "/pricing", "/features"] },
-        { title: "Dashboard Modules", links: ["/dashboard", "/dashboard/links", "/dashboard/appearance", "/dashboard/qrforge", "/dashboard/socialflow"] },
+        { title: "Dashboard Modules", links: ["/dashboard", "/dashboard/links", "/dashboard/qrforge", "/dashboard/socialflow"] },
         { title: "Knowledge & Trust", links: ["/faq", "/privacy", "/security", "/help", "/api-docs"] },
     ];
 

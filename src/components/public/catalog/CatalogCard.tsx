@@ -60,7 +60,7 @@ export const CatalogCard = ({
   }, [item.id, onView]);
   const Icon = TYPE_ICONS[item.item_type] || ShoppingBag;
   const isOutOfStock = item.track_inventory && item.stock_quantity !== null && item.stock_quantity !== undefined && item.stock_quantity <= 0;
-  const ctaLabel = resolveItemCtaLabel(item.item_type, settings, item.external_url ? "Buy" : "Buy"); 
+  const ctaLabel = resolveItemCtaLabel(item.item_type, settings, "Buy Now", item.external_url); 
 
   return (
     <motion.button

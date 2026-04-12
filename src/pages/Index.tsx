@@ -40,7 +40,7 @@ const Hero = () => {
     const y1 = useTransform(scrollY, [0, 500], [0, 200]);
 
     return (
-        <section className="relative min-h-screen pt-60 pb-40 bg-[#F0F2F5] overflow-hidden flex items-center">
+        <section className="relative min-h-[90vh] pt-32 pb-20 bg-[#F0F2F5] overflow-hidden flex items-center">
             <div className="absolute inset-0 pointer-events-none opacity-[0.03]">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#000_1px,transparent_1px)] bg-[size:40px_40px]" />
             </div>
@@ -48,24 +48,30 @@ const Hero = () => {
             {/* Parallax Floating Icons - Emotional Trigger: Joyful Liberation */}
             <div className="absolute inset-0 pointer-events-none">
                 {[
-                    { Icon: Instagram, bg: "bg-pink-300", text: "text-black" },
-                    { Icon: Twitter, bg: "bg-sky-400", text: "text-black" },
-                    { Icon: Youtube, bg: "bg-red-400", text: "text-white" },
-                    { Icon: Music, bg: "bg-emerald-400", text: "text-black" },
-                    { Icon: ShoppingCart, bg: "bg-yellow-400", text: "text-black" },
-                    { Icon: QrCode, bg: "bg-fuchsia-400", text: "text-black" }
-                ].map(({ Icon, bg, text }, i) => (
+                    { Icon: Instagram, bg: "bg-pink-300", text: "text-black", top: "12%", left: "8%" },
+                    { Icon: Twitter, bg: "bg-sky-400", text: "text-black", top: "75%", left: "5%" },
+                    { Icon: Youtube, bg: "bg-red-400", text: "text-white", top: "45%", left: "12%" },
+                    { Icon: Music, bg: "bg-emerald-400", text: "text-black", top: "18%", left: "85%" },
+                    { Icon: ShoppingCart, bg: "bg-yellow-400", text: "text-black", top: "82%", left: "88%" },
+                    { Icon: QrCode, bg: "bg-fuchsia-400", text: "text-black", top: "50%", left: "90%" }
+                ].map(({ Icon, bg, text, top, left }, i) => (
                     <motion.div
                         key={i}
                         animate={{ 
-                            y: [-5, 5, -5],
-                            rotate: [-4, 4, -4]
+                            y: [0, i % 2 === 0 ? 20 : -20, 0],
+                            x: [0, i % 3 === 0 ? 15 : -15, 0],
+                            rotate: [0, i % 2 === 0 ? 10 : -10, 0]
                         }}
-                        transition={{ duration: 4, repeat: Infinity, delay: i * 0.4, ease: "easeInOut" }}
+                        transition={{ 
+                            duration: 5 + i, 
+                            repeat: Infinity, 
+                            delay: i * 0.2, 
+                            ease: "easeInOut" 
+                        }}
                         style={{ 
-                            left: i < 3 ? `${1 + (i * 8)}%` : `${85 + (i - 3) * 8}%`, 
-                            top: `${5 + (i % 2) * 80}%`,
-                            y: useTransform(scrollY, [0, 1000], [0, ((i % 2 === 0 ? 1 : -1) * 150)])
+                            left, 
+                            top,
+                            y: useTransform(scrollY, [0, 1000], [0, ((i % 2 === 0 ? 1 : -1) * 200)])
                         }}
                         className={cn("absolute w-12 h-12 sm:w-16 sm:h-16 border-[3px] border-black rounded-xl md:rounded-[20px] shadow-[6px_6px_0_0_rgba(0,0,0,1)] flex items-center justify-center z-0", bg, text)}
                     >
@@ -76,7 +82,7 @@ const Hero = () => {
 
             <div className="container max-w-[1400px] mx-auto px-10 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center relative z-10">
                 <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>
-                    <div className="flex flex-wrap items-center gap-4 mb-12">
+                    <div className="flex flex-wrap items-center gap-4 mb-8">
                         <div className="inline-flex items-center gap-3 px-6 py-3 bg-emerald-400 border-4 border-black rounded-full text-[10px] font-black uppercase tracking-[0.4em] shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
                             <Sparkles className="w-4 h-4 fill-black" /> REAL STORIES: TESSA
                         </div>
@@ -84,22 +90,22 @@ const Hero = () => {
                             <Zap className="w-4 h-4 fill-black text-black" /> AI POWERED
                         </div>
                     </div>
-                    <h1 className="text-[52px] md:text-[80px] font-[1000] tracking-tighter leading-[1.1] text-black mb-16 uppercase">
+                    <h1 className="text-[42px] md:text-[64px] font-[1000] tracking-tighter leading-[1.1] text-black mb-10 uppercase">
                         ONE LINK FOR <br />
                         <span className="relative inline-block mt-4">
                             <span className="relative z-10 text-white px-4">EVERYTHING.</span>
                             <span className="absolute inset-0 bg-black -rotate-1 skew-x-3 scale-[1.05] border-4 border-black shadow-[12px_12px_0_0_rgba(236,72,153,1)]" />
                         </span>
                     </h1>
-                    <p className="text-xl font-[1000] text-black/70 leading-relaxed mb-12 max-w-xl uppercase">
+                    <p className="text-lg font-[1000] text-black/70 leading-relaxed mb-8 max-w-xl uppercase">
                         STOP USING LINKS YOU DON'T OWN. BIOTRA GIVES YOU A PAGE THAT YOU CONTROL. IT'S YOUR BRAND. IT'S YOUR MONEY. ONE LINK, ALL YOUR STUFF.
                     </p>
-                    <p className="text-sm font-black uppercase tracking-widest text-emerald-600 mb-16 italic">
+                    <p className="text-sm font-black uppercase tracking-widest text-emerald-600 mb-10 italic">
                         "EASY TO START. IMPOSSIBLE TO IGNORE."
                     </p>
 
                     <div className="flex flex-col sm:flex-row items-center gap-8">
-                        <Link to="/register" className="w-full sm:w-auto px-16 py-8 bg-emerald-400 text-black border-4 border-black rounded-[24px] text-2xl font-[1000] uppercase tracking-widest shadow-[12px_12px_0_0_rgba(0,0,0,1)] hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all text-center">
+                        <Link to="/register" className="w-full sm:w-auto px-12 py-6 bg-emerald-400 text-black border-4 border-black rounded-[24px] text-xl font-[1000] uppercase tracking-widest shadow-[12px_12px_0_0_rgba(0,0,0,1)] hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all text-center">
                             GET STARTED FREE
                         </Link>
                     </div>
@@ -110,7 +116,7 @@ const Hero = () => {
                         style={{ y: y1 }}
                         className="relative w-full aspect-square bg-pink-300 border-8 border-black rounded-[60px] shadow-[32px_32px_0_0_rgba(0,0,0,1)] overflow-hidden"
                     >
-                        <img src="/images/hero.png" alt="Tessa Artist" className="w-full h-full object-cover grayscale-[0.2] contrast-125" />
+                        <img src="/images/hero_new.png" alt="Biotra Product Showcase" className="w-full h-full object-cover" />
                         
                         <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2, repeat: Infinity }} className="absolute top-12 right-12 w-48 h-16 bg-white border-4 border-black rounded-xl shadow-[8px_8px_0_0_rgba(0,0,0,1)] flex items-center justify-center font-[1000] uppercase text-[10px] tracking-widest gap-2">
                            <Radio className="w-4 h-4 text-emerald-500 animate-pulse" /> Tessa Live Now
@@ -124,7 +130,7 @@ const Hero = () => {
 
 // ─── STUDIO STORY (STORY: MARCUS) ───
 const StudioSection = () => (
-    <section id="studio" className="py-40 bg-[#FBCFE8] border-y-8 border-black overflow-hidden">
+    <section id="studio" className="py-32 bg-[#FBCFE8] border-y-8 border-black overflow-hidden">
         <div className="container max-w-[1400px] mx-auto px-10">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
                 <motion.div initial={{ opacity: 0, x: -100 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ type: "spring", bounce: 0.4, duration: 0.8 }}>
@@ -167,15 +173,15 @@ const StudioSection = () => (
 
 // ─── FORGE STORY (STORY: ELENA) ───
 const ForgeSection = () => (
-    <section id="forge" className="py-40 bg-[#FEF08A] border-b-8 border-black overflow-hidden">
+    <section id="forge" className="py-32 bg-[#FEF08A] border-b-8 border-black overflow-hidden">
         <div className="container max-w-[1400px] mx-auto px-10 text-center lg:text-left">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center lg:flex-row-reverse">
                 <motion.div initial={{ opacity: 0, x: 100 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ type: "spring", bounce: 0.4, duration: 0.8 }} className="lg:order-2">
                     <div className="inline-block px-4 py-2 bg-black text-white font-black text-[10px] uppercase tracking-widest mb-8 border-2 border-black rounded-lg shadow-[4px_4px_0_0_rgba(0,0,0,1)]">QR FORGE</div>
-                    <h2 className="text-[48px] md:text-[82px] font-[1000] leading-[0.85] tracking-tighter mb-10 uppercase">
+                    <h2 className="text-[42px] md:text-[64px] font-[1000] leading-[0.85] tracking-tighter mb-10 uppercase">
                         SMART QR <br /> CODES.
                     </h2>
-                    <p className="text-xl font-black text-black leading-relaxed mb-10 max-w-lg uppercase">
+                    <p className="text-lg font-black text-black leading-relaxed mb-10 max-w-lg uppercase">
                         PRINT THEM. SHARE THEM. CONNECT YOUR SHOP TO THE REAL WORLD. PEOPLE JUST SCAN YOUR CODE TO SEE YOUR STUFF.
                     </p>
                     <p className="text-lg font-bold text-black/40 italic mb-12 uppercase">
@@ -210,15 +216,15 @@ const ForgeSection = () => (
 
 // ─── COMMERCE STORY (STORY: ALEX) ───
 const CommerceSection = () => (
-    <section id="commerce" className="py-40 bg-[#D1FAE5] border-b-8 border-black overflow-hidden">
+    <section id="commerce" className="py-32 bg-[#D1FAE5] border-b-8 border-black overflow-hidden">
         <div className="container max-w-[1400px] mx-auto px-10">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
                 <motion.div initial={{ opacity: 0, x: -100 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ type: "spring", bounce: 0.4, duration: 0.8 }}>
                     <div className="inline-block px-4 py-2 bg-black text-white font-black text-[10px] uppercase tracking-widest mb-8 border-2 border-black rounded-lg shadow-[4px_4px_0_0_rgba(0,0,0,1)]">MERCHANT HUB</div>
-                    <h2 className="text-[48px] md:text-[82px] font-[1000] leading-[0.85] tracking-tighter mb-10 uppercase">
+                    <h2 className="text-[42px] md:text-[64px] font-[1000] leading-[0.85] tracking-tighter mb-10 uppercase">
                         KEEP ALL <br /> THE MONEY.
                     </h2>
-                    <p className="text-xl font-black text-black leading-relaxed mb-10 max-w-lg uppercase">
+                    <p className="text-lg font-black text-black leading-relaxed mb-10 max-w-lg uppercase">
                         OTHER SITES TAKE 30% OF YOUR SALES. WE TAKE ZERO. YOU WORK HARD, SO YOU SHOULD KEEP ALL THE PROFIT.
                     </p>
                     <p className="text-lg font-bold text-black/40 italic mb-12 uppercase">
@@ -265,10 +271,10 @@ const Solutions = () => {
     const cardVariants = { hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0, transition: { type: "spring" as const, bounce: 0.4 } } };
     
     return (
-    <section id="solutions" className="py-40 bg-[#F0F2F5] border-b-8 border-black">
+    <section id="solutions" className="py-32 bg-[#F0F2F5] border-b-8 border-black">
         <div className="container max-w-[1400px] mx-auto px-10">
             <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-24 flex flex-col items-center text-center max-w-4xl mx-auto">
-                <h2 className="text-[48px] md:text-[82px] font-[1000] leading-[0.85] uppercase tracking-tighter mb-10 italic">WHO IS BIOTRA FOR?</h2>
+                <h2 className="text-[42px] md:text-[64px] font-[1000] leading-[0.85] uppercase tracking-tighter mb-10 italic">WHO IS BIOTRA FOR?</h2>
                 <p className="inline-block px-4 py-2 bg-yellow-400 text-black border-2 border-black rounded-lg text-xl font-black uppercase tracking-widest shadow-[4px_4px_0_0_rgba(0,0,0,1)]">REAL PEOPLE GETTING THEIR FREEDOM.</p>
             </motion.div>
             
@@ -295,7 +301,7 @@ const Solutions = () => {
                     <div>
                         <h3 className="text-[32px] font-[1000] uppercase italic leading-none mb-6">Leon: The Shop</h3>
                         <p className="text-sm font-black text-black/60 leading-relaxed mb-8 uppercase">
-                           KEEP 100% OF YOUR PROFITS. NO PLATFORM FEES. <span className="font-black text-white bg-black px-1 border border-black inline-block">100% SOVEREIGNTY.</span>
+                           KEEP 100% OF YOUR PROFITS. NO PLATFORM FEES. <span className="font-black text-white bg-black px-1 border border-black inline-block">100% OWNERSHIP.</span>
                         </p>
                         <p className="text-[10px] font-black uppercase text-yellow-600 underline decoration-2 underline-offset-4">"SELL DIRECT."</p>
                     </div>
@@ -508,9 +514,9 @@ export default function Index() {
             <CommerceSection />
 
             {/* ─── NEW: HOW IT HELPS ─── */}
-            <section className="py-40 bg-white border-b-8 border-black">
+            <section className="py-32 bg-white border-b-8 border-black">
                 <div className="container max-w-[1400px] mx-auto px-10 text-center">
-                    <h2 className="text-[48px] md:text-[80px] font-[1000] uppercase mb-20 tracking-tighter">HOW IT HELPS YOU</h2>
+                    <h2 className="text-[42px] md:text-[64px] font-[1000] uppercase mb-16 tracking-tighter">HOW IT HELPS YOU</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
                         {[
                             { title: "CONNECT EVERYTHING", desc: "ONE LINK FOR ALL YOUR SOCIALS AND SHOP." },
@@ -527,11 +533,11 @@ export default function Index() {
             </section>
 
             {/* ─── NEW: HOME-BASED HEROES ─── */}
-            <section className="py-40 bg-pink-300 border-b-8 border-black overflow-hidden">
+            <section className="py-32 bg-pink-300 border-b-8 border-black overflow-hidden">
                 <div className="container max-w-[1400px] mx-auto px-10">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
                         <motion.div initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-                            <h2 className="text-[48px] md:text-[80px] font-[1000] uppercase mb-10 leading-none">SUPPORTING <br /> HOME MAKERS.</h2>
+                            <h2 className="text-[42px] md:text-[64px] font-[1000] uppercase mb-10 leading-none">SUPPORTING <br /> HOME MAKERS.</h2>
                             <p className="text-xl font-black mb-12 uppercase leading-relaxed">
                                 WE SUPPORT WOMEN WHO RUN BUSINESSES FROM HOME. WHETHER YOU SELL CLOTHES, FOOD, OR ART, BIOTRA HELPS YOU REACH MORE CUSTOMERS.
                             </p>
@@ -542,7 +548,7 @@ export default function Index() {
                         </motion.div>
                         <div className="relative">
                             <div className="w-full aspect-square bg-white border-8 border-black rounded-[40px] shadow-[24px_24px_0_0_rgba(0,0,0,1)] flex items-center justify-center p-12">
-                                <ShoppingBag size={120} strokeWidth={3} />
+                                <img src="/images/qr_feature.png" alt="Biotra QR Connect" className="w-full h-full object-contain" />
                             </div>
                         </div>
                     </div>

@@ -5,18 +5,26 @@ import fallbackData from '../../../data_dump.json';
 
 // Initialize LocalStorage with data_dump if empty
 function initializeDB() {
-  const CURRENT_DB_VERSION = 'v1.0.1'; // Increment this to force seed again
+  const CURRENT_DB_VERSION = 'v1.0.3'; // Forced increment for JSON structure fix
   const isSetup = localStorage.getItem('local_db_loaded');
   const storedVersion = localStorage.getItem('local_db_version');
 
   if (!isSetup || storedVersion !== CURRENT_DB_VERSION) {
-    console.log('📦 Seeding Local Database from data_dump.json...');
-    const tables = Object.keys(fallbackData);
+    const rawData = (fallbackData as any).default || fallbackData;
+    console.log('📦 Seeding Local Database from data_dump.json (Version ' + CURRENT_DB_VERSION + ')...');
+    const tables = Object.keys(rawData);
     for (const table of tables) {
-      localStorage.setItem(`db_${table}`, JSON.stringify(fallbackData[table as keyof typeof fallbackData]));
+      const records = rawData[table];
+      localStorage.setItem(`db_${table}`, JSON.stringify(records));
+      if (table === 'profiles') {
+        console.log(`✅ Loaded ${records?.length || 0} profiles into local storage.`);
+      }
     }
     localStorage.setItem('local_db_loaded', 'true');
     localStorage.setItem('local_db_version', CURRENT_DB_VERSION);
+  } else {
+    const profiles = JSON.parse(localStorage.getItem('db_profiles') || '[]');
+    console.log(`ℹ️ Local DB already initialized with ${profiles.length} profiles.`);
   }
 }
 
@@ -47,7 +55,10 @@ class MockQueryBuilder {
   }
 
   select(query: string = '*') {
-    this.action = 'select';
+    // If we already have a mutation action, select just means we want data back
+    if (this.action !== 'insert' && this.action !== 'update' && this.action !== 'upsert' && this.action !== 'delete') {
+      this.action = 'select';
+    }
     return this; 
   }
 
@@ -76,6 +87,26 @@ class MockQueryBuilder {
 
   eq(key: string, value: any) {
     this.filters.push(r => r[key] === value);
+    return this;
+  }
+
+  neq(key: string, value: any) {
+    this.filters.push(r => r[key] !== value);
+    return this;
+  }
+
+  in(key: string, values: any[]) {
+    this.filters.push(r => Array.isArray(values) && values.includes(r[key]));
+    return this;
+  }
+
+  gte(key: string, value: any) {
+    this.filters.push(r => r[key] >= value);
+    return this;
+  }
+
+  lte(key: string, value: any) {
+    this.filters.push(r => r[key] <= value);
     return this;
   }
 
@@ -129,7 +160,8 @@ class MockQueryBuilder {
       const updatedData = [...data, ...newRecords];
       saveTableData(this.tableName, updatedData);
       dbChannel.postMessage({ table: this.tableName, event: 'INSERT', new: newRecords[0] });
-      return { data: this.payload, error: null };
+      // Return the newly created record with its ID
+      return { data: newRecords, error: null };
     }
 
     if (this.action === 'update') {
@@ -263,7 +295,7 @@ export const supabaseMock = {
     },
     signOut: () => {
       localStorage.removeItem('is_logged_in');
-      localStorage.removeItem('local_db_loaded');
+      // We no longer remove local_db_loaded to ensure persistence across sessions
       return Promise.resolve({ error: null });
     },
   },
@@ -285,9 +317,89 @@ export const supabaseMock = {
       subscribe: () => ({ unsubscribe: () => {} }),
     };
   },
+  async rpc(name: string, params: any) {
+    console.log(`🍦 Mock RPC Call: ${name}`, params);
+    
+    if (name === 'upsert_links') {
+      const { p_user_id, p_links } = params;
+      const data = getTableData('links');
+      const results: any[] = [];
+      let updatedData = [...data];
+
+      for (const rec of (p_links || [])) {
+        const matchIdx = updatedData.findIndex(r => r.id === rec.id && r.user_id === p_user_id);
+        if (matchIdx !== -1) {
+           const updated = { ...updatedData[matchIdx], ...rec, updated_at: new Date().toISOString() };
+           updatedData[matchIdx] = updated;
+           results.push(updated);
+        } else {
+           const inserted = { 
+             id: rec.id || crypto.randomUUID(), 
+             user_id: p_user_id,
+             created_at: new Date().toISOString(), 
+             clicks: 0,
+             ...rec 
+           };
+           updatedData.push(inserted);
+           results.push(inserted);
+        }
+      }
+      
+      saveTableData('links', updatedData);
+      dbChannel.postMessage({ table: 'links', event: 'UPDATE', new: results[0] });
+      return { data: results, error: null };
+    }
+
+    if (name === 'delete_links') {
+      const { p_user_id, p_ids } = params;
+      const data = getTableData('links');
+      const newData = data.filter(r => !(r.user_id === p_user_id && p_ids.includes(r.id)));
+      saveTableData('links', newData);
+      dbChannel.postMessage({ table: 'links', event: 'DELETE' });
+      return { data: p_ids.length, error: null };
+    }
+
+    if (name === 'reorder_links') {
+      const { p_user_id, p_order } = params;
+      const data = getTableData('links');
+      let updatedData = [...data];
+      
+      for (const item of (p_order || [])) {
+        const idx = updatedData.findIndex(r => r.id === item.id && r.user_id === p_user_id);
+        if (idx !== -1) {
+          updatedData[idx].sort_order = item.order_index;
+        }
+      }
+      
+      saveTableData('links', updatedData);
+      return { data: p_order.length, error: null };
+    }
+
+    return { data: null, error: { message: `Mock RPC ${name} not implemented` } };
+  },
+  storage: {
+    from: (bucket: string) => ({
+      upload: async (path: string, file: File) => {
+        console.log(`📁 Mock Upload to ${bucket}/${path}`);
+        // Simulate a delay
+        await new Promise(r => setTimeout(r, 1000));
+        return { data: { path }, error: null };
+      },
+      getPublicUrl: (path: string) => {
+        return { data: { publicUrl: `https://mock-storage.local/${bucket}/${path}` } };
+      },
+      list: async (path: string) => {
+        return { data: [], error: null };
+      },
+      remove: async (paths: string[]) => {
+        return { data: [], error: null };
+      }
+    })
+  },
   removeChannel: (channel: any) => {
     if (channel?.unsubscribe) channel.unsubscribe();
   },
 };
+
 
 

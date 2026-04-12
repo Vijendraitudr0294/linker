@@ -139,6 +139,7 @@ export const useCatalog = (items: CatalogItemData[], profileUserId: string) => {
       music: contentCards.filter((item) => item.kind === "music").length,
       reel: contentCards.filter((item) => item.kind === "reel").length,
       post: contentCards.filter((item) => item.kind === "post").length,
+      itinerary: contentCards.filter((item) => item.kind === "itinerary").length,
       other: contentCards.filter((item) => item.kind === "other").length,
     }),
     [contentCards]

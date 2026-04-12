@@ -6,7 +6,12 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
 const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
 const useSupabaseMock = import.meta.env.VITE_USE_SUPABASE_MOCK === "true";
 
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabasePublishableKey);
+export const isSupabaseConfigured = Boolean(
+  supabaseUrl && 
+  supabasePublishableKey && 
+  supabaseUrl !== "undefined" && 
+  supabasePublishableKey !== "undefined"
+);
 export const isUsingSupabaseMock = useSupabaseMock || !isSupabaseConfigured;
 
 // SECURITY: Prevent mock client from ever reaching production
@@ -27,4 +32,12 @@ const realClient = isSupabaseConfigured
   : null;
 
 // Use SupabaseClient type to preserve some type safety across the codebase
+if (!import.meta.env.PROD) {
+  console.log(
+    isUsingSupabaseMock 
+      ? "🍦 Supabase: Using LOCAL MOCK client (Offline Mode)" 
+      : "⚡ Supabase: Using REAL cloud client"
+  );
+}
+
 export const supabase = (isUsingSupabaseMock ? supabaseMock : realClient) as unknown as SupabaseClient<Database>;

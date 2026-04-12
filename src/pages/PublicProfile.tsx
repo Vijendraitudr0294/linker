@@ -1,8 +1,8 @@
-﻿import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { SocialIcon, isEmbedPlatform } from "@/components/SocialIcon";
 import type { SocialLinkConfig } from "@/stores/authStore";
-import { Zap, ExternalLink, User, ShoppingBag, Loader2, Share2, MessageCircle, Play, Newspaper, ArrowRight, Clapperboard, Link2, Star, Sparkles, Heart, Smile } from "lucide-react";
+import { Zap, ExternalLink, User, ShoppingBag, Loader2, Share2, MessageCircle, Play, Newspaper, ArrowRight, Clapperboard, Link2, Star, Sparkles, Heart, Smile, Copy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -15,7 +15,7 @@ import StudioContentGrid from "@/components/public/StudioContentGrid";
 import { ShareModal } from "@/components/public/ShareModal"; /* PREMIUM REDESIGN */
 import ThemeEffects from "@/components/theme/ThemeEffects";
 import TipJar from "@/components/public/TipJar";
-import { computePalette, computeBgStyle, getLinkButtonClasses, getLinkButtonStyle, getLinkIconBgStyle, getFooterColor, getContrastColor, type ProfileAppearance } from "@/lib/profileRenderer";
+import { computePalette, computeBgStyle, getLinkButtonClasses, getLinkButtonStyle, getLinkIconBgStyle, getFooterColor, getContrastColor, getProfileCardStyle, type ProfileAppearance } from "@/lib/profileRenderer";
 import { parseStudioProfileState, type StudioCardItem } from "@/lib/publicStudio";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import type { Tables } from "@/integrations/supabase/types";
@@ -208,10 +208,20 @@ const PublicProfile = () => {
   };
 
   useEffect(() => {
-    if (queryLoading) { setLoading(true); return; }
-    if (queryError || (!queryLoading && !queryData)) { setNotFound(true); setLoading(false); return; }
+    console.log("📍 PublicProfile Query Status:", { queryLoading, queryError, hasData: !!queryData, username });
+    if (queryLoading) {
+      setLoading(true);
+      return;
+    }
+    if (queryError || (!queryLoading && !queryData)) {
+      console.warn("🚫 PublicProfile Not Found Triggered", { queryError, queryData, username });
+      setNotFound(true);
+      setLoading(false);
+      return;
+    }
     
     if (queryData) {
+      console.log("✅ PublicProfile Data Received:", queryData.profileData?.username);
       const { profileData, linksData, appearanceData, catalogData } = queryData;
       
       let sLinks = (profileData as any).social_links || [];
@@ -234,29 +244,33 @@ const PublicProfile = () => {
 
       setCatalogItems(catalogData || []);
 
-      if (appearanceData) {
-        const a = appearanceData as any;
+      if (appearanceData || profileData?.creator_metrics) {
+        const a = appearanceData as any || {};
+        const metrics = profileData?.creator_metrics as any || {};
+        const overrides = metrics.design_overrides || {};
+        
         setAppearance({
           ...defaultAppearance,
-          background_color: a.background_color || defaultAppearance.background_color,
-          text_color: a.text_color || defaultAppearance.text_color,
-          card_color: a.card_color || defaultAppearance.card_color,
-          button_style: (a.button_style || defaultAppearance.button_style) as AppearanceData["button_style"],
-          button_bg: a.button_bg || defaultAppearance.button_bg,
-          button_text: a.button_text || defaultAppearance.button_text,
-          font_family: a.font_family || defaultAppearance.font_family,
-          layout_type: (a.layout_type || defaultAppearance.layout_type) as AppearanceData["layout_type"],
-          card_style: (a.card_style || defaultAppearance.card_style) as AppearanceData["card_style"],
-          profile_style_variant: (a.profile_style_variant || defaultAppearance.profile_style_variant) as AppearanceData["profile_style_variant"],
-          gradient_from: a.gradient_from, gradient_to: a.gradient_to,
+          background_color: a.background_color || overrides.background_color || defaultAppearance.background_color,
+          text_color: a.text_color || overrides.text_color || defaultAppearance.text_color,
+          card_color: a.card_color || overrides.card_color || defaultAppearance.card_color,
+          button_style: (a.button_style || overrides.button_style || defaultAppearance.button_style) as AppearanceData["button_style"],
+          button_bg: a.button_bg || overrides.button_bg || defaultAppearance.button_bg,
+          button_text: a.button_text || overrides.button_text || defaultAppearance.button_text,
+          font_family: a.font_family || overrides.font_family || defaultAppearance.font_family,
+          layout_type: (a.layout_type || overrides.layout_type || defaultAppearance.layout_type) as AppearanceData["layout_type"],
+          card_style: (a.card_style || overrides.card_style || defaultAppearance.card_style) as AppearanceData["card_style"],
+          profile_style_variant: (a.profile_style_variant || overrides.profile_style_variant || defaultAppearance.profile_style_variant) as AppearanceData["profile_style_variant"],
+          gradient_from: a.gradient_from || overrides.gradient_from, 
+          gradient_to: a.gradient_to || overrides.gradient_to,
           show_avatar: a.show_avatar !== undefined ? a.show_avatar : true,
-          background_image: a.background_image || undefined,
-          background_overlay: a.background_overlay || undefined,
-          animated_gradient: a.animated_gradient || undefined,
-          animation_class: a.animation_class || undefined,
+          background_image: a.background_image || overrides.background_image || undefined,
+          background_overlay: a.background_overlay || overrides.background_overlay || undefined,
+          animated_gradient: a.animated_gradient || overrides.animated_gradient || undefined,
+          animation_class: a.animation_class || overrides.animation_class || undefined,
           shop_tab_label: a.shop_tab_label || defaultAppearance.shop_tab_label,
           links_tab_label: a.links_tab_label || defaultAppearance.links_tab_label,
-          theme_id: a.theme_id || undefined,
+          theme_id: a.theme_id || overrides.theme_id || undefined,
         });
       }
       setLoading(false);
@@ -265,16 +279,33 @@ const PublicProfile = () => {
   }, [queryData, queryLoading, queryError]);
 
   useEffect(() => {
-    let channel: RealtimeChannel | null = null;
+    let channels: RealtimeChannel[] = [];
     const subscribe = async () => {
-      if (!isSupabaseConfigured || !username || !queryData?.profileData?.user_id) return;
-      channel = supabase.channel(`profile_realtime_${queryData.profileData.user_id}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `user_id=eq.${queryData.profileData.user_id}` },
+      if (!username || !queryData?.profileData?.user_id) return;
+      const userId = queryData.profileData.user_id;
+      
+      // Monitor Profile Changes
+      const profileChannel = supabase.channel(`public_profile_${userId}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `user_id=eq.${userId}` },
           () => { void refetch(); }
         ).subscribe();
+      
+      // Monitor Appearance Changes (Theme/Layout)
+      const appearanceChannel = supabase.channel(`public_appearance_${userId}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'appearance_settings', filter: `user_id=eq.${userId}` },
+          () => { void refetch(); }
+        ).subscribe();
+
+      // Monitor Link Changes
+      const linksChannel = supabase.channel(`public_links_${userId}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'links', filter: `user_id=eq.${userId}` },
+          () => { void refetch(); }
+        ).subscribe();
+        
+      channels = [profileChannel, appearanceChannel, linksChannel];
     };
     subscribe();
-    return () => { if (channel) supabase.removeChannel(channel); };
+    return () => { channels.forEach(c => supabase.removeChannel(c)); };
   }, [username, queryData, refetch]);
 
   const headerSocials = useMemo(() => {
@@ -291,6 +322,18 @@ const PublicProfile = () => {
   const isBrutalism = appearance.layout_type === "brutalism";
   const isRetroPop = appearance.theme_id?.startsWith("retro-pop-");
   const isMusicStyle = appearance.profile_style_variant === "music";
+  const contrastText = palette.cardText;
+
+  // Derived: whether each tab has content to show
+  const hasLinks = links.length > 0;
+  const hasShop = catalogItems.length > 0;
+
+  // Auto-select the first available tab after data loads
+  useEffect(() => {
+    if (loading) return;
+    if (!hasLinks && hasShop) setActiveTab("shop");
+    else setActiveTab("links");
+  }, [loading, hasLinks, hasShop]);
 
   if (loading) {
     return (
@@ -325,6 +368,11 @@ const PublicProfile = () => {
       <ThemeEffects appearance={appearance} />
       {isRetroPop && <RetroStickers />}
       
+      {/* Designer Fix: Radial Glow Overlay for Depth */}
+      {!isBrutalism && (
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-40 bg-[radial-gradient(circle_at_50%_30%,rgba(255,255,255,0.12)_0%,transparent_70%)]" />
+      )}
+      
       <div className={cn("relative z-10 w-full max-w-[620px] mx-auto px-3 md:px-0 pt-4 md:pt-8")}>
         <div
           className={cn(
@@ -334,192 +382,262 @@ const PublicProfile = () => {
           style={bgStyle}
         >
           <div className="w-full px-3 md:px-5 pt-4 md:pt-6 pb-10">
-        {/* Header Content */}
+        {/* Header Content - PREMIUM REDESIGN */}
+        {/* Sleek Profile Header - Wrapped in Theme Card */}
         <div className={cn(
-          "w-full p-5 md:p-7 mb-6 relative overflow-hidden transition-all duration-500",
-          isBrutalism ? "bg-white border-4 border-black shadow-[12px_12px_0_0_rgba(0,0,0,1)] rounded-none" : "bg-white/10 backdrop-blur-3xl border border-white/20 rounded-[40px] shadow-2xl",
-          isRetroPop && "!shadow-[16px_16px_0_0_rgba(0,0,0,1)] !border-black border-4"
-        )} style={{ borderColor: isBrutalism ? "#000" : palette.cardBorder }}>
+          "w-full max-w-xl mx-auto mb-6",
+          !isBrutalism && "rounded-[28px]"
+        )} style={getProfileCardStyle(appearance, palette)}>
+          <div className="flex items-start sm:items-center gap-6 relative z-10 px-4 py-8 text-left">
           
-          <div className="grid grid-cols-1 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-5 md:gap-7">
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 md:gap-6">
-              <div className={cn(
-                "shrink-0 relative group",
-                isBrutalism ? "w-28 h-28 md:w-32 md:h-32 border-4 border-black rounded-none shadow-[6px_6px_0_0_rgba(0,0,0,1)] flex flex-col" : "w-28 h-28 md:w-32 md:h-32 rounded-[28px] md:rounded-[32px] overflow-hidden shadow-2xl ring-4 ring-white/10",
-                isRetroPop && "border-4 border-black !bg-white !p-2 !pb-8 !h-auto !shadow-none rotate-[-2deg] transition-transform hover:rotate-0"
-              )}>
-                <div className={cn(
-                    "w-full h-full overflow-hidden",
-                    isRetroPop ? "aspect-square border-2 border-black" : ""
-                )}>
-                  {profile.avatar_url ? (
-                      <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                      <div className="w-full h-full bg-muted flex items-center justify-center"><User className="w-12 h-12 opacity-20" /></div>
-                  )}
-                </div>
-                {isRetroPop && (
-                    <div className="mt-2 text-center text-[8px] font-black uppercase tracking-widest text-black opacity-30">Studio Photo</div>
-                )}
-              </div>
-
-              <div className="min-w-0 flex-1 text-center sm:text-left">
-                <h1 className={cn(
-                  "font-black tracking-tight text-xl sm:text-2xl md:text-[1.9rem] leading-[1.08] mb-2 break-all",
-                  isBrutalism ? "text-black" : "",
-                  isRetroPop && "text-black drop-shadow-[4px_4px_0_rgba(255,255,255,1)]"
-                )} style={{ color: isBrutalism ? "#000" : palette.cardText }}>
-                  {profile.name || profile.username}
-                </h1>
-                <p className={cn(
-                  "text-base md:text-lg opacity-60 leading-relaxed mb-5",
-                  isBrutalism ? "text-black opacity-100 font-bold" : ""
-                )} style={{ color: isBrutalism ? "#000" : palette.cardText }}>
-                  {profile.bio || "Creative Designer & Builder"}
-                </p>
-                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4">
-                  <button 
-                    onClick={handleMessageAction}
-                    className={cn(
-                      "px-8 md:px-10 py-3.5 md:py-4 font-black uppercase tracking-widest text-xs transition-all",
-                      isBrutalism ? "bg-black text-white border-4 border-black shadow-[6px_6px_0_0_rgba(0,0,0,1)] rounded-none hover:translate-x-1 hover:translate-y-1 hover:shadow-none" : "rounded-2xl shadow-xl hover:opacity-90"
-                    )}
-                    style={{ backgroundColor: isBrutalism ? "#000" : palette.btnBg, color: isBrutalism ? "#fff" : palette.btnText }}
-                  >
-                    Connect
-                  </button>
-                </div>
-              </div>
-            </div>
-
+          {/* Avatar Area - Column 1 */}
+          <motion.div 
+            whileHover={{ scale: 1.05 }}
+            className={cn(
+               "relative shrink-0 w-28 h-28 sm:w-36 sm:h-36 rounded-full p-1 transition-all",
+               isBrutalism ? "border-4 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] rounded-none" : "shadow-xl"
+            )}
+            style={!isBrutalism ? { backgroundColor: `${palette.cardBg}10`, boxShadow: `0 0 0 1px ${palette.cardBorder}40` } : {}}
+          >
             <div className={cn(
-              "h-full p-4 md:p-5",
-              isBrutalism ? "bg-white border-[3px] border-black shadow-[6px_6px_0_0_rgba(0,0,0,1)] rounded-none" : "bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl"
-            )} style={{ borderColor: isBrutalism ? "#000" : palette.cardBorder }}>
-              <p className={cn(
-                "text-[10px] font-black uppercase tracking-[0.2em] mb-3 opacity-70",
-                isBrutalism ? "text-black" : ""
-              )} style={{ color: isBrutalism ? "#000" : palette.cardText }}>
-                Quick Actions
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {headerSocials.length > 0 && headerSocials.slice(0, 5).map((l, i) => (
-                  <a
-                    key={`top-${i}`}
-                    href={l.url}
-                    target="_blank"
+                "w-full h-full overflow-hidden",
+                isBrutalism ? "" : "rounded-full"
+            )}>
+              {profile.avatar_url ? (
+                  <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" loading="lazy" />
+              ) : (
+                  <div className="w-full h-full bg-white/5 flex items-center justify-center"><User className="w-12 h-12 opacity-30 text-white" /></div>
+              )}
+            </div>
+            {profile.role === 'admin' && (
+               <div className="absolute -bottom-2 -right-2 bg-black border-2 border-white rounded-full p-1.5 shadow-lg">
+                  <Sparkles className="w-4 h-4 text-yellow-400 fill-current" />
+               </div>
+            )}
+          </motion.div>
+
+          {/* Text & Actions Area - Column 2 */}
+          <div className="flex flex-col flex-1 min-w-0">
+            <h1 className={cn(
+               "font-black tracking-tight text-2xl sm:text-3xl leading-tight mb-2 truncate"
+            )} style={{ color: contrastText }}>
+              {profile.name || profile.username}
+            </h1>
+            
+            <p className={cn(
+               "text-sm sm:text-base leading-relaxed mb-4 font-medium"
+            )} style={{ color: contrastText, opacity: 0.8 }}>
+              {profile.bio || "Building modern digital experiences."}
+            </p>
+
+            {/* Social Icons & Utilities (Share/Connect) ROW */}
+            <div className="flex flex-wrap items-center justify-start gap-2 sm:gap-3 mb-5 w-full">
+              <div className="flex items-center gap-2">
+                {headerSocials.length > 0 && headerSocials.slice(0, 4).map((l, i) => (
+                   <motion.a
+                      whileHover={{ scale: 1.1, y: -2 }}
+                      whileTap={{ scale: 0.9 }}
+                      key={`top-${i}`}
+                      href={l.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={cn(
+                         "w-9 h-9 sm:w-10 sm:h-10 flex flex-shrink-0 items-center justify-center transition-all",
+                         isBrutalism
+                            ? "bg-white border-2 border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)] rounded-none"
+                            : "backdrop-blur-md rounded-full shadow-sm hover:shadow-md"
+                      )}
+                      style={!isBrutalism ? { backgroundColor: `${palette.cardBg}20`, borderColor: `${palette.cardBorder}50`, borderWidth: '1px', color: contrastText } : { color: "#000" }}
+                   >
+                      <SocialIcon platform={l.platform} className="w-4 h-4 sm:w-5 sm:h-5" />
+                   </motion.a>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2">
+                {/* Primary Action Button (Connect) */}
+                <motion.button 
+                  whileTap={{ scale: 0.96 }}
+                  whileHover={{ scale: 1.02 }}
+                  onClick={handleMessageAction}
+                  className={cn(
+                     "px-6 sm:px-8 h-9 sm:h-10 font-bold uppercase tracking-[0.1em] text-[10px] sm:text-[11px] transition-all relative overflow-hidden flex items-center justify-center shrink-0 group",
+                     isBrutalism 
+                        ? "bg-black text-white border-2 border-black shadow-[3px_3px_0_0_rgba(0,0,0,1)] rounded-none hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none" 
+                        : "bg-white text-black rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.1)]"
+                  )}
+                  style={{ backgroundColor: palette.btnBg, color: getContrastColor(palette.btnBg), borderColor: isBrutalism ? "#000" : undefined }}
+                >
+                  {!isBrutalism && (
+                     <>
+                        <div className="absolute inset-x-[-100%] inset-y-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-25deg] group-hover:animate-[shimmer_1.5s_infinite]" />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
+                     </>
+                  )}
+                  <span className="relative z-10 transition-transform group-active:scale-95">Connect</span>
+                </motion.button>
+
+                <motion.button 
+                   whileHover={{ scale: 1.1, y: -2 }}
+                   whileTap={{ scale: 0.9 }}
+                   onClick={handleShareProfile}
+                   className={cn(
+                      "w-9 h-9 sm:w-10 sm:h-10 flex flex-shrink-0 items-center justify-center transition-all",
+                      isBrutalism ? "bg-white border-2 border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)] rounded-none" : "backdrop-blur-md rounded-full shadow-sm hover:shadow-md border border-white/20 bg-white/10"
+                   )}
+                   style={!isBrutalism ? { backgroundColor: `${palette.cardBg}20`, borderColor: `${palette.cardBorder}50`, color: contrastText } : { color: "#000" }}
+                >
+                   <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </motion.button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+        {/* Tabs - Only show if both tabs have content */}
+        {hasLinks && hasShop && (
+          <div className="w-full flex items-center justify-center mb-8 px-4">
+            <div className={cn(
+              "p-1.5 flex items-center gap-1 min-w-[280px] sm:min-w-[320px]",
+              isBrutalism ? "border-4 border-black bg-white" : "bg-black/30 backdrop-blur-2xl border border-white/5 shadow-inner rounded-full"
+            )}>
+              <button 
+                onClick={() => setActiveTab("shop")}
+                className={cn(
+                  "flex-1 relative z-10 py-3 rounded-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-[11px] transition-all duration-500",
+                  activeTab === "shop"
+                    ? (isBrutalism ? "bg-black text-white rounded-none" : "text-black drop-shadow-sm")
+                    : (isBrutalism ? "text-black" : "text-white/40 hover:text-white/70")
+                )}
+              >
+                {activeTab === "shop" && !isBrutalism && (
+                  <motion.div 
+                    layoutId="activeTabPill"
+                    className="absolute inset-0 bg-white rounded-full -z-10 shadow-[0_4px_15px_rgba(255,255,255,0.2)]"
+                    transition={{ type: "spring", bounce: 0.15, duration: 0.6 }}
+                  />
+                )}
+                {profile.creator_metrics?.tab_labels?.shop || appearance.shop_tab_label || "Shop"}
+              </button>
+
+              <button 
+                onClick={() => setActiveTab("links")}
+                className={cn(
+                  "flex-1 relative z-10 py-3 rounded-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-[11px] transition-all duration-500",
+                  activeTab === "links"
+                    ? (isBrutalism ? "bg-black text-white rounded-none" : "text-black drop-shadow-sm")
+                    : (isBrutalism ? "text-black" : "text-white/40 hover:text-white/70")
+                )}
+              >
+                {activeTab === "links" && !isBrutalism && (
+                  <motion.div 
+                    layoutId="activeTabPill"
+                    className="absolute inset-0 bg-white rounded-full -z-10 shadow-[0_4px_15px_rgba(255,255,255,0.2)]"
+                    transition={{ type: "spring", bounce: 0.15, duration: 0.6 }}
+                  />
+                )}
+                {profile.creator_metrics?.tab_labels?.links || appearance.links_tab_label || "Links"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className={cn(
+          "w-full px-4",
+          (appearance.layout_type === "grid" || appearance.layout_type === "bento") && activeTab === "links"
+            ? "grid gap-4 md:gap-5 grid-cols-2" 
+            : "block"
+        )}>
+          <AnimatePresence mode="wait">
+            {activeTab === "links" ? (
+              <motion.div
+                key="links-view"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                transition={{ duration: 0.3 }}
+                className={cn(
+                  "grid gap-4 md:gap-5 w-full",
+                  (appearance.layout_type === "grid" || appearance.layout_type === "bento") ? "grid-cols-2" : "grid-cols-1"
+                )}
+              >
+                {links.map((link, i) => (
+                  <motion.a 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    whileHover={{ scale: 1.02 }}
+                    key={link.id} 
+                    href={link.url} 
+                    target="_blank" 
                     rel="noreferrer"
                     className={cn(
-                      "w-9 h-9 flex items-center justify-center transition-all hover:scale-110",
-                      isBrutalism
-                        ? "bg-white border-2 border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)] rounded-none"
-                        : "bg-white/10 backdrop-blur-md border border-white/20 rounded-lg hover:bg-white/20"
+                      "block w-full p-4 group",
+                      (appearance.layout_type === "bento") 
+                        ? (i === 0 ? "col-span-2 flex flex-row items-center gap-4 min-h-[100px]" : "text-center flex flex-col justify-center min-h-[140px]") 
+                        : "",
+                      !isBrutalism && "rounded-2xl"
                     )}
-                    style={{ color: isBrutalism ? "#000" : palette.cardText }}
+                    style={getProfileCardStyle(appearance, palette)}
                   >
-                    <SocialIcon platform={l.platform} className="w-4 h-4" />
-                  </a>
+                    <div className={cn("flex items-center gap-4", (appearance.layout_type === "bento" && i !== 0) ? "flex-col" : "")}>
+                      <div className={cn(
+                        "flex items-center justify-center shrink-0 transition-transform group-hover:rotate-12 group-hover:scale-110",
+                        (appearance.layout_type === "bento") ? (i === 0 ? "w-14 h-14" : "w-12 h-12 mb-1") : "w-12 h-12",
+                        isBrutalism
+                          ? "bg-black text-white rounded-none border-2 border-black"
+                          : isMusicStyle
+                            ? "rounded-full border-2"
+                            : "rounded-full"
+                      )} style={{ backgroundColor: isBrutalism ? "#000" : `${palette.btnBg}20` }}>
+                        {isMusicStyle ? <Play className="w-4 h-4 text-white ml-0.5" /> : <Link2 className="w-5 h-5 text-white" />}
+                      </div>
+                      <div className="min-w-0 flex-1 w-full">
+                        <span className={cn(
+                          "font-black uppercase tracking-tight block",
+                          (appearance.layout_type === "bento") 
+                            ? (i === 0 ? "text-base text-left truncate" : "text-[10px] sm:text-[11px] line-clamp-2 leading-tight") 
+                            : "text-sm truncate",
+                          isBrutalism ? "text-black" : ""
+                        )} style={{ color: isBrutalism ? "#000" : palette.cardText }}>
+                          {link.title}
+                        </span>
+                        {isMusicStyle && (
+                          <span className="text-[10px] font-bold uppercase tracking-wider opacity-50 block truncate" style={{ color: isBrutalism ? "#000" : palette.cardText }}>
+                            Tap to open
+                          </span>
+                        )}
+                      </div>
+                      {!(appearance.layout_type === "bento") && <ExternalLink className="ml-auto w-4 h-4 opacity-20" />}
+                      {(appearance.layout_type === "bento" && i === 0) && <ExternalLink className="ml-auto w-4 h-4 opacity-20" />}
+                    </div>
+                  </motion.a>
                 ))}
-                <button 
-                  onClick={handleShareProfile}
-                  className={cn(
-                    "w-9 h-9 flex items-center justify-center transition-all",
-                    isBrutalism ? "bg-white border-2 border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)] rounded-none" : "bg-white/10 backdrop-blur-md border border-white/20 rounded-lg hover:bg-white/20"
-                  )}
-                  style={{ color: isBrutalism ? "#000" : palette.cardText }}
-                >
-                  <Share2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex justify-center mb-10">
-          <div className={cn(
-            "p-1.5 flex gap-2",
-            isBrutalism ? "bg-black border-4 border-black rounded-none" : "bg-white/5 backdrop-blur-xl border border-white/10 rounded-[20px]"
-          )}>
-            <button 
-              onClick={() => setActiveTab("links")}
-              className={cn(
-                "px-8 py-2.5 rounded-[14px] font-black uppercase tracking-widest text-[10px] transition-all",
-                activeTab === "links"
-                  ? (isBrutalism
-                      ? "bg-white text-black rounded-none"
-                      : isMusicStyle
-                        ? "bg-white/90 text-black shadow-lg rounded-full"
-                        : "bg-white text-black shadow-lg")
-                  : "opacity-40"
-              )}
-              style={{ color: activeTab === "links" ? "#000" : isBrutalism ? "#fff" : palette.cardText }}
-            >
-              Links
-            </button>
-            <button 
-              onClick={() => setActiveTab("shop")}
-              className={cn(
-                "px-8 py-2.5 rounded-[14px] font-black uppercase tracking-widest text-[10px] transition-all",
-                activeTab === "shop"
-                  ? (isBrutalism
-                      ? "bg-white text-black rounded-none"
-                      : isMusicStyle
-                        ? "bg-white/90 text-black shadow-lg rounded-full"
-                        : "bg-white text-black shadow-lg")
-                  : "opacity-40"
-              )}
-              style={{ color: activeTab === "shop" ? "#000" : isBrutalism ? "#fff" : palette.cardText }}
-            >
-              Shop
-            </button>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          {activeTab === "links" ? (
-            links.map((link) => (
-              <a 
-                key={link.id} 
-                href={link.url} 
-                target="_blank" 
-                rel="noreferrer"
-                className={cn(
-                  "block w-full p-4 group transition-all duration-300",
-                  isBrutalism ? "bg-white border-4 border-black shadow-[8px_8px_0_0_rgba(0,0,0,1)] rounded-none hover:translate-x-1 hover:translate-y-1 hover:shadow-none" : "bg-white/5 backdrop-blur-2xl border border-white/10 rounded-2xl hover:bg-white/10 shadow-lg"
-                )}
-                style={isMusicStyle && !isBrutalism ? { backgroundColor: `${palette.cardBg}`, borderColor: `${palette.cardBorder}` } : undefined}
+              </motion.div>
+            ) : (
+              <motion.div
+                key="shop-view"
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.3 }}
+                className="w-full"
               >
-                <div className="flex items-center gap-4">
-                  <div className={cn(
-                    "w-12 h-12 flex items-center justify-center shrink-0 transition-transform group-hover:rotate-12",
-                    isBrutalism
-                      ? "bg-black text-white rounded-none border-2 border-black"
-                      : isMusicStyle
-                        ? "rounded-full border-2"
-                        : "bg-black/20 rounded-xl"
-                  )} style={{ backgroundColor: isBrutalism ? "#000" : palette.btnBg }}>
-                    {isMusicStyle ? <Play className="w-4 h-4 text-white ml-0.5" /> : <Link2 className="w-5 h-5 text-white" />}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <span className={cn(
-                      "font-black uppercase tracking-tight text-sm block truncate",
-                      isBrutalism ? "text-black" : ""
-                    )} style={{ color: isBrutalism ? "#000" : palette.cardText }}>
-                      {link.title}
-                    </span>
-                    {isMusicStyle && (
-                      <span className="text-[10px] font-bold uppercase tracking-wider opacity-50 block truncate" style={{ color: isBrutalism ? "#000" : palette.cardText }}>
-                        Tap to open
-                      </span>
-                    )}
-                  </div>
-                  <ExternalLink className="ml-auto w-4 h-4 opacity-20" />
-                </div>
-              </a>
-            ))
-          ) : (
-            <PublicCatalog items={catalogItems} appearance={appearance} palette={palette} />
-          )}
+                <PublicCatalog 
+                  items={catalogItems} 
+                  profileUserId={profile.user_id}
+                  textColor={isBrutalism ? "#000000" : palette.cardText}
+                  buttonBg={isBrutalism ? "#000000" : palette.btnBg}
+                  buttonText={isBrutalism ? "#ffffff" : getContrastColor(palette.btnBg)}
+                  buttonStyle={isBrutalism ? "square" : appearance.button_style}
+                  catalogCardBg={isBrutalism ? "#ffffff" : palette.cardBg}
+                  cardBorder={isBrutalism ? "#000000" : palette.cardBorder}
+                  hasPhoto={Boolean(profile.avatar_url)}
+                  upiId={profile.upi_id}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
         
         <div className="mt-8 w-full">
@@ -681,4 +799,3 @@ const PublicProfile = () => {
 };
 
 export default PublicProfile;
-

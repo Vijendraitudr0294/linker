@@ -19,7 +19,7 @@ import { CatalogDemoDataModal } from "@/components/catalog/CatalogDemoDataModal"
 import { cn } from "@/lib/utils";
 import {
   Plus, ShoppingBag, UtensilsCrossed, Dumbbell, Download, Ship, Car,
-  Video, Newspaper, Music, MessageSquare, Clapperboard, Loader2, Activity
+  Video, Newspaper, Music, MessageSquare, Clapperboard, Loader2, Activity, QrCode, MapPin
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -39,6 +39,8 @@ const TYPE_OPTIONS: { value: string; label: string; icon: typeof ShoppingBag }[]
   { value: "music", label: "Music / Audio", icon: Music },
   { value: "post", label: "Post / Shoutout", icon: MessageSquare },
   { value: "reel", label: "Short Reel / Video", icon: Clapperboard },
+  { value: "qr", label: "QR Code", icon: QrCode },
+  { value: "map", label: "Location / Map", icon: MapPin },
 ];
 
 type CatalogMediaInput = { type: "image" | "video"; url: string };

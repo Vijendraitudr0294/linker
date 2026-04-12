@@ -1,6 +1,6 @@
 import { Worker } from "bullmq";
 import { createClient } from "@supabase/supabase-js";
-import { redisConnection } from "../queues/socialQueue.js";
+import { redisConnection } from "../queues/socialQueue";
 
 const supabase = createClient(
   process.env.SUPABASE_URL || "https://placeholder.supabase.co",

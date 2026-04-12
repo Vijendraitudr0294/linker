@@ -142,6 +142,35 @@ const getTabLabelsFromMetricObject = (metricObject: unknown): Partial<TabLabelSe
 
   return next;
 };
+const getDesignOverridesFromMetricObject = (metricObject: unknown): Partial<AppearanceSettings> => {
+  if (!isRecord(metricObject)) return {};
+
+  const metrics = metricObject;
+  const overrides = isRecord(metrics.design_overrides) ? metrics.design_overrides : {};
+  
+  const next: Partial<AppearanceSettings> = {};
+  if (typeof overrides.layout_type === "string") next.layoutType = overrides.layout_type as any;
+  if (typeof overrides.card_style === "string") next.cardStyle = overrides.card_style as any;
+  if (typeof overrides.animation_class === "string") next.animationClass = overrides.animation_class;
+  if (typeof overrides.button_bg === "string") next.buttonBg = overrides.button_bg;
+  if (typeof overrides.button_text === "string") next.buttonText = overrides.button_text;
+  if (typeof overrides.background_color === "string") next.backgroundColor = overrides.background_color;
+  if (typeof overrides.text_color === "string") next.textColor = overrides.text_color;
+  if (typeof overrides.card_color === "string") next.cardColor = overrides.card_color;
+  if (typeof overrides.font_family === "string") next.fontFamily = overrides.font_family;
+  if (typeof overrides.button_style === "string") next.buttonStyle = overrides.button_style as any;
+  if (typeof overrides.profile_style_variant === "string") next.profileStyleVariant = overrides.profile_style_variant as any;
+
+  return next;
+};
+
+const combineFallbackDesignOverrides = (
+  creatorOverrides: Partial<AppearanceSettings>,
+  socialOverrides: Partial<AppearanceSettings>
+): Partial<AppearanceSettings> => {
+  const combined = { ...socialOverrides, ...creatorOverrides };
+  return combined;
+};
 
 const mergeTabLabelsIntoMetricObject = (
   metricObject: unknown,
@@ -285,6 +314,14 @@ const persistDesignOverridesFallback = async (userId: string, data: Partial<Appe
   if (data.fontFamily !== undefined) overrides.font_family = data.fontFamily;
   if (data.buttonStyle !== undefined) overrides.button_style = data.buttonStyle;
   if (data.profileStyleVariant !== undefined) overrides.profile_style_variant = data.profileStyleVariant;
+  if (data.themeId !== undefined) overrides.theme_id = data.themeId;
+  if (data.animationClass !== undefined) overrides.animation_class = data.animationClass;
+  if (data.backgroundImage !== undefined) overrides.background_image = data.backgroundImage;
+  if (data.backgroundOverlay !== undefined) overrides.background_overlay = data.backgroundOverlay;
+  if (data.animatedGradient !== undefined) overrides.animated_gradient = data.animatedGradient;
+  if (data.heroImage !== undefined) overrides.hero_image = data.heroImage;
+  if (data.gradientFrom !== undefined) overrides.gradient_from = data.gradientFrom || "";
+  if (data.gradientTo !== undefined) overrides.gradient_to = data.gradientTo || "";
   
   if (Object.keys(overrides).length === 0) return true;
 
@@ -386,6 +423,11 @@ export const useAppearanceStore = create<AppearanceState>()((set, get) => ({
     const creatorMetricLabels = getTabLabelsFromMetricObject(profileData.creator_metrics);
     const socialMetricLabels = getTabLabelsFromMetricObject(profileData.social_stats);
     const fallbackTabLabels = combineFallbackTabLabels(creatorMetricLabels, socialMetricLabels);
+    
+    // Design Overrides Fallback
+    const creatorOverrides = getDesignOverridesFromMetricObject(profileData.creator_metrics);
+    const socialOverrides = getDesignOverridesFromMetricObject(profileData.social_stats);
+    const fallbackOverrides = combineFallbackDesignOverrides(creatorOverrides, socialOverrides);
 
     if (appearanceRes.data) {
       const appearanceRow = appearanceRes.data as Record<string, unknown>;
@@ -398,6 +440,12 @@ export const useAppearanceStore = create<AppearanceState>()((set, get) => ({
       set({
         settings: {
           ...dbSettings,
+          // Apply design overrides if DB value is missing or same as default while fallback has a specific value
+          layoutType: appearanceRow.layout_type ? dbSettings.layoutType : (fallbackOverrides.layoutType || dbSettings.layoutType),
+          animationClass: appearanceRow.animation_class ? dbSettings.animationClass : (fallbackOverrides.animationClass || dbSettings.animationClass),
+          cardStyle: appearanceRow.card_style ? dbSettings.cardStyle : (fallbackOverrides.cardStyle || dbSettings.cardStyle),
+          buttonStyle: appearanceRow.button_style ? dbSettings.buttonStyle : (fallbackOverrides.buttonStyle || dbSettings.buttonStyle),
+          
           shopTabLabel: resolveTabLabel(
             appearanceRow.shop_tab_label as string | undefined,
             fallbackTabLabels.shopTabLabel,
@@ -471,7 +519,7 @@ export const useAppearanceStore = create<AppearanceState>()((set, get) => ({
       backgroundColor: theme.backgroundColor,
       cardColor: theme.cardColor,
       textColor: theme.textColor,
-      buttonStyle: theme.buttonStyle,
+      buttonStyle: theme.buttonStyle ?? get().settings.buttonStyle,
       buttonBg: theme.buttonBg,
       buttonText: theme.buttonText,
       gradientFrom: theme.gradientFrom ?? undefined,
@@ -482,7 +530,8 @@ export const useAppearanceStore = create<AppearanceState>()((set, get) => ({
       animationClass: theme.animationClass ?? undefined,
       fontFamily: theme.fontFamily ?? get().settings.fontFamily,
       heroImage: theme.heroImage ?? undefined,
-      layoutType: theme.layoutMode ?? get().settings.layoutType,
+      // Support both layoutType (extracted themes) and layoutMode (preset themes)
+      layoutType: theme.layoutType ?? theme.layoutMode ?? get().settings.layoutType,
       cardStyle: theme.cardStyle ?? get().settings.cardStyle,
       profileStyleVariant: theme.profileStyleVariant ?? get().settings.profileStyleVariant,
     };

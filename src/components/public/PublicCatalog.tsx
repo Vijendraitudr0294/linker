@@ -109,33 +109,34 @@ const PublicCatalog = ({ items, profileUserId, textColor, buttonBg, buttonText, 
   return (
     <>
       <div className="w-full"> {/* REDESIGN: Removed bulky outer container */}
-        {showContentMode ? (
-          <>
-            <div className={cn("flex gap-2 overflow-x-auto pb-1 scrollbar-hide", compact && "gap-1.5")}>
+        {showContentMode && (
+          <div className="mb-12">
+            <div className={cn("flex gap-2 overflow-x-auto pb-4 scrollbar-hide", compact && "gap-1.5")}>
               {[
-                { key: "all", label: "All", count: contentCards.length },
+                { key: "all", label: "All Content", count: contentCards.length },
                 { key: "video", label: "Video", count: contentStats.video },
                 { key: "reel", label: "Shorts", count: contentStats.reel },
                 { key: "news", label: "News", count: contentStats.news },
                 { key: "recipe", label: "Recipes", count: contentStats.recipe },
                 { key: "music", label: "Music", count: contentStats.music },
                 { key: "post", label: "Posts", count: contentStats.post },
+                { key: "itinerary", label: "Locations", count: contentStats.itinerary },
                 { key: "other", label: "More", count: contentStats.other },
               ].filter(option => option.count > 0).map((option) => (
                 <button
                   key={option.key}
                   onClick={() => setContentFilter(option.key as ContentFilter)}
                   className={cn(
-                    "font-bold uppercase tracking-widest transition-all shrink-0 border rounded-xl", 
+                    "font-bold uppercase tracking-widest transition-all shrink-0 border rounded-xl shadow-sm", 
                     compact ? "px-3 py-1.5 text-[9px]" : "px-4 py-2 text-[11px]",
                     getBtnRadius()
                   )}
                   style={{
-                    background: contentFilter === option.key ? `linear-gradient(135deg, ${chipGradientA}, ${chipGradientB})` : "rgba(255,255,255,0.04)",
+                    background: contentFilter === option.key ? `linear-gradient(135deg, ${chipGradientA}, ${chipGradientB})` : "rgba(255,255,255,0.05)",
                     color: contentFilter === option.key ? chipTextColor : textColor,
-                    borderColor: contentFilter === option.key ? `${buttonBg}80` : `${textColor}10`,
+                    borderColor: contentFilter === option.key ? `${buttonBg}80` : `${textColor}15`,
                     boxShadow: contentFilter === option.key ? `0 8px 16px -8px ${buttonBg}66` : "none",
-                    opacity: contentFilter === option.key ? 1 : 0.6
+                    opacity: contentFilter === option.key ? 1 : 0.7
                   }}
                 >
                   {option.label}
@@ -143,103 +144,113 @@ const PublicCatalog = ({ items, profileUserId, textColor, buttonBg, buttonText, 
               ))}
             </div>
 
-            {contentStats.reel > 0 && (contentFilter === "all" || contentFilter === "reel") && (
-              <div className="space-y-4 pt-2">
-                <div className="flex items-center justify-between px-1">
-                  <h3 className={cn("font-black uppercase tracking-[0.14em]", compact ? "text-[11px]" : "text-sm")} style={{ color: textColor, opacity: 0.9 }}>
-                    Reels & Shorts
-                  </h3>
-                  <div className="flex gap-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary opacity-50" />
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary opacity-25" />
+            <div className="space-y-12">
+              {contentStats.reel > 0 && (contentFilter === "all" || contentFilter === "reel") && (
+                <div className="space-y-4 pt-2">
+                  <div className="flex items-center justify-between px-1">
+                    <h3 className={cn("font-black uppercase tracking-[0.14em]", compact ? "text-[11px]" : "text-sm")} style={{ color: textColor, opacity: 0.9 }}>
+                      Reels & Shorts
+                    </h3>
+                    <div className="flex gap-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary opacity-50" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary opacity-25" />
+                    </div>
+                  </div>
+                  <div className="flex gap-3 overflow-x-auto pb-6 scrollbar-hide -mx-1 px-1 snap-x snap-mandatory">
+                      {contentCards.filter(c => c.kind === "reel" || (c.kind === "video" && c.title.toLowerCase().includes("reel"))).map((item, index) => (
+                      <motion.button
+                        key={item.id}
+                        onViewportEnter={() => void trackEvent(item.id, "view")}
+                        viewport={{ once: true, amount: 0.5 }}
+                        onClick={() => {
+                           const rawItem = normalizedItems.find(i => i.id === item.id);
+                           if (rawItem) {
+                             void trackEvent(item.id, "click");
+                             setSelectedItem(rawItem);
+                           }
+                        }}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: index * 0.05 }}
+                        className={cn(
+                          "relative shrink-0 aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl snap-center group border border-white/10",
+                          compact ? "w-[140px]" : "w-[180px] md:w-[220px]"
+                        )}
+                      >
+                        {item.imageUrl ? (
+                          <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-card/40 backdrop-blur-md">
+                            <Clapperboard className={cn("w-12 h-12 text-white/50", compact && "w-8 h-8")} />
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                           <div className={cn(
+                             "rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30",
+                             compact ? "w-10 h-10" : "w-12 h-12"
+                           )}>
+                             <Play className="fill-white w-4 h-4 ml-0.5" />
+                           </div>
+                        </div>
+                        <div className={cn("absolute bottom-4 left-4 right-4 text-left", compact && "bottom-3 left-3 right-3")}>
+                          <h4 className={cn("text-white text-sm font-bold line-clamp-2 leading-snug drop-shadow-md", compact && "text-[11px]")}>{item.title}</h4>
+                          <div className="flex items-center gap-1.5 mt-2 opacity-80">
+                             <Clapperboard className={cn("w-3 h-3 text-white", compact && "w-2 h-2")} />
+                             <span className={cn("text-[10px] text-white font-bold uppercase tracking-wider", compact && "text-[7px]")}>Watch Reel</span>
+                          </div>
+                        </div>
+                      </motion.button>
+                    ))}
                   </div>
                 </div>
-                <div className="flex gap-3 overflow-x-auto pb-6 scrollbar-hide -mx-1 px-1 snap-x snap-mandatory">
-                    {contentCards.filter(c => c.kind === "reel" || (c.kind === "video" && c.title.toLowerCase().includes("reel"))).map((item, index) => (
-                    <motion.button
+              )}
+
+              {filteredContentCards.filter(c => c.kind !== "reel").length > 0 && (
+                <div className={cn(
+                  "grid gap-4",
+                  compact ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+                )}>
+                  {filteredContentCards.filter(c => c.kind !== "reel").map((item, index) => (
+                    <ContentCard
                       key={item.id}
-                      onViewportEnter={() => void trackEvent(item.id, "view")}
-                      viewport={{ once: true, amount: 0.5 }}
+                      item={item}
+                      index={index}
+                      textColor={textColor}
+                      catalogCardBg={catalogCardBg}
+                      cardBorder={cardBorder}
+                      hasPhoto={hasPhoto}
+                      buttonBg={buttonBg}
+                      compact={compact}
+                      onView={(id) => void trackEvent(id, "view")}
                       onClick={() => {
-                         const rawItem = normalizedItems.find(i => i.id === item.id);
-                         if (rawItem) {
-                           void trackEvent(item.id, "click");
-                           setSelectedItem(rawItem);
-                         }
+                        const rawItem = normalizedItems.find(i => i.id === item.id);
+                        if (rawItem) {
+                          void trackEvent(item.id, "click");
+                          setSelectedItem(rawItem);
+                        }
                       }}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: index * 0.05 }}
-                      className={cn(
-                        "relative shrink-0 aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl snap-center group border border-white/10",
-                        compact ? "w-[140px]" : "w-[180px] md:w-[220px]"
-                      )}
-                    >
-                      {item.imageUrl ? (
-                        <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-card/40 backdrop-blur-md">
-                          <Clapperboard className={cn("w-12 h-12 text-white/50", compact && "w-8 h-8")} />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                         <div className={cn(
-                           "rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30",
-                           compact ? "w-10 h-10" : "w-12 h-12"
-                         )}>
-                           <Play className="fill-white w-4 h-4 ml-0.5" />
-                         </div>
-                      </div>
-                      <div className={cn("absolute bottom-4 left-4 right-4 text-left", compact && "bottom-3 left-3 right-3")}>
-                        <h4 className={cn("text-white text-sm font-bold line-clamp-2 leading-snug drop-shadow-md", compact && "text-[11px]")}>{item.title}</h4>
-                        <div className="flex items-center gap-1.5 mt-2 opacity-80">
-                           <Clapperboard className={cn("w-3 h-3 text-white", compact && "w-2 h-2")} />
-                           <span className={cn("text-[10px] text-white font-bold uppercase tracking-wider", compact && "text-[7px]")}>Watch Reel</span>
-                        </div>
-                      </div>
-                    </motion.button>
+                    />
                   ))}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+          </div>
+        )}
 
-            {filteredContentCards.filter(c => c.kind !== "reel").length === 0 && filteredContentCards.length > 0 ? null : filteredContentCards.length === 0 ? (
-              <div className="rounded-xl border px-4 py-5 text-sm font-medium" style={{ borderColor: `${textColor}22`, color: `${textColor}B5`, backgroundColor: `${textColor}06` }}>
-                No cards in this section yet.
-              </div>
-            ) : (
-              <div className={cn(
-                "grid gap-4",
-                compact ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-              )}>
-                {filteredContentCards.filter(c => c.kind !== "reel").map((item, index) => (
-                  <ContentCard
-                    key={item.id}
-                    item={item}
-                    index={index}
-                    textColor={textColor}
-                    catalogCardBg={catalogCardBg}
-                    cardBorder={cardBorder}
-                    hasPhoto={hasPhoto}
-                    buttonBg={buttonBg}
-                    compact={compact}
-                    onView={(id) => void trackEvent(id, "view")}
-                    onClick={() => {
-                      const rawItem = normalizedItems.find(i => i.id === item.id);
-                      if (rawItem) {
-                        void trackEvent(item.id, "click");
-                        setSelectedItem(rawItem);
-                      }
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-          </>
-        ) : (
-          <>
+        {/* Regular Catalog Section */}
+        <div className={cn("space-y-10", showContentMode && "mt-16 border-t pt-10")} style={{ borderColor: `${textColor}15` }}>
+          {showContentMode && displayItems.length > 0 && (
+            <div className="flex items-center gap-3 px-1">
+              <h3 className={cn("font-black uppercase tracking-[0.2em]", compact ? "text-[12px]" : "text-base")} style={{ color: textColor }}>
+                Shop & Products
+              </h3>
+              <div className="h-px flex-1" style={{ background: `${textColor}15` }} />
+            </div>
+          )}
+          
+          <div className="space-y-8">
             <CatalogFilters
               categories={categories}
               activeCategory={activeCategory}
@@ -267,10 +278,10 @@ const PublicCatalog = ({ items, profileUserId, textColor, buttonBg, buttonText, 
             ) : (
               <div 
                 className={cn(
-                   "grid w-full product-grid items-start", /* CARD EMERGENCY FIX */
-                   compact ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-3" /* CARD EMERGENCY FIX: 2 col mobile */
+                   "grid w-full product-grid items-start",
+                   compact ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-3"
                 )} 
-                style={{ width: '100%' }} /* CARD EMERGENCY FIX: Force fill */
+                style={{ width: '100%' }}
               >
                 {displayItems.map((item, index) => (
                   <CatalogCard
@@ -296,8 +307,8 @@ const PublicCatalog = ({ items, profileUserId, textColor, buttonBg, buttonText, 
                 ))}
               </div>
             )}
-          </>
-        )}
+          </div>
+        </div>
       </div>
 
       <AnimatePresence>

@@ -337,8 +337,8 @@ const SettingsPage = () => {
                       Refine your visual signature, themes, and global presence.
                     </p>
                   </div>
-                  <Button onClick={() => navigate("/dashboard/appearance")} className="w-fit rounded-full bg-emerald-600 text-white px-10 py-7 h-14 text-[10px] font-black uppercase tracking-widest shadow-2xl transition-all hover:scale-[1.05]">
-                    Open Design Studio
+                  <Button onClick={() => navigate("/dashboard/links?tab=styles")} className="w-fit rounded-full bg-emerald-600 text-white px-10 py-7 h-14 text-[10px] font-black uppercase tracking-widest shadow-2xl transition-all hover:scale-[1.05]">
+                    Open Visual Studio
                   </Button>
                </div>
             </Card>
@@ -678,9 +678,9 @@ const SettingsPage = () => {
                    type="button"
                    variant="outline"
                    className="h-10 px-6 rounded-full text-[10px] font-black uppercase tracking-widest border-black/10 hover:bg-black text-white bg-white hover:text-white transition-all shadow-lg"
-                   onClick={() => navigate("/dashboard/appearance")}
+                   onClick={() => navigate("/dashboard/links?tab=styles")}
                  >
-                   Studio
+                   Visual Style
                  </Button>
               </div>
 
@@ -778,11 +778,11 @@ const SettingsPage = () => {
                variant="ghost" 
                className="text-[11px] font-black uppercase tracking-[0.25em] text-black/40 hover:text-primary transition-colors py-4"
                onClick={() => {
-                 navigate("/dashboard/appearance");
+                 navigate("/dashboard/links?tab=styles");
                  setShowPreview(false);
                }}
             >
-               Refine Aesthetic in Design Studio
+               Refine Aesthetic in Visual Style
             </Button>
           </div>
         </div>

@@ -32,10 +32,11 @@ interface CatalogStat {
 interface QRScan {
   id: string;
   qr_code_id: string;
-  platform: string | null;
-  created_at: string;
-  short_code_used: string | null;
+  os: string | null;
+  scanned_at: string;
+  browser: string | null;
 }
+
 
 type SortKey = "title" | "views" | "clicks" | "orders" | "conversionRate";
 
@@ -160,16 +161,18 @@ const AnalyticsPage = () => {
           const qrIds = qrCodes.map((q) => q.id);
           let scansQuery = (supabase as any)
             .from("qr_scans")
-            .select("id, qr_code_id, platform, created_at, short_code_used")
+            .select("id, qr_code_id, os, scanned_at, browser")
             .in("qr_code_id", qrIds)
-            .order("created_at", { ascending: false })
+            .order("scanned_at", { ascending: false })
             .limit(100);
 
-          if (dateRange?.from) scansQuery = scansQuery.gte("created_at", dateRange.from.toISOString());
-          if (dateRange?.to) scansQuery = scansQuery.lte("created_at", dateRange.to.toISOString());
+
+          if (dateRange?.from) scansQuery = scansQuery.gte("scanned_at", dateRange.from.toISOString());
+          if (dateRange?.to) scansQuery = scansQuery.lte("scanned_at", dateRange.to.toISOString());
 
           const { data: scansData } = await scansQuery;
-          setQrScans(scansData || []);
+          setQrScans((scansData as any[]) || []);
+
         }
 
         // 6. Recent Activity feed from user_activity_logs
@@ -223,9 +226,10 @@ const AnalyticsPage = () => {
   }));
 
   // QR device breakdown
-  const iosScans = qrScans.filter(s => s.platform?.toLowerCase().includes("ios") || s.platform?.toLowerCase().includes("iphone") || s.platform?.toLowerCase().includes("ipad")).length;
-  const androidScans = qrScans.filter(s => s.platform?.toLowerCase().includes("android")).length;
+  const iosScans = qrScans.filter(s => s.os?.toLowerCase().includes("ios") || s.os?.toLowerCase().includes("iphone") || s.os?.toLowerCase().includes("ipad")).length;
+  const androidScans = qrScans.filter(s => s.os?.toLowerCase().includes("android")).length;
   const otherScans = qrScans.length - iosScans - androidScans;
+
 
   const qrDeviceData = [
     { name: "iOS", value: iosScans, fill: "#000000" },
@@ -239,7 +243,7 @@ const AnalyticsPage = () => {
     { icon: Link2, val: activeLinks, lab: "Active Links", bg: "bg-[#FCE7F3]" },
     { icon: Eye, val: totalCatalogViews, lab: "Catalog Views", bg: "bg-[#FEF9C3]" },
     { icon: ShoppingBag, val: totalOrders, lab: "Total Orders", bg: "bg-[#D1FAE5]" },
-    { icon: TrendingUp, val: `${overallConversion}%`, lab: "Conv. Rate", bg: "bg-[#E0E7FF]" },
+    { icon: TrendingUp, val: `${overallConversion}%`, lab: "Sales %", bg: "bg-[#E0E7FF]" },
     { icon: QrCode, val: totalQRScans, lab: "QR Scans", bg: "bg-[#FCE7F3]" },
   ];
 
@@ -271,7 +275,7 @@ const AnalyticsPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-black/30 mb-1">Performance Hub</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-black/30 mb-1">Your Stats</p>
           <h1 className="text-3xl md:text-4xl font-black text-black tracking-tight">Analytics</h1>
         </div>
         <div className="flex items-center gap-3">
@@ -365,7 +369,7 @@ const AnalyticsPage = () => {
       {qrCodes.length > 0 && (
         <Card className="bruddle-card p-6 md:p-8 bg-white">
           <h2 className="text-xl font-black text-black uppercase tracking-tight mb-6 flex items-center gap-3">
-            <QrCode className="w-5 h-5" /> QR Scan Intelligence
+            <QrCode className="w-5 h-5" /> QR Code Scans
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Per-code table */}

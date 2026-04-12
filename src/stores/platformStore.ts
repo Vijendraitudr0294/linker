@@ -84,9 +84,34 @@ export const usePlatformStore = create<PlatformState>()((set, get) => ({
       if (data && !error) {
         set({ settings: data as PlatformSettings, initialized: true });
       } else if (error) {
-        console.error("Failed to fetch platform settings:", error.message);
-        // Even on error, we mark as initialized to prevent infinite loop
-        // unless it's a transient error. For now, let's mark it.
+        // FALLBACK: If a column is missing (e.g. database not migrated), try fetching only the essential columns
+        if (error.message.includes("column") || error.code === 'PGRST204' || error.message.includes("does not exist")) {
+          console.warn("Schema mismatch in platform_settings, retrying with safe column list...");
+          const SAFE_SELECT = PLATFORM_SETTINGS_SELECT.split(", ")
+            .filter(col => ![
+              "link_template_categories", 
+              "theme_categories", 
+              "theme_presets", 
+              "niche_templates", 
+              "demo_catalog_packs"
+            ].includes(col))
+            .join(", ");
+            
+          const { data: safeData, error: safeError } = await supabase
+            .from("platform_settings")
+            .select(SAFE_SELECT)
+            .limit(1)
+            .single();
+            
+          if (safeData && !safeError) {
+            set({ settings: safeData as PlatformSettings, initialized: true });
+            return;
+          }
+          console.error("Failed to fetch platform settings even with safe list:", safeError?.message);
+        } else {
+          console.error("Failed to fetch platform settings:", error.message);
+        }
+
         set({ initialized: true });
       }
     } finally {

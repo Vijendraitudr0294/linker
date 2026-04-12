@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { CurrencyProvider } from "@/hooks/useCurrency";
 import { useEffect } from "react";
 import { useAuthStore } from "@/stores/authStore";
@@ -29,7 +29,6 @@ import DashboardLayout from "./components/dashboard/DashboardLayout";
 import DashboardOverview from "./pages/dashboard/DashboardOverview";
 import AppsIntegrationsPage from "./pages/dashboard/AppsIntegrationsPage";
 import LinkEditor from "./pages/dashboard/LinkEditor";
-import AppearancePage from "./pages/dashboard/AppearancePage";
 import SettingsPage from "./pages/dashboard/SettingsPage";
 import AnalyticsPage from "./pages/dashboard/AnalyticsPage";
 import AdminPage from "./pages/dashboard/AdminPage";
@@ -41,6 +40,7 @@ import OrdersPage from "./pages/dashboard/OrdersPage";
 import SocialflowPage from "./pages/dashboard/SocialflowPage";
 import QRForgePage from "./pages/dashboard/QRForgePage";
 import FormsPage from "./pages/dashboard/FormsPage";
+import TemplatesPage from "./pages/dashboard/TemplatesPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import PublicRoute from "./components/auth/PublicRoute";
 import PublicRouteErrorBoundary from "./components/PublicRouteErrorBoundary";
@@ -59,6 +59,8 @@ import FAQPage from "./pages/FAQPage";
 import SitemapPage from "./pages/SitemapPage";
 import SecurityPage from "./pages/SecurityPage";
 import PublicFormPage from "./pages/PublicFormPage";
+import Offline from "./pages/Offline";
+import { useState } from "react";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +68,7 @@ const AppInit = ({ children }: { children: React.ReactNode }) => {
   const initialize = useAuthStore((s) => s.initialize);
   const user = useAuthStore((s) => s.user);
   const fetchAppearance = useAppearanceStore((s) => s.fetchSettings);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => { 
     initialize(); 
@@ -78,6 +81,19 @@ const AppInit = ({ children }: { children: React.ReactNode }) => {
   }, [user?.user_id, fetchAppearance]);
 
   useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  useEffect(() => {
     // Capture referral ID from URL params (e.g., ?ref=abc123)
     const params = new URLSearchParams(window.location.search);
     const ref = params.get('ref') || params.get('referrer');
@@ -85,6 +101,10 @@ const AppInit = ({ children }: { children: React.ReactNode }) => {
       localStorage.setItem('last_referral_id', ref);
     }
   }, []);
+
+  if (isOffline) {
+    return <Offline />;
+  }
 
   return <>{children}</>;
 };
@@ -122,7 +142,8 @@ const App = () => (
                 <Route path="apps" element={<AppsIntegrationsPage />} />
                 <Route path="links" element={<LinkEditor />} />
                 <Route path="forms" element={<FormsPage />} />
-                <Route path="appearance" element={<AppearancePage />} />
+                <Route path="appearance" element={<Navigate to="/dashboard/links" replace />} />
+                <Route path="templates" element={<Navigate to="/dashboard/links" replace />} />
                 <Route path="analytics" element={<AnalyticsPage />} />
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="messages" element={<MessagesPage />} />

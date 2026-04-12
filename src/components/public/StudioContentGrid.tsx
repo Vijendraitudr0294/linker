@@ -1,4 +1,4 @@
-import { ExternalLink, Newspaper, Play } from "lucide-react";
+import { ExternalLink, Newspaper, Play, Ticket, Download, ShoppingBag, Calendar, MapPin, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { StudioCardItem } from "@/lib/publicStudio";
@@ -72,6 +72,72 @@ const StudioContentGrid = ({
           const isFeatured = item.layoutStyle === "featured";
           const isNews = item.type === "news";
           const isVideoLike = item.type === "video" || item.type === "broadcast" || item.type === "music";
+          const isTicket = item.type === "ticket";
+          const isDownload = item.type === "download";
+          const isProduct = item.type === "product";
+
+          // ── TICKET ROW RENDERER ──
+          if (isTicket && !compact) {
+            return (
+              <motion.a
+                key={item.id}
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                whileHover={{ y: -4, scale: 1.01 }}
+                className="col-span-1 md:col-span-2 flex items-center gap-4 bg-white/5 border border-white/10 rounded-[20px] p-3 transition-all group"
+              >
+                {/* Date Box */}
+                <div className="w-16 h-16 shrink-0 bg-white rounded-[14px] flex flex-col items-center justify-center p-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#2D6AFA] leading-none mb-1">
+                    {item.date?.split(' ')[0] || "JUN"}
+                  </span>
+                  <span className="text-xl font-black text-black leading-none">
+                    {item.date?.split(' ')[1] || "23"}
+                  </span>
+                </div>
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-bold text-sm text-white truncate">{item.title}</h4>
+                  <div className="flex items-center gap-3 mt-1 opacity-50 text-[10px]">
+                    <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {item.location || "Venue"}</span>
+                    <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {item.date || "Date"}</span>
+                  </div>
+                </div>
+                {/* Action */}
+                <div className="px-4 py-2 bg-white/10 group-hover:bg-white group-hover:text-black rounded-full transition-all">
+                  <span className="text-[10px] font-black uppercase tracking-widest">Tickets</span>
+                </div>
+              </motion.a>
+            );
+          }
+
+          // ── DOWNLOAD CARD RENDERER ──
+          if (isDownload) {
+            return (
+              <motion.a
+                key={item.id}
+                href={item.url}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                whileHover={{ scale: 1.04, y: -4 }}
+                className="flex items-center gap-4 bg-white rounded-[20px] p-4 group shadow-xl"
+              >
+                <div className="w-10 h-10 shrink-0 flex items-center justify-center bg-black rounded-full">
+                  <Download className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-black/40 leading-none mb-0.5">Download on</p>
+                  <p className="text-base font-black text-black leading-tight tracking-tight">{item.title || "App Store"}</p>
+                </div>
+                <ArrowRight className="w-5 h-5 text-black/10 group-hover:text-black transition-all" />
+              </motion.a>
+            );
+          }
 
           return (
             <motion.a
@@ -85,14 +151,20 @@ const StudioContentGrid = ({
               whileHover={compact ? undefined : { y: -4, scale: 1.02 }}
               className={cn(
                 "group overflow-hidden rounded-[16px] border backdrop-blur-md transition-all duration-500 cursor-pointer relative",
-                isFeatured && !compact && "md:col-span-2"
+                (isFeatured || isProduct) && !compact && "md:col-span-2"
               )}
               style={{
                 borderColor: alpha(borderColor, "15"),
                 backgroundColor: cardBackgroundColor || alpha(textColor, "03"),
-                boxShadow: "0 12px 40px -12px rgba(0,0,0,0.15)",
               }}
             >
+              {isProduct && item.price && (
+                <div className="absolute top-4 right-4 z-20">
+                  <div className="bg-[#2D6AFA] text-white px-3 py-1.5 rounded-full text-[11px] font-black shadow-lg">
+                    {item.price}
+                  </div>
+                </div>
+              )}
               {/* Thumbnail */}
               <div
                 className={cn("overflow-hidden relative", (isFeatured && !compact) ? "aspect-[2.1/1]" : "aspect-video")}

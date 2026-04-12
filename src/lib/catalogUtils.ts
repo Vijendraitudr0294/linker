@@ -37,6 +37,15 @@ export const sanitizeVariants = (value: unknown): ItemVariant[] => {
 };
 
 export const sanitizeMedia = (value: unknown): { type: "image" | "video"; url: string }[] => {
+  if (!value) return [];
+  
+  // Handle new object format: { items: [...], display_mode: "..." }
+  if (typeof value === "object" && !Array.isArray(value) && value !== null) {
+    const obj = value as Record<string, unknown>;
+    if (Array.isArray(obj.items)) return sanitizeMedia(obj.items);
+    return [];
+  }
+
   if (!Array.isArray(value)) return [];
 
   return value
@@ -51,6 +60,24 @@ export const sanitizeMedia = (value: unknown): { type: "image" | "video"; url: s
       };
     })
     .filter((entry) => entry.url.length > 0);
+};
+
+export const extractDisplayMode = (value: unknown): "minimal" | "full" => {
+  if (typeof value === "object" && !Array.isArray(value) && value !== null) {
+    const obj = value as Record<string, unknown>;
+    if (obj.display_mode === "full") return "full";
+  }
+  return "minimal";
+};
+
+export const extractMetadata = (value: unknown): Record<string, any> => {
+  if (typeof value === "object" && !Array.isArray(value) && value !== null) {
+    const obj = value as Record<string, unknown>;
+    if (typeof obj.metadata === "object" && obj.metadata !== null) {
+      return obj.metadata as Record<string, any>;
+    }
+  }
+  return {};
 };
 
 export const toCatalogItem = (row: Record<string, unknown>): CatalogItem => ({
@@ -75,6 +102,8 @@ export const toCatalogItem = (row: Record<string, unknown>): CatalogItem => ({
   schedule: (row.schedule as string) || "",
   location: (row.location as string) || "",
   media: sanitizeMedia(row.media),
+  display_mode: extractDisplayMode(row.media),
+  metadata: extractMetadata(row.media),
 });
 
 export const hasMissingMediaColumnError = (error: { message?: string | null; details?: string | null } | null): boolean => {

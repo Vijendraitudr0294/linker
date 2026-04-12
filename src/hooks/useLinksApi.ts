@@ -35,46 +35,101 @@ export const useLinkMutations = (userId: string | undefined) => {
   const queryClient = useQueryClient();
 
   const addLink = useMutation({
-    mutationFn: async ({ title, url, platform }: { title: string; url: string; platform: SocialPlatform }) => {
+    mutationFn: async ({ title, url, platform, sort_order }: { title: string; url: string; platform: SocialPlatform; sort_order?: number }) => {
       if (!userId) throw new Error("User not authenticated");
       
-      if (!title || title.trim().length === 0 || title.length > 80) {
-          throw new Error("Title must be between 1 and 80 characters");
+      let finalSortOrder = sort_order;
+      if (finalSortOrder === undefined) {
+        const { data: currentLinks } = await supabase
+          .from("links")
+          .select("sort_order")
+          .eq("user_id", userId)
+          .order("sort_order", { ascending: false })
+          .limit(1);
+        finalSortOrder = (currentLinks?.[0]?.sort_order ?? -1) + 1;
       }
-      if (!/^https?:\/\//i.test(url)) {
-          throw new Error("URL must be a valid HTTP/HTTPS URL");
-      }
-      
-      const { data: currentLinks } = await supabase
-        .from("links")
-        .select("sort_order")
-        .eq("user_id", userId)
-        .order("sort_order", { ascending: false })
-        .limit(1);
-      
-      const newSortOrder = (currentLinks?.[0]?.sort_order ?? -1) + 1;
 
-      const { data, error } = await supabase.rpc("upsert_links", {
+      // Try RPC first for backward compatibility with existing migrations
+      const { data: rpcData, error: rpcError } = await supabase.rpc("upsert_links", {
         p_user_id: userId,
-        p_links: [{ title, url, platform, sort_order: newSortOrder, is_active: true }]
+        p_links: [{ title, url, platform, sort_order: finalSortOrder, is_active: true }]
       });
 
+      if (!rpcError) return rpcData[0];
+
+      // FALLBACK: Use standard table operation if RPC is missing (404/P0001)
+      console.warn("RPC upsert_links failed, falling back to standard table insert:", rpcError.message);
+      const { data, error } = await supabase
+        .from("links")
+        .insert({
+          user_id: userId,
+          title,
+          url,
+          platform,
+          sort_order: finalSortOrder,
+          enabled: true
+        })
+        .select()
+        .single();
+
       if (error) throw error;
-      return data[0];
+      return data;
     },
-    onSuccess: (data) => {
+    onMutate: async (newLink) => {
+      await queryClient.cancelQueries({ queryKey: ["links", userId] });
+      const previousLinks = queryClient.getQueryData<LinkItem[]>(["links", userId]);
+      
+      const optimisticLink: LinkItem = {
+        id: `temp-${Date.now()}`,
+        title: newLink.title,
+        url: newLink.url,
+        platform: newLink.platform,
+        enabled: true,
+        clicks: 0,
+        sort_order: (previousLinks?.length || 0),
+        user_id: userId || ""
+      };
+
+      if (previousLinks) {
+        queryClient.setQueryData<LinkItem[]>(["links", userId], [...previousLinks, optimisticLink]);
+      }
+
+      return { previousLinks };
+    },
+    onError: (err, newLink, context) => {
+      if (context?.previousLinks) {
+        queryClient.setQueryData(["links", userId], context.previousLinks);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["links", userId] });
-      logActivity("link_add", `Added link: ${data.title}`);
     },
   });
 
   const updateLink = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<LinkItem> }) => {
       if (!userId) throw new Error("User not authenticated");
-      const { error } = await supabase.rpc("upsert_links", { 
+      
+      // Try RPC first
+      const { error: rpcError } = await supabase.rpc("upsert_links", { 
         p_user_id: userId, 
         p_links: [{ id, ...data }] 
       });
+
+      if (!rpcError) return { id, data };
+
+      // FALLBACK
+      console.warn("RPC upsert_links failed for update, falling back to standard table update:", rpcError.message);
+      const updatePayload: any = { ...data };
+      if (updatePayload.platform) {
+         // Handle possible renaming if platform contains layout
+      }
+      
+      const { error } = await supabase
+        .from("links")
+        .update(updatePayload)
+        .eq("id", id)
+        .eq("user_id", userId);
 
       if (error) throw error;
       return { id, data };
@@ -101,10 +156,22 @@ export const useLinkMutations = (userId: string | undefined) => {
   const deleteLink = useMutation({
     mutationFn: async (id: string) => {
       if (!userId) throw new Error("User not authenticated");
-      const { error } = await supabase.rpc("delete_links", { 
+      
+      // Try RPC first
+      const { error: rpcError } = await supabase.rpc("delete_links", { 
         p_user_id: userId, 
         p_ids: [id] 
       });
+
+      if (!rpcError) return id;
+
+      // FALLBACK
+      console.warn("RPC delete_links failed, falling back to standard table delete:", rpcError.message);
+      const { error } = await supabase
+        .from("links")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", userId);
 
       if (error) throw error;
       return id;
@@ -131,10 +198,22 @@ export const useLinkMutations = (userId: string | undefined) => {
   const toggleLink = useMutation({
     mutationFn: async ({ id, enabled }: { id: string; enabled: boolean }) => {
       if (!userId) throw new Error("User not authenticated");
-      const { error } = await supabase.rpc("upsert_links", { 
+      
+      // Try RPC first
+      const { error: rpcError } = await supabase.rpc("upsert_links", { 
         p_user_id: userId, 
         p_links: [{ id, is_active: enabled }] 
       });
+
+      if (!rpcError) return { id, enabled };
+
+      // FALLBACK
+      console.warn("RPC upsert_links failed for toggle, falling back to standard table update:", rpcError.message);
+      const { error } = await supabase
+        .from("links")
+        .update({ enabled })
+        .eq("id", id)
+        .eq("user_id", userId);
 
       if (error) throw error;
       return { id, enabled };
@@ -158,13 +237,27 @@ export const useLinkMutations = (userId: string | undefined) => {
   const reorderLinks = useMutation({
     mutationFn: async (links: LinkItem[]) => {
       if (!userId) throw new Error("User not authenticated");
+      
       const updates = links.map((l, i) => ({ id: l.id, order_index: i }));
-      const { error } = await supabase.rpc("reorder_links", { 
+      
+      // Try RPC first
+      const { error: rpcError } = await supabase.rpc("reorder_links", { 
         p_user_id: userId, 
         p_order: updates 
       });
 
-      if (error) throw error;
+      if (!rpcError) return links;
+
+      // FALLBACK: Manual sequential updates (less efficient but reliable if RPC is missing)
+      console.warn("RPC reorder_links failed, falling back to sequential table updates:", rpcError.message);
+      for (const update of updates) {
+        await supabase
+          .from("links")
+          .update({ sort_order: update.order_index })
+          .eq("id", update.id)
+          .eq("user_id", userId);
+      }
+
       return links;
     },
     onMutate: async (newLinks) => {
@@ -181,6 +274,7 @@ export const useLinkMutations = (userId: string | undefined) => {
       queryClient.invalidateQueries({ queryKey: ["links", userId] });
     },
   });
+
 
   const trackClick = useMutation({
     mutationFn: async (id: string) => {

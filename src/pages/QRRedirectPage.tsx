@@ -91,14 +91,15 @@ const QRRedirectPage = () => {
            const platform = isIOS ? 'ios' : isAndroid ? 'android' : 'web';
            
            // Use the mock Supabase client to log the scan record
-           const { error: scanErr } = await supabase
-             .from('qr_scans')
-             .insert({
-               qr_code_id: qr.id,
-               platform: platform,
-               browser_ua: ua,
-               short_code_used: shortCode
-             });
+            const deviceType = isIOS || isAndroid ? 'Mobile' : 'Desktop';
+            const { error: scanErr } = await supabase
+              .from('qr_scans')
+              .insert({
+                qr_code_id: qr.id,
+                os: platform,
+                browser: ua.length > 200 ? ua.substring(0, 200) : ua,
+                device_type: deviceType
+              });
              
            if (scanErr) console.warn("Failed to log scan to Supabase:", scanErr);
            

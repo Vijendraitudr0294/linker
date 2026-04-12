@@ -10,6 +10,10 @@ import {
   type BuilderField,
   type FormRecord,
 } from "@/lib/formsApi";
+import { FORM_THEMES, DEFAULT_SYSTEM_MESSAGES } from "@/lib/formConstants";
+import * as Icons from "lucide-react";
+import { cn } from "@/lib/utils";
+import { getClarification, getFieldFAQ } from "@/lib/aiForms";
 
 type UploadRef = {
   uploadId: string;
@@ -27,26 +31,39 @@ const PublicFormPage = () => {
   const [values, setValues] = useState<Record<string, unknown>>({});
   const [uploadingField, setUploadingField] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [quizScore, setQuizScore] = useState<{ score: number; total: number } | null>(null);
+  const [aiClarification, setAiClarification] = useState<string | null>(null);
+  const [aiClarifying, setAiClarifying] = useState(false);
+  const [showFaq, setShowFaq] = useState(false);
+  const [faqQuestion, setFaqQuestion] = useState("");
+  const [faqAnswer, setFaqAnswer] = useState<string | null>(null);
+  const [faqLoading, setFaqLoading] = useState(false);
+  const [alreadySubmitted, setAlreadySubmitted] = useState(false);
+  const [honeypot, setHoneypot] = useState("");
+  const [started, setStarted] = useState(false);
 
   useEffect(() => {
     let mounted = true;
     const run = async () => {
       if (!slug) return;
+      
+      if (localStorage.getItem(`submitted_${slug}`)) {
+        setAlreadySubmitted(true);
+      }
+
       try {
         const result = await getPublicForm(slug);
         if (!mounted) return;
         setForm(result.form);
-      } catch {
+      } catch (err) {
         if (!mounted) return;
-        toast.error("Form not found");
+        toast.error(`Form error: ${err instanceof Error ? err.message : "Not found"}`);
       } finally {
         if (mounted) setLoading(false);
       }
     };
     void run();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, [slug]);
 
   const fields = useMemo<BuilderField[]>(() => {
@@ -54,50 +71,28 @@ const PublicFormPage = () => {
     return form.schema_json.fields;
   }, [form]);
 
+  const questions = useMemo(() => fields.filter(f => f.type !== "welcome_screen" && f.type !== "end_screen"), [fields]);
+  const welcomeScreen = useMemo(() => fields.find(f => f.type === "welcome_screen"), [fields]);
+  const endScreen = useMemo(() => fields.find(f => f.type === "end_screen"), [fields]);
+
   const styleConfig = (form?.style_json || {}) as Record<string, unknown>;
   const formTheme = (styleConfig.theme as string) || "brutal";
   const successMessage = typeof styleConfig.successMessage === "string" ? styleConfig.successMessage : "Thanks! We got your response.";
   const collectFiles = styleConfig.collectFiles === undefined ? true : Boolean(styleConfig.collectFiles);
+  const custom = (styleConfig.customColors || {}) as Record<string, string>;
 
   const themeClasses = useMemo(() => {
-    switch (formTheme) {
-      case "clean":
-        return {
-          page: "bg-[#f6f7fb]",
-          card: "border-2 border-black/20 bg-white shadow-[0_10px_30px_rgba(0,0,0,0.08)]",
-          button: "border-2 border-black bg-black text-white",
-          field: "border border-black/25 bg-white",
-        };
-      case "soft":
-        return {
-          page: "bg-[#fffaf3]",
-          card: "border-2 border-[#d8b4fe] bg-white shadow-[0_10px_30px_rgba(88,28,135,0.12)]",
-          button: "border-2 border-[#7e22ce] bg-[#a855f7] text-white",
-          field: "border border-[#d8b4fe] bg-white",
-        };
-      case "dark":
-        return {
-          page: "bg-[#0f172a]",
-          card: "border-2 border-[#334155] bg-[#111827] text-white",
-          button: "border-2 border-white bg-white text-black",
-          field: "border border-[#475569] bg-[#0b1220] text-white",
-        };
-      case "glass":
-        return {
-          page: "bg-gradient-to-br from-[#f0f9ff] to-[#eef2ff]",
-          card: "border border-white/40 bg-white/60 backdrop-blur-xl shadow-[0_10px_30px_rgba(30,41,59,0.15)]",
-          button: "border border-[#334155] bg-[#0f172a] text-white",
-          field: "border border-white/70 bg-white/80",
-        };
-      default:
-        return {
-          page: "bg-[#f2f3f5]",
-          card: "border-4 border-black bg-white shadow-[10px_10px_0_0_rgba(0,0,0,1)]",
-          button: "border-3 border-black bg-black text-white",
-          field: "border-2 border-black bg-white",
-        };
-    }
+    return FORM_THEMES.find(t => t.id === formTheme) || FORM_THEMES[0];
   }, [formTheme]);
+
+  const systemMsgs = (styleConfig.systemMessages as any) || DEFAULT_SYSTEM_MESSAGES;
+  const displaySettings = (styleConfig.displaySettings || {
+    branding: true,
+    navArrows: true,
+    progressBar: true,
+    questionNumbers: true,
+    answerLetters: true
+  }) as Record<string, boolean>;
 
   const setFieldValue = (fieldId: string, value: unknown) => {
     setValues((prev) => ({ ...prev, [fieldId]: value }));
@@ -149,147 +144,234 @@ const PublicFormPage = () => {
     }
   };
 
-  const onSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!slug || !form) return;
+  const [currentStep, setCurrentStep] = useState(0);
+  const [direction, setDirection] = useState(0);
 
-    for (const field of fields) {
-      if (field.required && (values[field.id] === undefined || values[field.id] === null || values[field.id] === "")) {
-        toast.error(`"${field.label}" is required.`);
+  const totalSteps = questions.length;
+  const currentField = questions[currentStep];
+  const isLastStep = currentStep === totalSteps - 1;
+
+  const renderMedia = (field: any) => {
+    if (!field?.mediaUrl) return null;
+    return (
+      <div className="mb-6 rounded-xl overflow-hidden border-2 border-black/5 shadow-sm max-w-lg mx-auto animate-in zoom-in fade-in duration-1000">
+        <img 
+          src={field.mediaUrl} 
+          alt="Media" 
+          className="w-full h-auto object-cover max-h-[300px]"
+          onError={(e) => { (e.target as any).style.display = 'none'; }}
+        />
+      </div>
+    );
+  };
+
+  const nextStep = () => {
+    const val = values[currentField?.id];
+    if (currentField?.required) {
+      if (val === undefined || val === null || val === "" || (Array.isArray(val) && val.length === 0)) {
+        toast.error(systemMsgs.errors.required || "Please fill this in");
         return;
       }
     }
+    
+    if (currentStep < totalSteps - 1) {
+      setDirection(1);
+      setCurrentStep(s => s + 1);
+    } else {
+      void onSubmitInternal();
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setDirection(-1);
+      setCurrentStep(s => s - 1);
+    } else {
+      setStarted(false);
+    }
+  };
+
+  const onSubmitInternal = async () => {
+    if (!slug || !form) return;
+    if (honeypot) { setSubmitted(true); return; }
 
     setSubmitting(true);
     try {
-      await submitPublicForm(slug, {
-        formId: form.id,
-        submittedAt: new Date().toISOString(),
-        values,
-      });
+      const res = await submitPublicForm(slug, values);
+      localStorage.setItem(`submitted_${slug}`, "true");
+      
+      if (styleConfig.formMode === "quiz") {
+        let score = 0;
+        let total = questions.length;
+        questions.forEach(f => {
+          if (f.correctAnswer === values[f.id]) score++;
+        });
+        setQuizScore({ score, total });
+      }
+
       toast.success(successMessage);
-      setValues({});
       setSubmitted(true);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Submit failed");
+      toast.error(`Submission Error: ${error instanceof Error ? error.message : "Failed"}`);
     } finally {
       setSubmitting(false);
     }
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (submitted || loading || submitting) return;
+      if (e.key === "Enter" && !e.shiftKey) {
+        if (document.activeElement?.tagName === "TEXTAREA") return;
+        if (!started && welcomeScreen) { setStarted(true); return; }
+        nextStep();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [currentStep, values, submitted, loading, submitting, started, welcomeScreen]);
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f2f3f5]">
-        <Loader2 className="w-8 h-8 animate-spin text-black" />
+      <div className="min-h-screen flex items-center justify-center bg-[#f2f3f5] font-sans text-center">
+        <div className="space-y-4">
+           <Loader2 className="w-10 h-10 animate-spin mx-auto text-emerald-500" />
+           <p className="text-[10px] font-black uppercase tracking-widest opacity-30">Loading Form...</p>
+        </div>
       </div>
     );
   }
 
-  if (!form) {
+  if (!form) return <div className="p-20 text-center font-black uppercase">Form not found.</div>;
+
+  if (alreadySubmitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f2f3f5] p-5">
-        <div className="border-4 border-black bg-white p-8 text-center shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
-          <h1 className="text-3xl font-black">Form Not Found</h1>
+      <div className="min-h-screen flex items-center justify-center p-6 bg-[#f2f3f5] font-sans">
+        <div className="border-4 border-black bg-white p-12 shadow-[15px_15px_0_0_rgba(0,0,0,1)] text-center max-w-sm">
+           <Icons.ShieldAlert className="w-16 h-16 mx-auto mb-4 text-emerald-500" />
+           <h2 className="text-2xl font-black uppercase mb-2">Notice</h2>
+           <p className="text-sm font-bold opacity-60">You have already submitted this form.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!started && welcomeScreen) {
+    return (
+      <div className={cn("min-h-screen flex items-center justify-center p-6 font-sans transition-colors duration-1000", themeClasses.page)}>
+        <div className={cn("max-w-2xl w-full p-8 md:p-16 transition-all duration-700 mx-auto", themeClasses.card)}>
+           {renderMedia(welcomeScreen)}
+           <p className="text-[10px] uppercase tracking-[0.2em] font-black text-emerald-600 mb-2">{form.category}</p>
+           <h1 className="text-4xl md:text-5xl font-black tracking-tighter mb-4 leading-none">{welcomeScreen.label}</h1>
+           <p className="text-lg font-bold opacity-60 mb-10 leading-relaxed">{welcomeScreen.placeholder}</p>
+           <button onClick={() => setStarted(true)} className={cn("h-16 px-10 text-lg font-black uppercase tracking-[0.1em] shadow-[8px_8px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center gap-4", themeClasses.button)}>
+              {systemMsgs.buttons.continue || "Start Form"}
+              <Icons.ArrowRight className="w-6 h-6" />
+           </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen py-6 px-3 ${themeClasses.page}`}>
-      <div className={`max-w-2xl mx-auto p-5 md:p-7 ${themeClasses.card}`}>
-        <p className="text-[11px] uppercase tracking-[0.18em] font-black text-emerald-600 mb-1">{form.category}</p>
-        <h1 className="text-3xl md:text-4xl font-black tracking-tight">{form.name}</h1>
-        {form.description && <p className="mt-2 text-sm md:text-base font-semibold opacity-70">{form.description}</p>}
+    <div className={cn("min-h-screen flex flex-col p-4 md:p-8 font-sans transition-colors duration-1000", themeClasses.page)}>
+      {displaySettings.progressBar && !submitted && (
+        <div className="fixed top-0 left-0 w-full h-1.5 bg-black/5 z-50">
+          <div className="h-full bg-emerald-500 transition-all duration-700 ease-out" style={{ width: `${((currentStep + 1) / Math.max(1, totalSteps)) * 100}%` }} />
+        </div>
+      )}
 
-        {submitted && (
-          <div className="mt-4 border-2 border-emerald-600 bg-emerald-100/70 p-3 text-sm font-bold">
-            {successMessage}
-          </div>
-        )}
+      <div className={cn("max-w-3xl w-full mx-auto mt-12 md:mt-24 p-8 md:p-12 relative overflow-hidden transition-all duration-700", themeClasses.card)}>
+        <input type="text" className="hidden" value={honeypot} onChange={(e) => setHoneypot(e.target.value)} />
 
-        <form onSubmit={onSubmit} className="mt-6 space-y-4">
-          {fields.map((field) => (
-            <div key={field.id} className="space-y-1.5">
-              <label className="text-sm font-black">{field.label}{field.required ? " *" : ""}</label>
+        <div className="flex items-center justify-between mb-8">
+           <div>
+              <p className="text-[10px] uppercase tracking-[0.2em] font-black text-emerald-600 mb-1">{form.category}</p>
+              <h1 className="text-2xl md:text-3xl font-black tracking-tight">{form.name}</h1>
+           </div>
+           {!submitted && totalSteps > 0 && displaySettings.questionNumbers && (
+              <div className="text-[10px] font-black opacity-30 bg-black/5 px-2 py-1 rounded">
+                 {currentStep + 1} / {totalSteps}
+              </div>
+           )}
+        </div>
 
-              {field.type === "long_text" ? (
-                <textarea
-                  rows={4}
-                  value={(values[field.id] as string) || ""}
-                  onChange={(e) => setFieldValue(field.id, e.target.value)}
-                  className={`w-full p-2.5 ${themeClasses.field}`}
-                  placeholder={field.placeholder || ""}
-                />
-              ) : field.type === "dropdown" ? (
-                <select
-                  value={(values[field.id] as string) || ""}
-                  onChange={(e) => setFieldValue(field.id, e.target.value)}
-                  className={`w-full h-11 px-2.5 ${themeClasses.field}`}
-                >
-                  <option value="">Select one</option>
-                  {(field.options || []).map((opt, i) => (
-                    <option key={`${opt}-${i}`} value={opt}>{opt}</option>
-                  ))}
-                </select>
-              ) : field.type === "rating" ? (
-                <div className="flex gap-1.5">
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      onClick={() => setFieldValue(field.id, n)}
-                      className={`w-10 h-10 border-2 border-black font-black ${values[field.id] === n ? "bg-black text-white" : "bg-white text-black"}`}
-                    >
-                      {n}
-                    </button>
-                  ))}
-                </div>
-              ) : field.type === "file" ? (
-                <div className="space-y-2">
-                  <label className={`inline-flex items-center gap-2 px-3 h-11 cursor-pointer ${themeClasses.field}`}>
-                    {uploadingField === field.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
-                    <span className="text-xs font-black uppercase tracking-[0.1em]">{uploadingField === field.id ? "Uploading..." : "Choose file"}</span>
-                    <input
-                      type="file"
-                      className="hidden"
-                      onChange={(e) => onFileUpload(field, e)}
-                      disabled={uploadingField === field.id || !collectFiles}
-                      accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.txt,.docx"
-                    />
-                  </label>
-                  {!collectFiles && <p className="text-xs font-semibold text-red-500">File uploads are disabled for this form.</p>}
-                  {values[field.id] && typeof values[field.id] === "object" && (
-                    <a
-                      href={(values[field.id] as UploadRef).url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="block text-xs underline"
-                    >
-                      {(values[field.id] as UploadRef).name}
-                    </a>
-                  )}
-                </div>
+        {submitted ? (
+          <div className="space-y-6 animate-in fade-in zoom-in duration-500">
+            <div className={`border-3 border-black p-8 text-center shadow-[8px_8px_0_0_rgba(0,0,0,1)] bg-white`}>
+              {endScreen ? (
+                 <div className="space-y-4">
+                    {renderMedia(endScreen)}
+                    <h2 className="text-4xl font-black uppercase tracking-tighter">{endScreen.label}</h2>
+                    <p className="text-lg font-bold opacity-60">{endScreen.placeholder}</p>
+                 </div>
               ) : (
-                <input
-                  type={field.type === "email" ? "email" : field.type === "phone" ? "tel" : "text"}
-                  value={(values[field.id] as string) || ""}
-                  onChange={(e) => setFieldValue(field.id, e.target.value)}
-                  className={`w-full h-11 px-2.5 ${themeClasses.field}`}
-                  placeholder={field.placeholder || ""}
-                />
+                <>
+                  <Icons.CheckCircle className="w-16 h-16 mx-auto text-emerald-500 mb-4" />
+                  <h2 className="text-3xl font-black uppercase tracking-tight mb-2">Done!</h2>
+                  <p className="text-sm font-bold opacity-60 mb-8">{successMessage}</p>
+                </>
+              )}
+              {quizScore && (
+                 <div className="pt-8 mt-8 border-t-2 border-dashed border-black/10">
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-black/40 mb-3">Your Score</p>
+                    <div className="text-7xl font-black tabular-nums tracking-tighter">{quizScore.score}/{quizScore.total}</div>
+                 </div>
               )}
             </div>
-          ))}
+            <button onClick={() => window.location.reload()} className="w-full h-14 text-xs font-black uppercase tracking-[0.2em] border-2 border-black hover:bg-black hover:text-white transition-all shadow-[6px_6px_0_0_rgba(0,0,0,1)]">Restart Form</button>
+          </div>
+        ) : (
+          <div className="space-y-8 min-h-[300px] flex flex-col">
+            {currentField ? (
+              <div key={currentField.id} className="space-y-4 animate-in fade-in duration-500 flex-1">
+                {renderMedia(currentField)}
+                <div className="flex gap-4">
+                   {displaySettings.questionNumbers && <div className="text-xl font-black text-emerald-500">{currentStep + 1} →</div>}
+                   <div className="flex-1 space-y-4">
+                      <label className="text-xl md:text-2xl font-black leading-tight block">{currentField.label}{currentField.required ? " *" : ""}</label>
+                      {currentField.type === "long_text" ? (
+                        <textarea rows={4} autoFocus value={(values[currentField.id] as string) || ""} onChange={(e) => setFieldValue(currentField.id, e.target.value)} className="w-full p-4 text-lg border-b-2 border-black/10 focus:border-black outline-none bg-transparent font-medium" />
+                      ) : currentField.type === "dropdown" ? (
+                        <select autoFocus value={(values[currentField.id] as string) || ""} onChange={(e) => setFieldValue(currentField.id, e.target.value)} className="w-full h-14 px-4 text-lg font-black bg-transparent border-b-2 border-black/10 outline-none">
+                          <option value="">Select option...</option>
+                          {(currentField.options || []).map((opt, i) => <option key={i} value={opt}>{opt}</option>)}
+                        </select>
+                      ) : (currentField.type === "multiple_choice" || currentField.type === "checkbox") ? (
+                        <div className="grid grid-cols-1 gap-3">
+                           {(currentField.options || []).map((o, i) => {
+                              const isSelected = currentField.type === "checkbox" ? (values[currentField.id] as any[] || []).includes(o) : values[currentField.id] === o;
+                              return (
+                                 <button key={i} type="button" onClick={() => {
+                                      if (currentField.type === "checkbox") {
+                                         const curr = (values[currentField.id] as any[]) || [];
+                                         setFieldValue(currentField.id, curr.includes(o) ? curr.filter(x => x !== o) : [...curr, o]);
+                                      } else setFieldValue(currentField.id, o);
+                                 }} className={cn("flex items-center gap-4 p-5 border-2 transition-all text-left", isSelected ? "bg-emerald-500 text-white border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)]" : "bg-white border-black/10")}>
+                                    <span className="text-sm font-black uppercase">{o}</span>
+                                 </button>
+                              );
+                           })}
+                        </div>
+                      ) : (
+                        <input autoFocus type="text" value={(values[currentField.id] as string) || ""} onChange={(e) => setFieldValue(currentField.id, e.target.value)} className="w-full h-14 px-4 text-xl font-black border-b-2 border-black/10 focus:border-black outline-none bg-transparent" />
+                      )}
+                   </div>
+                </div>
+              </div>
+            ) : <div className="py-20 text-center opacity-40">No questions.</div>}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className={`w-full h-12 font-black uppercase tracking-[0.12em] ${themeClasses.button}`}
-          >
-            {submitting ? "Submitting..." : "Submit"}
-          </button>
-        </form>
+            <div className="pt-8 flex items-center justify-between">
+              <div className="flex gap-1">
+                 <button onClick={prevStep} disabled={currentStep === 0} className="w-12 h-12 flex items-center justify-center border-2 border-black/10 hover:border-black disabled:opacity-20"><Icons.ChevronUp /></button>
+                 <button onClick={nextStep} className="w-12 h-12 flex items-center justify-center border-2 border-black/10 hover:border-black"><Icons.ChevronDown /></button>
+              </div>
+              <button onClick={nextStep} className={cn("px-8 h-12 font-black uppercase tracking-widest shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all bg-black text-white", themeClasses.button)}>
+                {submitting ? "..." : isLastStep ? "Submit" : "Continue"}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

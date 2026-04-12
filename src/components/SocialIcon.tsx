@@ -101,7 +101,7 @@ export const platformOptions: { value: SocialPlatform; label: string }[] = [
   { value: "soundcloud", label: "SoundCloud" },
   { value: "audiomack", label: "Audiomack" },
   { value: "substack", label: "Substack" },
-  { value: "typeform", label: "Typeform" },
+  { value: "biotra", label: "Biotra" },
   { value: "calendly", label: "Calendly" },
   { value: "calcom", label: "Cal.com" },
   { value: "instagram", label: "Instagram" },

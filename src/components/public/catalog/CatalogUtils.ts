@@ -1,4 +1,4 @@
-import { ShoppingBag, UtensilsCrossed, Dumbbell, Download, Ship, Car, Layout, Video, Search, Newspaper, Music, MessageSquare, Clapperboard } from "lucide-react";
+import { ShoppingBag, UtensilsCrossed, Dumbbell, Download, Ship, Car, Layout, Video, Search, Newspaper, Music, MessageSquare, Clapperboard, QrCode, MapPin } from "lucide-react";
 
 export interface CatalogItemData {
   id: string;
@@ -16,6 +16,8 @@ export interface CatalogItemData {
   track_inventory?: boolean;
   stock_quantity?: number | null;
   media?: { type: "image" | "video"; url: string }[];
+  display_mode?: "minimal" | "full";
+  metadata?: Record<string, any>;
 }
 
 export const TYPE_ICONS: Record<string, typeof ShoppingBag> = {
@@ -32,6 +34,8 @@ export const TYPE_ICONS: Record<string, typeof ShoppingBag> = {
   music: Music,
   post: MessageSquare,
   reel: Clapperboard,
+  qr: QrCode,
+  map: MapPin,
 };
 
 export type SortOption = "default" | "price-asc" | "price-desc";
@@ -51,6 +55,8 @@ export type ContentCardItem = {
   sourceUrl: string;
   platformLabel: string;
   kind: ContentKind;
+  displayMode: "minimal" | "full";
+  metadata: Record<string, any>;
 };
 
 export const SELLABLE_ITEM_TYPES = new Set(["physical", "food", "service", "digital", "boat", "car"]);
@@ -66,6 +72,11 @@ export const inferPlatformLabel = (url: string) => {
   if (value.includes("facebook.com") || value.includes("fb.watch")) return "Facebook";
   if (value.includes("twitter.com") || value.includes("x.com")) return "X";
   if (value.includes("vimeo.com")) return "Vimeo";
+  if (value.includes("google.com/maps") || value.includes("goo.gl/maps")) return "Google Maps";
+  if (value.includes("apple.com/maps")) return "Apple Maps";
+  if (value.includes("spotify.com") || value.includes("music.apple.com")) return "Music";
+  if (value.includes("play.google.com/store/apps")) return "Play Store";
+  if (value.includes("apps.apple.com")) return "App Store";
   return "Web";
 };
 
@@ -121,9 +132,11 @@ export const toContentCard = (item: CatalogDisplayItem): ContentCardItem | null 
   const isVideo = isLikelyVideoUrl(sourceUrl) || (item.media || []).some((entry) => entry.type === "video") || VIDEO_ITEM_TYPE_HINTS.has(item.item_type.toLowerCase());
   const isReel = item.item_type === "reel" || containsKeyword(descriptor, ["reel", "shorts", "vertical"]);
   const isPost = item.item_type === "post" || containsKeyword(descriptor, ["post", "tweet", "shoutout"]);
-  const isMusic = item.item_type === "music" || containsKeyword(descriptor, ["music", "song", "audio", "spotify", "soundcloud"]);
+  const isMusic = item.item_type === "music" || containsKeyword(descriptor, ["music", "song", "audio", "spotify", "soundcloud", "apple music"]);
+  const isMap = item.item_type === "map" || containsKeyword(descriptor, ["map", "location", "coordinates", "google maps", "apple maps"]);
+  const isQr = item.item_type === "qr" || containsKeyword(descriptor, ["qr", "scan", "code"]);
 
-  const kind: ContentKind = isReel ? "reel" : isMusic ? "music" : isPost ? "post" : isRecipe ? "recipe" : isNews ? "news" : isVideo ? "video" : "other";
+  const kind: ContentKind = isReel ? "reel" : isMusic ? "music" : isPost ? "post" : isRecipe ? "recipe" : isNews ? "news" : isMap ? "itinerary" : isQr ? "other" : isVideo ? "video" : "other";
   const thumbnailFromSource = getYouTubeThumbnail(sourceUrl);
   const imageUrl = thumbnailFromSource || item.image_url || "";
 
@@ -139,10 +152,13 @@ export const toContentCard = (item: CatalogDisplayItem): ContentCardItem | null 
     sourceUrl,
     platformLabel: sourceUrl ? inferPlatformLabel(sourceUrl) : "Card",
     kind,
+    displayMode: item.display_mode || "minimal",
+    metadata: item.metadata || {},
   };
 };
 
-export const hexToRgb = (hex: string) => {
+export const hexToRgb = (hex: string | null | undefined) => {
+  if (!hex || typeof hex !== 'string') return null;
   const normalized = hex.replace("#", "");
   if (normalized.length !== 6) return null;
   const n = Number.parseInt(normalized, 16);
@@ -150,7 +166,8 @@ export const hexToRgb = (hex: string) => {
   return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
 };
 
-export const shiftHex = (hex: string, amount: number) => {
+export const shiftHex = (hex: string | null | undefined, amount: number) => {
+  if (!hex) return "#000000";
   const rgb = hexToRgb(hex);
   if (!rgb) return hex;
   const clamp = (v: number) => Math.max(0, Math.min(255, v));
@@ -158,7 +175,7 @@ export const shiftHex = (hex: string, amount: number) => {
   return `#${toHex(rgb.r + amount)}${toHex(rgb.g + amount)}${toHex(rgb.b + amount)}`;
 };
 
-export const contrastText = (bg: string, fallback: string) => {
+export const contrastText = (bg: string | null | undefined, fallback: string) => {
   const rgb = hexToRgb(bg);
   if (!rgb) return fallback;
   const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;

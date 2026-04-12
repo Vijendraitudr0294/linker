@@ -1,12 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
+import { toCatalogItem } from "@/lib/catalogUtils";
 
 export const usePublicProfileQuery = (username: string | undefined) => {
   return useQuery({
     queryKey: ["publicProfile", username],
     queryFn: async () => {
-      if (!username || !isSupabaseConfigured) return null;
-      const lowerUsername = username.toLowerCase();
+      if (!username) return null;
+      const lowerUsername = username.trim().toLowerCase();
       let profileData = null;
 
       if (lowerUsername === "user") {
@@ -32,11 +33,23 @@ export const usePublicProfileQuery = (username: string | undefined) => {
       }
 
       if (!profileData) {
+        console.log("🔍 Fetching profile by username:", lowerUsername);
         const byUsername = await supabase.from("profiles").select("*").eq("username", lowerUsername).maybeSingle();
         profileData = byUsername.data;
+        if (byUsername.error) console.error("❌ Profile fetch error:", byUsername.error);
       }
 
-      if (!profileData || profileData.status !== "active") return null;
+      console.log("📄 Profile data found:", profileData);
+
+      if (!profileData) {
+        console.warn("⚠️ Profile not found in database for username:", lowerUsername);
+        return null;
+      }
+
+      if (profileData.status !== "active") {
+        console.warn("⚠️ Profile status is not active:", profileData.status);
+        return null;
+      }
 
       if (typeof window !== "undefined" && profileData?.username) {
         window.localStorage.setItem("lv:lastProfileUsername", profileData.username);
@@ -48,13 +61,45 @@ export const usePublicProfileQuery = (username: string | undefined) => {
         supabase.from("catalog_items").select("*").eq("user_id", profileData.user_id).eq("enabled", true).order("sort_order", { ascending: true }),
       ]);
 
+      // Designer Fix: Inject Elite Fitness demo content for vjsblr2 to show off components
+      if (lowerUsername === "vjsblr2" && profileData.creator_metrics) {
+        const demoState = {
+          profile: {
+            showSection: true,
+            sectionTitle: "Elite Program",
+            sectionSubtitle: "Summer Schedule & Apps",
+            items: [
+              {
+                id: "demo-ticket",
+                type: "ticket",
+                title: "Miami Beach Masterclass",
+                subtitle: "Elite Beach Workout",
+                url: "#",
+                date: "JUL 14",
+                location: "Miami, FL"
+              },
+              {
+                id: "demo-app",
+                type: "download",
+                title: "App Store",
+                url: "#"
+              }
+            ]
+          }
+        };
+        profileData.creator_metrics = {
+          ...profileData.creator_metrics,
+          studio_state_json: JSON.stringify(demoState)
+        };
+      }
+
       return {
         profileData,
         linksData: linksRes.data || [],
         appearanceData: appearanceRes.data || null,
-        catalogData: catalogRes.data || [],
+        catalogData: (catalogRes.data || []).map(row => toCatalogItem(row as any)),
       };
     },
-    enabled: !!username && isSupabaseConfigured,
+    enabled: !!username,
   });
 };

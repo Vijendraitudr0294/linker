@@ -56,12 +56,13 @@ export const CatalogFilters = ({
         <div className={rowClasses} style={{ WebkitOverflowScrolling: "touch" }}>
           <button
             onClick={() => { setActiveCategory(null); setActiveSubcategory(null); }}
-            className={chipBaseClasses}
+            className={cn(chipBaseClasses, "rounded-full")}
             style={{
               background: !activeCategory ? buttonBg : "rgba(255,255,255,0.06)",
               color: !activeCategory ? chipTextColor : textColor,
               borderColor: !activeCategory ? "transparent" : `${textColor}15`,
-              backdropFilter: "blur(8px)"
+              backdropFilter: "blur(4px)",
+              boxShadow: !activeCategory ? `0 4px 12px ${buttonBg}40` : "none"
             }}
           >
             All Categories
@@ -70,12 +71,13 @@ export const CatalogFilters = ({
             <button
               key={category}
               onClick={() => { setActiveCategory(category); setActiveSubcategory(null); }}
-              className={chipBaseClasses}
+              className={cn(chipBaseClasses, "rounded-full")}
               style={{
                 background: activeCategory === category ? buttonBg : "rgba(255,255,255,0.06)",
                 color: activeCategory === category ? chipTextColor : textColor,
                 borderColor: activeCategory === category ? "transparent" : `${textColor}15`,
-                backdropFilter: "blur(8px)"
+                backdropFilter: "blur(4px)",
+                boxShadow: activeCategory === category ? `0 4px 12px ${buttonBg}40` : "none"
               }}
             >
               {resolveCategoryLabel(category, settings)}
@@ -89,12 +91,13 @@ export const CatalogFilters = ({
         <div className={cn(rowClasses, "type-filter-row")} style={{ WebkitOverflowScrolling: "touch" }}>
           <button
             onClick={() => setActiveItemType(null)}
-            className={chipBaseClasses}
+            className={cn(chipBaseClasses, "rounded-full")}
             style={{
               background: !activeItemType ? buttonBg : "rgba(255,255,255,0.06)",
               color: !activeItemType ? chipTextColor : textColor,
               borderColor: !activeItemType ? "transparent" : `${textColor}15`,
-              backdropFilter: "blur(8px)"
+              backdropFilter: "blur(4px)",
+              boxShadow: !activeItemType ? `0 4px 12px ${buttonBg}40` : "none"
             }}
           >
             All Types
@@ -103,12 +106,13 @@ export const CatalogFilters = ({
             <button
               key={itemType}
               onClick={() => setActiveItemType(itemType)}
-              className={chipBaseClasses}
+              className={cn(chipBaseClasses, "rounded-full")}
               style={{
                 background: activeItemType === itemType ? buttonBg : "rgba(255,255,255,0.06)",
                 color: activeItemType === itemType ? chipTextColor : textColor,
                 borderColor: activeItemType === itemType ? "transparent" : `${textColor}15`,
-                backdropFilter: "blur(8px)"
+                backdropFilter: "blur(4px)",
+                boxShadow: activeItemType === itemType ? `0 4px 12px ${buttonBg}40` : "none"
               }}
             >
               {resolveItemTypeLabel(itemType, settings)}

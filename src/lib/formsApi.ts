@@ -2,11 +2,19 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type BuilderField = {
   id: string;
-  type: "short_text" | "email" | "phone" | "long_text" | "dropdown" | "rating" | "file";
+  type: 
+    | "short_text" | "long_text" | "email" | "phone" | "address" | "website" 
+    | "multiple_choice" | "dropdown" | "picture_choice" | "yes_no" | "legal" | "checkbox"
+    | "nps" | "opinion_scale" | "rating" | "ranking" | "matrix"
+    | "video_audio" | "ai_clarify" | "ai_faq"
+    | "number" | "date" | "signature" | "payment" | "file" | "google_drive" | "calendly"
+    | "welcome_screen" | "partial_submit" | "statement" | "question_group" | "end_screen" | "redirect";
   label: string;
   required: boolean;
   placeholder?: string;
   options?: string[];
+  correctAnswer?: string | string[];
+  points?: number;
 };
 
 export type FormRecord = {
@@ -88,9 +96,12 @@ export const listMyForms = async () => {
         .select("*")
         .eq("user_id", userId)
         .order("updated_at", { ascending: false });
+      
+      const activeForms = (forms || []).filter((f: any) => !f.archived);
+      
       if (error) throw new Error(error.message || "Failed to load forms");
 
-      const formIds = (forms || []).map((f: any) => f.id);
+      const formIds = activeForms.map((f: any) => f.id);
       let submissionsByForm: Record<string, number> = {};
       if (formIds.length > 0) {
         const { data: submissions } = await (supabase as any).from("form_submissions").select("form_id").in("form_id", formIds);
@@ -100,7 +111,7 @@ export const listMyForms = async () => {
         }, {});
       }
 
-      return (forms || []).map((f: any) => ({ ...f, submission_count: submissionsByForm[f.id] || 0 })) as FormRecord[];
+      return activeForms.map((f: any) => ({ ...f, submission_count: submissionsByForm[f.id] || 0 })) as FormRecord[];
     }
   );
 };
@@ -205,7 +216,7 @@ export const publishForm = async (formId: string) => {
       const { data: existing, error: existingError } = await (supabase as any).from("forms").select("*").eq("id", formId).single();
       if (existingError || !existing) throw new Error(existingError?.message || "Form not found");
       const slugBase = String(existing.name || "form").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "form";
-      const slug = `${slugBase}-${Math.floor(Math.random() * 10000)}`;
+      const slug = existing.slug || `${slugBase}-${Math.floor(Math.random() * 10000)}`;
       const { data, error } = await (supabase as any)
         .from("forms")
         .update({
@@ -270,11 +281,11 @@ export const cancelForm = async (formId: string) => {
 
 export const deleteForm = async (formId: string) => {
   return withBackendFallback(
-    async () => (await authedRequest<{ form: FormRecord }>(`/api/v1/forms/${formId}`, { method: "DELETE", body: JSON.stringify({}) })).form,
+    async () => (await authedRequest<{ form: FormRecord }>(`/api/v1/forms/${formId}`, { method: "DELETE" })),
     async () => {
-      const { data, error } = await (supabase as any).from("forms").update({ archived: true, deleted_at: new Date().toISOString(), status: "deleted", published: false, updated_at: new Date().toISOString() }).eq("id", formId).select("*").single();
+      const { error } = await (supabase as any).from("forms").delete().eq("id", formId);
       if (error) throw new Error(error.message || "Failed to delete form");
-      return data as FormRecord;
+      return { id: formId } as FormRecord;
     }
   );
 };
@@ -294,6 +305,8 @@ export const listFormSubmissions = async (formId: string) => {
   return withBackendFallback(
     async () => (await authedRequest<{ submissions: FormSubmissionRecord[] }>(`/api/v1/forms/${formId}/submissions`, { method: "GET" })).submissions,
     async () => {
+      const { data: form } = await (supabase as any).from("forms").select("id").eq("id", formId).maybeSingle();
+      if (!form) return [];
       const { data, error } = await (supabase as any).from("form_submissions").select("*").eq("form_id", formId).order("created_at", { ascending: false }).limit(200);
       if (error) throw new Error(error.message || "Failed to fetch submissions");
       return (data || []) as FormSubmissionRecord[];
@@ -309,15 +322,35 @@ export const getPublicForm = async (slug: string) => {
       return (await response.json()) as { form: FormRecord };
     },
     async () => {
+      console.log("🔍 Fallback: Searching Supabase for form slug:", slug);
       const { data, error } = await (supabase as any)
         .from("forms")
         .select("*")
         .eq("slug", slug)
-        .eq("published", true)
-        .eq("status", "published")
-        .eq("archived", false)
         .maybeSingle();
-      if (error || !data) throw new Error("Form not found");
+      
+      if (error) {
+        console.error("❌ Supabase query error:", error);
+        throw new Error(`Database error: ${error.message}`);
+      }
+      
+      if (!data) {
+        console.warn("⚠️ Form not found in database for slug:", slug);
+        throw new Error("Form not found");
+      }
+      
+      console.log("✅ Form found in DB:", data.name, { published: data.published, status: data.status, archived: data.archived });
+      
+      if (!data.published || data.status !== "published") {
+        console.warn("🚫 Form is not published yet:", data.status);
+        throw new Error("Form is not published");
+      }
+      
+      if (data.archived) {
+        console.warn("👻 Form is archived");
+        throw new Error("Form is archived");
+      }
+
       return { form: data as FormRecord };
     }
   );
@@ -340,13 +373,14 @@ export const submitPublicForm = async (slug: string, payload: Record<string, unk
     async () => {
       const { data: form, error: formError } = await (supabase as any)
         .from("forms")
-        .select("id")
+        .select("id, published, status, archived")
         .eq("slug", slug)
-        .eq("published", true)
-        .eq("status", "published")
-        .eq("archived", false)
         .maybeSingle();
-      if (formError || !form) throw new Error("Form not found");
+      
+      if (formError) throw new Error(formError.message);
+      if (!form) throw new Error("Form not found in database.");
+      if (!form.published || form.status !== "published") throw new Error("Form is not published.");
+      if (form.archived) throw new Error("Form is archived.");
 
       const { data, error } = await (supabase as any)
         .from("form_submissions")

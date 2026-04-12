@@ -1,4 +1,4 @@
-import { LayoutDashboard, Palette, QrCode, ShieldCheck, Target, Search, Phone, Puzzle, Link2, ShoppingBag, FileText } from "lucide-react";
+import { LayoutDashboard, Palette, QrCode, ShieldCheck, Target, Search, Phone, Puzzle, Link2, ShoppingBag, FileText, LayoutTemplate } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuthStore } from "@/stores/authStore";
 import { usePlatformStore } from "@/stores/platformStore";
@@ -40,7 +40,6 @@ const primaryNavGroups: NavGroup[] = [
       { icon: Link2, label: "Links", path: "/dashboard/links", feature: null },
       { icon: FileText, label: "Forms", path: "/dashboard/forms", feature: null, badge: "New" },
       { icon: ShoppingBag, label: "Shop", path: "/dashboard/catalog", feature: "feature_catalog" },
-      { icon: Palette, label: "Design", path: "/dashboard/appearance", feature: null },
     ]
   }
 ];
@@ -78,7 +77,7 @@ export function DashboardSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon" className="border-r-0 bg-[#000000] text-white transition-all duration-300 font-bruddle w-[240px]">
+    <Sidebar collapsible="icon" className="border-r-0 bg-[#000000] text-white transition-all duration-300 font-bruddle">
       <SidebarHeader className="p-6 pb-2">
         <div className={cn("flex items-center gap-2 transition-all", collapsed && "justify-center px-0")}>
           <div className="w-6 h-6 flex items-center justify-center shrink-0">

@@ -70,7 +70,11 @@ export const useCatalogMutations = () => {
         duration: item.duration?.trim() || "",
         schedule: item.schedule?.trim() || "",
         location: item.location?.trim() || "",
-        media: sanitizeMedia(item.media),
+        media: {
+           items: sanitizeMedia(item.media),
+           display_mode: item.display_mode || "minimal",
+           metadata: item.metadata || {},
+        },
         sort_order,
       };
 
@@ -113,7 +117,16 @@ export const useCatalogMutations = () => {
       if (data.duration !== undefined) updateData.duration = data.duration.trim();
       if (data.schedule !== undefined) updateData.schedule = data.schedule.trim();
       if (data.location !== undefined) updateData.location = data.location.trim();
-      if (data.media !== undefined) updateData.media = sanitizeMedia(data.media);
+      
+      if (data.media !== undefined || data.display_mode !== undefined || data.metadata !== undefined) {
+        const currentItems = queryClient.getQueryData<CatalogItem[]>(["catalogItems", user?.user_id]) || [];
+        const current = currentItems.find(i => i.id === id);
+        updateData.media = {
+          items: sanitizeMedia(data.media !== undefined ? data.media : current?.media),
+          display_mode: data.display_mode !== undefined ? data.display_mode : (current?.display_mode || "minimal"),
+          metadata: data.metadata !== undefined ? data.metadata : (current?.metadata || {}),
+        };
+      }
 
       let { data: updatedData, error } = await supabase
         .from("catalog_items")
@@ -189,7 +202,11 @@ export const useCatalogMutations = () => {
         duration: item.duration || "",
         schedule: item.schedule || "",
         location: item.location || "",
-        media: sanitizeMedia(item.media),
+        media: {
+           items: sanitizeMedia(item.media),
+           display_mode: (item as any).display_mode || "minimal",
+           metadata: (item as any).metadata || {},
+        },
         sort_order: lastSortOrder++,
       }));
 

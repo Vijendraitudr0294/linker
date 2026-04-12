@@ -55,15 +55,15 @@ const DashboardOverview = () => {
         {/* BRUDDLE TOP BAR */}
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-                <h1 className="text-3xl font-black text-black tracking-tight mb-1">Overview</h1>
-                <p className="text-sm font-medium text-black/40">Analyze your profile's performance nodes.</p>
+                <h1 className="text-3xl font-black text-black tracking-tight mb-1">Your Insights</h1>
+                <p className="text-sm font-medium text-black/40">Check how your profile and links are performing.</p>
             </div>
             <div className="flex items-center gap-4">
                 <div className="relative group">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40 group-focus-within:text-black" />
                     <input 
                         type="text" 
-                        placeholder="Neural Search..." 
+                        placeholder="Quick Search..." 
                         className="bg-white border-2 border-black rounded-2xl py-3 pl-12 pr-6 text-xs font-bold focus:outline-none w-[200px] md:w-[300px] shadow-sm transition-all focus:shadow-[4px_4px_0_0_rgba(0,0,0,1)]"
                     />
                 </div>
@@ -101,8 +101,8 @@ const DashboardOverview = () => {
         <div className="bruddle-card p-10 bg-white shadow-2xl">
             <div className="flex items-center justify-between mb-12">
                 <div>
-                    <h3 className="text-2xl font-black text-black tracking-tight">Profile Reach</h3>
-                    <p className="text-xs font-medium text-black/40 mt-1">Comparison of total reach and profile behavior per second.</p>
+                    <h3 className="text-2xl font-black text-black tracking-tight">Your Audience</h3>
+                    <p className="text-xs font-medium text-black/40 mt-1">See how many people are visiting your page over time.</p>
                 </div>
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
@@ -218,7 +218,7 @@ const DashboardOverview = () => {
                   <Smartphone size={160} strokeWidth={1} />
               </div>
               <div className="flex items-center justify-between mb-8 relative z-10">
-                <h3 className="text-xl font-black text-black uppercase tracking-tight">Neural Sync.</h3>
+                <h3 className="text-xl font-black text-black uppercase tracking-tight">Live View</h3>
                 <Badge className="bg-white/40 text-black border-2 border-black rounded-full px-4 py-1 text-[9px] font-black uppercase tracking-widest">Live</Badge>
               </div>
               
@@ -237,7 +237,7 @@ const DashboardOverview = () => {
 
               <div className="flex flex-col gap-4 mt-8 relative z-10">
                   <div className="flex gap-4">
-                    <Button className="flex-1 bg-black text-white border-2 border-black rounded-2xl py-7 font-black text-xs uppercase shadow-[4px_4px_0_0_rgba(255,255,255,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all" onClick={() => navigate('/dashboard/appearance')}>
+                    <Button className="flex-1 bg-black text-white border-2 border-black rounded-2xl py-7 font-black text-xs uppercase shadow-[4px_4px_0_0_rgba(255,255,255,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all" onClick={() => navigate('/dashboard/links?tab=styles')}>
                         <Palette className="w-4 h-4 mr-2" /> Style Studio
                     </Button>
                     <Button variant="outline" className="flex-1 bg-white text-black border-2 border-black rounded-2xl py-7 font-black text-xs uppercase hover:bg-black/5" onClick={() => window.open(`${window.location.origin}/p/${user?.username}`, '_blank')}>
@@ -245,7 +245,7 @@ const DashboardOverview = () => {
                     </Button>
                   </div>
                   <Button variant="outline" className="w-full bg-[#D1FAE5] text-black border-2 border-black rounded-2xl py-7 font-black text-xs uppercase hover:bg-emerald-200 transition-all flex items-center justify-center gap-2" onClick={() => navigate('/dashboard/links')}>
-                      <Download className="w-4 h-4" /> Import Content Nodes
+                      <Download className="w-4 h-4" /> Add All Your Links
                   </Button>
               </div>
           </div>
@@ -261,7 +261,7 @@ const DashboardOverview = () => {
                  </div>
               </div>
               <div className="grid grid-cols-7 gap-2 mb-10 text-center">
-                 {['S','M','T','W','T','F','S'].map(d => <span key={d} className="text-[10px] font-black text-black/30">{d}</span>)}
+                 {['S','M','T','W','T','F','S'].map((d, index) => <span key={`${d}-${index}`} className="text-[10px] font-black text-black/30">{d}</span>)}
                  {Array.from({ length: 31 }).map((_, i) => (
                     <div key={i} className={cn(
                         "aspect-square flex items-center justify-center text-[10px] font-black border-2 border-transparent transition-all cursor-pointer rounded-xl",

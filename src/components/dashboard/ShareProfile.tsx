@@ -45,39 +45,41 @@ const ShareProfile = () => {
   if (!user) return null;
 
   return (
-    <Card className="p-4 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
+    <Card className="p-6 bg-emerald-50/50 border-2 border-black/5 shadow-sm rounded-[2rem] max-w-[640px]">
       <div className="flex items-center justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-foreground mb-1">Your public profile</p>
-          <div className="flex items-center gap-2">
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-black/40 mb-3 ml-1">Your Live Presence</p>
+          <div className="flex items-center gap-2 bg-white rounded-2xl border-2 border-black/5 p-1 px-2 shadow-inner">
             <Input 
               value={profileUrl} 
               readOnly 
-              className="h-8 text-xs bg-background/80"
+              className="h-10 text-[13px] font-bold bg-transparent border-none focus-visible:ring-0 shadow-none text-black/70"
             />
             <Button 
-              size="sm" 
-              variant="outline"
-              className="shrink-0 h-8"
+              size="icon" 
+              variant="ghost"
+              className="shrink-0 h-10 w-10 rounded-xl hover:bg-black/5 transition-all active:scale-95"
               onClick={copyToClipboard}
+              title="Copy URL"
             >
-              {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+              {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 opacity-40" />}
             </Button>
             <Button
-              size="sm"
-              variant="outline"
-              className="shrink-0 h-8"
+              size="icon" 
+              variant="ghost"
+              className="shrink-0 h-10 w-10 rounded-xl hover:bg-black/5 transition-all active:scale-95"
               onClick={() => window.open(`/p/${user.username}`, "_blank")}
+              title="Visit Profile"
             >
-              <ExternalLink className="w-3 h-3" />
+              <ExternalLink className="w-4 h-4 opacity-40" />
             </Button>
           </div>
         </div>
         
         <Popover>
           <PopoverTrigger asChild>
-            <Button size="sm" className="shrink-0">
-              <Share2 className="w-4 h-4 mr-1" />
+            <Button className="h-14 px-8 rounded-[1.5rem] bg-[#00E599] hover:bg-[#00C988] text-black font-black uppercase tracking-widest shadow-xl shadow-[#00E599]/20 transition-all hover:scale-[1.02] active:scale-95">
+              <Share2 className="w-4 h-4 mr-2" />
               Share
             </Button>
           </PopoverTrigger>

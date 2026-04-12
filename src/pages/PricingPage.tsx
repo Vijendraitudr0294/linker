@@ -14,7 +14,7 @@ const Nav = () => (
       <span className="font-black text-xl tracking-tighter uppercase">BIOTRA</span>
     </Link>
     <div className="flex items-center gap-4">
-      <Link to="/auth" className="px-6 py-3 bg-black text-white border-2 border-black rounded-[12px] text-[10px] font-black uppercase tracking-wider shadow-[4px_4px_0_0_rgba(250,204,21,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
+      <Link to="/register" className="px-6 py-3 bg-black text-white border-2 border-black rounded-[12px] text-[10px] font-black uppercase tracking-wider shadow-[4px_4px_0_0_rgba(250,204,21,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
         Get Started
       </Link>
     </div>
@@ -49,7 +49,7 @@ const PricingPage = () => {
             initial={{ rotate: -2 }}
             className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-400 border-2 border-black rounded-[8px] text-[10px] font-black uppercase tracking-widest mb-10 shadow-[4px_4px_0_0_rgba(0,0,0,1)]"
           >
-            <Sparkles className="w-3 h-3" /> Translucent Pricing Protcol
+            <Sparkles className="w-3 h-3" /> Simple & Transparent Pricing
           </motion.div>
           
           <motion.h1

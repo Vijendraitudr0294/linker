@@ -1,0 +1,12 @@
+$path = "src\pages\dashboard\LinkEditor.tsx"
+$txt = [System.IO.File]::ReadAllText($path)
+$txt = $txt.Replace("[`'`pill`''`, `'`rounded`''`, `'`square`''`, `'`outline`''`] as const", "(['pill', 'rounded', 'square', 'outline'] as const)")
+$txt = $txt.Replace("[`'`classic`''`, `'`glass`''`, `'`glass-premium`''`] as const", "(['classic', 'glass', 'glass-premium'] as const)")
+$txt = $txt.Replace("`'`bg-black text-white border-black`''`", "'bg-black text-white border-black'")
+$txt = $txt.Replace("`'`bg-white text-black/50 border-black/20 hover:border-black`''`", "'bg-white text-black/50 border-black/20 hover:border-black'")
+$txt = $txt.Replace("`'`pill`''`", "'pill'")
+$txt = $txt.Replace("`'`rounded-full`''`", "'rounded-full'")
+$txt = $txt.Replace("`'`rounded`''`", "'rounded'")
+$txt = $txt.Replace("`'`rounded-lg`''`", "'rounded-lg'")
+$txt = $txt.Replace("`'`rounded-none`''`", "'rounded-none'")
+[System.IO.File]::WriteAllText($path, $txt)

@@ -1,11 +1,14 @@
 export interface StudioCardItem {
   id: string;
-  type: "video" | "news" | "music" | "portfolio" | "broadcast";
+  type: "video" | "news" | "music" | "portfolio" | "broadcast" | "ticket" | "download" | "product";
   title: string;
   subtitle: string;
   url: string;
   thumbnail?: string;
   layoutStyle?: "classic" | "featured";
+  price?: string;
+  date?: string;
+  location?: string;
 }
 
 export interface StudioProfileState {

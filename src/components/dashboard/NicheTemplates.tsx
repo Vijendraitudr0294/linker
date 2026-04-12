@@ -323,23 +323,25 @@ const NicheTemplates = () => {
       const galleryFallback = getTemplatePreviewImage(template, idx !== -1 ? idx : 0);
       const bgImage = isEdited && customBgUrl ? customBgUrl : (template.theme.backgroundImage || galleryFallback);
       
-      // Update Appearance
-      await updateSettings({
-        themeId: template.id,
+      const { applyTheme } = useAppearanceStore.getState();
+      
+      // Update Appearance with robust applyTheme
+      await applyTheme({
+        id: template.id,
         backgroundColor: template.theme.backgroundColor,
         cardColor: template.theme.cardColor,
         textColor: template.theme.textColor,
         buttonBg: template.theme.buttonBg,
         buttonText: template.theme.buttonText,
         buttonStyle: template.theme.buttonStyle,
-        gradientFrom: template.theme.gradientFrom || null,
-        gradientTo: template.theme.gradientTo || null,
-        backgroundImage: bgImage || null,
-        backgroundOverlay: template.theme.backgroundOverlay || null,
+        gradientFrom: template.theme.gradientFrom || undefined,
+        gradientTo: template.theme.gradientTo || undefined,
+        backgroundImage: bgImage || undefined,
+        backgroundOverlay: template.theme.backgroundOverlay || undefined,
         fontFamily: template.theme.fontFamily || "Inter",
-        animatedGradient: template.theme.animatedGradient || null,
-        animationClass: template.theme.animationClass || null,
-        layoutType: template.theme.layoutMode || "list",
+        animatedGradient: template.theme.animatedGradient || undefined,
+        animationClass: template.theme.animationClass || undefined,
+        layoutMode: template.theme.layoutMode || "list",
         cardStyle: template.theme.cardStyle || "classic"
       });
 
@@ -418,40 +420,15 @@ const NicheTemplates = () => {
     <div className="space-y-6 pt-2">
       {/* Filters - Added Dropdown for easier selection as requested */}
       <div className="sticky top-0 z-30 space-y-4 py-4 bg-background/80 backdrop-blur-md border-b border-border/10">
-        <div className="flex flex-col sm:flex-row gap-4 items-end sm:items-center">
           <div className="relative group flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Search premium layouts..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-11 h-12 rounded-2xl border-border/50 bg-card/50"
+              className="pl-11 h-12 rounded-2xl border-2 border-black/5 bg-white shadow-sm focus:border-black transition-all"
             />
           </div>
-
-          <div className="w-full sm:w-64">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1.5 block ml-1">Category</Label>
-            <Select
-              value={activeCategory || "all"}
-              onValueChange={(val) => {
-                setShowFavorites(false);
-                setActiveCategory(val === "all" ? null : val);
-              }}
-            >
-              <SelectTrigger className="h-12 rounded-2xl border-border/50 bg-card shadow-sm">
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent className="rounded-2xl border-border/50 bg-card/95 backdrop-blur-xl">
-                <SelectItem value="all">🔥 All Templates</SelectItem>
-                {categoryNames.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {categoryEmojis[cat] || "📦"} {cat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
 
         <ScrollArea className="w-full whitespace-nowrap pb-2">
           <div className="flex gap-3">
@@ -657,7 +634,7 @@ const NicheTemplates = () => {
           {previewTemplate && (
             <>
               <div className="flex-1 overflow-hidden relative flex items-center justify-center p-8">
-                <div className="w-full h-full transform scale-[0.85] origin-center">
+                <div className="w-full h-full transform scale-[0.7] sm:scale-[0.85] origin-center">
                   <ProfilePreview
                     settings={getPreviewSettings(previewTemplate)}
                     user={user}

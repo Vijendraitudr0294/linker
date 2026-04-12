@@ -14,7 +14,7 @@ import {
   cloneWithoutMedia,
 } from "@/lib/catalogUtils";
 
-export type ItemType = "physical" | "food" | "service" | "digital" | "boat" | "car" | "blog" | "social" | "video" | "article" | "post" | "music" | "reel";
+export type ItemType = "physical" | "food" | "service" | "digital" | "boat" | "car" | "blog" | "social" | "video" | "article" | "post" | "music" | "reel" | "qr" | "map";
 export type ItemCategory = string;
 
 export interface ItemVariant {
@@ -44,6 +44,9 @@ export interface CatalogItem {
   schedule: string;
   location: string;
   media?: { type: "image" | "video"; url: string }[];
+  display_mode?: "minimal" | "full";
+  metadata?: Record<string, any>;
+  form_id?: string | null;
 }
 
 interface CatalogState {
@@ -124,7 +127,12 @@ export const useCatalogStore = create<CatalogState>()((set, get) => ({
       duration: item.duration?.trim() || "",
       schedule: item.schedule?.trim() || "",
       location: item.location?.trim() || "",
-      media: sanitizeMedia(item.media) as unknown as Json,
+      media: {
+        items: sanitizeMedia(item.media),
+        display_mode: item.display_mode || "minimal",
+        metadata: item.metadata || {},
+        form_id: item.form_id || null,
+      } as unknown as Json,
       sort_order,
     };
 
@@ -168,7 +176,14 @@ export const useCatalogStore = create<CatalogState>()((set, get) => ({
     if (data.duration !== undefined) updateData.duration = data.duration.trim();
     if (data.schedule !== undefined) updateData.schedule = data.schedule.trim();
     if (data.location !== undefined) updateData.location = data.location.trim();
-    if (data.media !== undefined) updateData.media = sanitizeMedia(data.media) as unknown as Json;
+    if (data.media !== undefined || data.display_mode !== undefined || data.metadata !== undefined) {
+      const current = get().items.find((item) => item.id === id);
+      updateData.media = {
+        items: sanitizeMedia(data.media !== undefined ? data.media : current?.media),
+        display_mode: data.display_mode !== undefined ? data.display_mode : (current?.display_mode || "minimal"),
+        metadata: data.metadata !== undefined ? data.metadata : (current?.metadata || {}),
+      } as unknown as Json;
+    }
 
     let { data: updatedData, error } = await supabase
       .from("catalog_items")

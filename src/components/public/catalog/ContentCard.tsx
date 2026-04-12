@@ -1,8 +1,10 @@
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Newspaper, UtensilsCrossed, Video, Music, MessageSquare, Play, ExternalLink, ArrowRight } from "lucide-react";
+import { Newspaper, UtensilsCrossed, Video, Music, MessageSquare, Play, ExternalLink, ArrowRight, QrCode, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ContentCardItem, contrastText } from "./CatalogUtils";
+import EmbedRenderer from "../EmbedRenderer";
+import { type SocialPlatform } from "@/types/links";
 
 interface ContentCardProps {
   item: ContentCardItem;
@@ -59,11 +61,70 @@ export const ContentCard = ({
       ? { label: "Video", icon: Video }
       : item.kind === "music"
       ? { label: "Audio", icon: Music }
+      : item.kind === "itinerary"
+      ? { label: "Location", icon: MapPin }
+      : item.kind === "other" && (item.title.toLowerCase().includes("qr") || item.id.includes("qr"))
+      ? { label: "Scan QR", icon: QrCode }
       : { label: "Post", icon: MessageSquare };
   
   const KindIcon = kindMeta.icon;
   const isHorizontal = !compact && (item.kind === "news" || item.kind === "recipe");
   const contentTextColor = catalogCardBg && catalogCardBg.startsWith("#") && catalogCardBg !== "transparent" ? contrastText(catalogCardBg, textColor) : "#ffffff";
+
+  if (item.displayMode === "full") {
+    const platform = (item.kind === "music" ? "spotify" : 
+                     item.kind === "itinerary" ? "google-maps" : 
+                     item.kind === "video" ? "video-embed" : "website-embed") as SocialPlatform;
+                     
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className={cn(
+          "rounded-3xl overflow-hidden border shadow-2xl relative group",
+          compact ? "col-span-1" : "md:col-span-2 lg:col-span-3"
+        )}
+        style={{ 
+          backgroundColor: catalogCardBg || "rgba(255,255,255,0.03)",
+          borderColor: cardBorder || `${textColor}15`
+        }}
+      >
+        <div className="p-4 md:p-6 pb-2 flex items-center justify-between">
+           <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                 <KindIcon className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                 <h4 className="text-[13px] font-black uppercase tracking-widest leading-none" style={{ color: contentTextColor }}>{item.title}</h4>
+                 <p className="text-[10px] opacity-40 font-bold uppercase mt-1" style={{ color: contentTextColor }}>{item.platformLabel} • Live Preview</p>
+              </div>
+           </div>
+           <button onClick={onClick} className="p-2 rounded-full hover:bg-white/10 transition-colors">
+              <ExternalLink className="w-4 h-4 opacity-40" style={{ color: contentTextColor }} />
+           </button>
+        </div>
+        
+        <div className="p-2 md:p-4 pt-0">
+          {item.kind === "other" && item.sourceUrl && (item.title.toLowerCase().includes("qr") || item.id.includes("qr")) ? (
+             <div className="w-full aspect-square max-w-[280px] mx-auto bg-white p-6 rounded-3xl shadow-xl flex flex-col items-center justify-center gap-4">
+                <img 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(item.sourceUrl)}`} 
+                  alt="QR Code"
+                  className="w-full h-auto"
+                />
+                <span className="text-[10px] font-black uppercase tracking-tighter text-black/40">Scan to follow link</span>
+             </div>
+          ) : (
+            <EmbedRenderer 
+              url={item.sourceUrl} 
+              platform={platform} 
+              title={item.title} 
+            />
+          )}
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.button

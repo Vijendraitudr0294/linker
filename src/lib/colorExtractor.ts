@@ -237,7 +237,7 @@ export async function extractPaletteFromImage(dataUrl: string): Promise<Extracte
           sat:   saturation(c.centroid.r, c.centroid.g, c.centroid.b),
           lum:   luminance(c.centroid.r, c.centroid.g, c.centroid.b),
           count: c.count,
-          weight: c.count * (1 + saturation(c.centroid.r, c.centroid.g, c.centroid.b) * 0.3),
+          weight: c.count * (1 + (saturation(c.centroid.r, c.centroid.g, c.centroid.b) > 0.15 ? 0.35 : 0)), // Only boost if it's actually chromatic
         }));
 
         // ── Color roles ───────────────────────────────────────────────────────
@@ -275,29 +275,40 @@ export async function extractPaletteFromImage(dataUrl: string): Promise<Extracte
 
         // Background: prefer true canvas tone over dominant white content regions.
         const bgCandidate = selectThemeBackground(scored, edgeHexes, zoneHexes);
+        const bg = bgCandidate.hex;
 
-        // Primary accent: highest saturation, but avoid very dark near-black tones.
-        const primaryCandidate = [...scored]
-          .filter((s) => s.lum > 0.06)
-          .sort((a, b) => b.sat - a.sat)[0] || scored[0];
+        // Primary accent: Usually the most vibrant, BUT if white/black is the dominant UI element color, prefer it.
+        // We look for the "loudest" non-background color.
+        const nonBgColors = scored.filter(s => hexDistance(s.hex, bg) > 35);
+        
+        // Find most saturated
+        const mostVibrant = [...nonBgColors].sort((a, b) => b.sat - a.sat)[0];
+        // Find most frequent
+        const mostFrequent = [...nonBgColors].sort((a, b) => b.count - a.count)[0];
 
-        // Secondary: second-distinct color (different from both bg and primary)
+        // If the most frequent is a neutral (white/black) and has significantly more presence than the vibrant one, 
+        // it's likely the button/UI color.
+        const primaryCandidate = (mostFrequent && (mostFrequent.lum > 0.92 || mostFrequent.lum < 0.08) && (mostFrequent.count > (mostVibrant?.count || 0) * 1.5))
+          ? mostFrequent 
+          : (mostVibrant || scored[0]);
+
+        // Secondary: second-distinct color
         const secondaryCandidate = scored
-          .filter(s => hexDistance(s.hex, primaryCandidate.hex) > 40 && hexDistance(s.hex, bgCandidate.hex) > 30)
+          .filter(s => hexDistance(s.hex, primaryCandidate.hex) > 40 && hexDistance(s.hex, bg) > 30)
           .sort((a, b) => b.weight - a.weight)[0]
-          || scored[1]
+          || (mostVibrant && mostVibrant.hex !== primaryCandidate.hex ? mostVibrant : scored[1])
           || scored[0];
 
-        const bg      = bgCandidate.hex;
         const primary = primaryCandidate.hex;
         const secondary = secondaryCandidate.hex;
         const isDark    = bgCandidate.lum < 0.30;
 
         // ── Text color (auto-contrast) ────────────────────────────────────────
-        const wL = luminance(255, 255, 255);
-        const bL = luminance(0, 0, 0);
-        const text    = contrastRatio(bgCandidate.lum, wL) >= contrastRatio(bgCandidate.lum, bL) ? "#ffffff" : "#000000";
-        const subText = isDark ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.45)";
+        // Designer Fix: Text MUST be readable against the CARD, not just the BG.
+        // If the card is light glass/white, we must use dark text regardless of BG.
+        const isCardLight = !isDark; // In this extractor, non-dark themes use white cards
+        const text = isCardLight ? "#0f172a" : "#ffffff";
+        const subText = isCardLight ? "rgba(15,23,42,0.6)" : "rgba(255,255,255,0.6)";
 
         // ── Card surface color ────────────────────────────────────────────────
         // Glass (dark): slightly lighter than bg, semi-transparent
@@ -346,19 +357,20 @@ export async function extractPaletteFromImage(dataUrl: string): Promise<Extracte
           : 0;
         const isMonochrome = hueRange < 45 && hues.length >= 2;
 
-        // Button shape: dark+vibrant → pill; minimal → square; else → rounded
+        // Button shape: If background is a photo tone or minimalist, 'pill' is the premium default.
         const buttonShape: ExtractedPalette["style"]["buttonShape"] =
           isMusicUi           ? "rounded" :
-          isDark && isVibrant ? "pill" :
-          isMinimal           ? "square" :
-          hasBoldAccent       ? "pill" : "rounded";
+          (isDark && isVibrant) || hasBoldAccent ? "pill" :
+          // If buttons are white/black (determined by primaryCandidate) and background is chromatic, go pill
+          ((primaryCandidate.lum > 0.9 || primaryCandidate.lum < 0.1) && !isMinimal) ? "pill" :
+          isMinimal           ? "square" : "rounded";
 
-        // Card style: dark → glass; vibrant dark → neon tease; light+minimal → classic
+        // Card style: glass for dark/photo, classic for pure minimal
         const cardStyle: ExtractedPalette["style"]["cardStyle"] =
           isMusicUi           ? "classic" :
-          isDark && isVibrant ? "glass-premium" :
-          isDark              ? "glass" :
-          isVibrant           ? "glass" :
+          isDark || isVibrant ? "glass-premium" :
+          // If we have a chromatic background (likely a photo or rich color), glass looks better
+          (bgCandidate.sat > 0.1 || bgCandidate.lum < 0.8) ? "glass" :
                                 "classic";
 
         const contrastLevel: ExtractedPalette["contrastLevel"] =

@@ -20,6 +20,47 @@ import ThemePreviewCard from "@/components/dashboard/ThemePreviewCard";
 import type { ThemePreset } from "@/data/themes";
 import { extractPaletteFromImage, type ExtractedPalette } from "@/lib/colorExtractor";
 
+// ── Gemini Integration ──────────────────────────────────────────────────────
+const GEMINI_MODELS = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+
+const callGemini = async (prompt: string, imageBase64?: string, mimeType?: string) => {
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  if (!apiKey) throw new Error("GEMINI_API_KEY is not configured");
+
+  for (const model of GEMINI_MODELS) {
+    try {
+      const parts: any[] = [{ text: prompt }];
+      if (imageBase64 && mimeType) {
+        parts.push({ inlineData: { mimeType, data: imageBase64 } });
+      }
+
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts }],
+            generationConfig: { temperature: 0.1, maxOutputTokens: 1000 }
+          })
+        }
+      );
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) continue;
+
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error("No JSON found in response");
+      return JSON.parse(jsonMatch[0]);
+    } catch (e) {
+      console.warn(`Gemini ${model} failed:`, e);
+    }
+  }
+  throw new Error("All Gemini models failed. Check your API key or network.");
+};
+
 interface GeneratedTheme {
   name: string;
   backgroundColor: string;
@@ -141,6 +182,23 @@ const AIThemeCreator = () => {
     if (activeTab === "gallery" || activeTab === "admin") loadGallery();
   }, [activeTab]);
 
+  const previewTheme: ThemePreset | null = generatedTheme ? {
+    id: "preview",
+    name: themeName || generatedTheme.name,
+    backgroundColor: generatedTheme.backgroundColor,
+    cardColor: generatedTheme.cardColor,
+    textColor: generatedTheme.textColor,
+    buttonStyle: generatedTheme.buttonStyle,
+    buttonBg: generatedTheme.buttonBg,
+    buttonText: generatedTheme.buttonText,
+    gradientFrom: generatedTheme.gradientFrom,
+    gradientTo: generatedTheme.gradientTo,
+    fontFamily: generatedTheme.fontFamily || "Inter",
+    layoutMode: generatedTheme.layoutType || "list",
+    cardStyle: generatedTheme.cardStyle || "glass",
+    profileStyleVariant: generatedTheme.profileStyleVariant,
+  } : null;
+
   const loadLocalThemes = (): ThemePreset[] => {
     try {
       const raw = window.localStorage.getItem("lv:ai-local-themes");
@@ -177,7 +235,20 @@ const AIThemeCreator = () => {
     finally { setLoadingGallery(false); }
   };
 
-  // ── Image processing: extract colors → build color-only theme ─────────────
+  const clearImage = () => {
+    setImagePreview(null);
+    setPalette(null);
+    setGeneratedTheme(null);
+    setThemeName("");
+    if (fileRef.current) fileRef.current.value = "";
+  };
+
+  const handleApplyGallery = async (theme: ThemePreset) => {
+    await (useAppearanceStore.getState().applyTheme as any)(theme);
+    toast.success(`Theme "${theme.name}" applied!`);
+  };
+
+  // ── Image processing: Gemini Vision → build theme ──────────────────────────
   const processImage = async (dataUrl: string) => {
     setImagePreview(dataUrl);
     setIsExtracting(true);
@@ -185,15 +256,63 @@ const AIThemeCreator = () => {
     setPalette(null);
 
     try {
+      const base64 = dataUrl.split(',')[1];
+      const mimeType = dataUrl.split(';')[0].split(':')[1];
+      
+      const promptText = prompt.trim() || "Extract design DNA from this image.";
+      const systemPrompt = `Analyze the provided image and return ONLY a JSON object (no markdown, no code blocks):
+{
+  "name": "Creative Theme Name",
+  "backgroundColor": "#hex",
+  "cardColor": "#hex (contrast with background)",
+  "textColor": "#hex (absolute high contrast with cardColor)",
+  "buttonBg": "#hex (vibrant accent color)",
+  "buttonText": "#hex (absolute high contrast with buttonBg)",
+  "buttonStyle": "pill | rounded | square",
+  "cardStyle": "glass | glass-premium | classic",
+  "layoutType": "list | grid | bento",
+  "gradientFrom": "#hex or null",
+  "gradientTo": "#hex or null",
+  "isDark": boolean
+}
+Rules:
+- Capture the EXACT color palette and vibe.
+- ACCESSIBILITY IS CRITICAL: Ensure "textColor" has a contrast ratio of at least 4.5:1 against "cardColor".
+- If "cardStyle" is glass (semi-transparent), "textColor" must be clearly readable against both "cardColor" and "backgroundColor".
+- NEVER return white text on a light-colored card or background.
+- User instructions: ${promptText}`;
+
+      const geminiResult = await callGemini(systemPrompt, base64, mimeType);
+      
+      const theme: GeneratedTheme = {
+        name: geminiResult.name || "AI Extracted",
+        backgroundColor: geminiResult.backgroundColor,
+        cardColor: geminiResult.cardColor,
+        textColor: geminiResult.textColor,
+        buttonBg: geminiResult.buttonBg,
+        buttonText: geminiResult.buttonText,
+        buttonStyle: geminiResult.buttonStyle as any,
+        cardStyle: geminiResult.cardStyle as any,
+        layoutType: geminiResult.layoutType as any,
+        gradientFrom: geminiResult.gradientFrom || undefined,
+        gradientTo: geminiResult.gradientTo || undefined,
+      };
+
+      setGeneratedTheme(theme);
+      setThemeName(theme.name);
+      
+      const localExtracted = await extractPaletteFromImage(dataUrl).catch(() => null);
+      if (localExtracted) setPalette(localExtracted);
+
+      toast.success(`Design DNA cloned: ${theme.name}`);
+    } catch (e: any) {
+      console.error(e);
+      toast.info("Gemini Vision failed. Using local extractor...");
       const extracted = await extractPaletteFromImage(dataUrl);
       setPalette(extracted);
-      // Build pure color theme — no backgroundImage used
       const theme = buildColorTheme(extracted);
       setGeneratedTheme(theme);
       setThemeName(extracted.name);
-      toast.success(`Design cloned → ${extracted.allColors.length} colors · ${extracted.style.cardStyle} cards · ${extracted.style.buttonShape} buttons`);
-    } catch {
-      toast.error("Could not analyze this image. Try another one.");
     } finally {
       setIsExtracting(false);
     }
@@ -221,10 +340,49 @@ const AIThemeCreator = () => {
     if (!prompt.trim()) { toast.error("Enter a description first"); return; }
     setIsGenerating(true);
     try {
+      const systemPrompt = `Create a matching "Link-in-bio" theme based on this prompt: "${prompt}". 
+Return ONLY a JSON object (no markdown, no blocks):
+{
+  "name": "Theme Name",
+  "backgroundColor": "#hex",
+  "cardColor": "#hex",
+  "textColor": "#hex (high contrast with cardColor)",
+  "buttonBg": "#hex",
+  "buttonText": "#hex (high contrast with buttonBg)",
+  "buttonStyle": "pill | rounded | square",
+  "cardStyle": "glass | glass-premium | classic",
+  "layoutType": "list | bento",
+  "gradientFrom": "#hex or null",
+  "gradientTo": "#hex or null"
+}
+Rules:
+- THEME READABILITY IS TOP PRIORITY.
+- Ensure all text and fonts are clearly visible. 
+- Avoid low-contrast combinations like white text on pastel backgrounds.`;
+
+      const geminiResult = await callGemini(systemPrompt);
+      const theme: GeneratedTheme = {
+        name: geminiResult.name,
+        backgroundColor: geminiResult.backgroundColor,
+        cardColor: geminiResult.cardColor,
+        textColor: geminiResult.textColor,
+        buttonBg: geminiResult.buttonBg,
+        buttonText: geminiResult.buttonText,
+        buttonStyle: geminiResult.buttonStyle as any,
+        cardStyle: geminiResult.cardStyle as any,
+        layoutType: geminiResult.layoutType as any,
+        gradientFrom: geminiResult.gradientFrom || undefined,
+        gradientTo: geminiResult.gradientTo || undefined,
+      };
+
+      setGeneratedTheme(theme);
+      setThemeName(theme.name);
+      toast.success("AI generated your theme!");
+    } catch (e: any) {
       const theme = generateLocalTheme(prompt);
       setGeneratedTheme(theme);
       setThemeName(theme.name);
-      toast.success("Theme generated!");
+      toast.success("Generated (local fallback)");
     } finally { setIsGenerating(false); }
   };
 
@@ -417,17 +575,17 @@ const AIThemeCreator = () => {
 
                   {/* Image thumbnail — for reference only, NOT the background */}
                   <div className="relative shrink-0">
-                    <div className="w-36 h-48 rounded-2xl border-4 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] overflow-hidden">
+                    <div className="w-44 h-60 rounded-2xl border-4 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] overflow-hidden">
                       <img src={imagePreview} alt="Source design" className="w-full h-full object-cover" />
                     </div>
                     <button
-                      className="absolute -top-2 -right-2 w-8 h-8 bg-black rounded-xl flex items-center justify-center shadow z-10"
+                      className="absolute -top-3 -right-3 w-10 h-10 bg-black rounded-2xl flex items-center justify-center shadow-xl z-10 hover:scale-110 transition-all border-2 border-white/20"
                       onClick={e => { e.stopPropagation(); clearImage(); }}
                     >
-                      <X className="w-3.5 h-3.5 text-white" />
+                      <X className="w-4 h-4 text-white" />
                     </button>
-                    <p className="text-[8px] font-black uppercase tracking-widest text-black/30 mt-2 text-center">
-                      Source image (reference)
+                    <p className="text-[8px] font-black uppercase tracking-widest text-black/30 mt-3 text-center">
+                      Analysis Reference
                     </p>
                   </div>
 
@@ -537,38 +695,67 @@ const AIThemeCreator = () => {
           </div>
 
           {/* ── Text prompt fallback ─────────────────────────────────────── */}
-          <div className="space-y-4 pt-2 border-t-2 border-black/5">
-            <p className="text-[10px] font-black uppercase tracking-widest text-black/30">Or describe a style (no image needed)</p>
-            <div className="flex flex-wrap gap-2">
-              {[
-                { label: "Elegant Dark", p: "Deep black glass cards premium luxury" },
-                { label: "Soft Pastel",  p: "Soft pink mint pastel airy minimal" },
-                { label: "Cyber Blue",   p: "Neon blue near-black tech futuristic" },
-                { label: "Warm Gold",    p: "Warm cream beige gold luxury boutique" },
-              ].map(ps => (
-                <button key={ps.label} onClick={() => setPrompt(ps.p)}
-                  className={cn("px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider border-2 transition-all",
-                    prompt === ps.p ? "bg-black text-white border-black" : "bg-white text-black/50 border-black/10 hover:border-black hover:text-black")}>
-                  {ps.label}
+          <div className="space-y-4 pt-4 border-t-2 border-dashed border-black/10">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-black uppercase tracking-widest text-black/40">Guiding Prompt (Optional with image)</p>
+              {prompt && (
+                <button onClick={() => setPrompt("")} className="text-[9px] font-black uppercase text-pink-500 hover:text-pink-600 flex items-center gap-1">
+                  <X className="w-3 h-3" /> Clear Prompt
                 </button>
-              ))}
+              )}
             </div>
-            <div className="flex gap-3">
-              <Textarea
-                value={prompt}
-                onChange={e => setPrompt(e.target.value)}
-                placeholder="e.g. 'Warm earthy tones, kraft paper texture, luxury boutique hotel aesthetic...'"
-                className="min-h-[80px] rounded-2xl border-2 border-black/10 focus:border-black bg-black/[0.02] text-sm font-medium resize-none flex-1"
-              />
-              <Button
-                onClick={generateFromPrompt}
-                disabled={isGenerating || !prompt.trim()}
-                className="h-auto min-h-[80px] rounded-2xl bg-black text-white font-black uppercase tracking-widest text-[10px] px-5 shadow-[4px_4px_0_0_rgba(0,0,0,0.3)] hover:-translate-y-0.5 transition-all shrink-0 flex-col gap-2"
-              >
-                {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-                <span>Generate</span>
-              </Button>
+            
+            <div className="flex gap-3 relative">
+              <div className="flex-1 relative">
+                <Textarea
+                  value={prompt}
+                  onChange={e => setPrompt(e.target.value)}
+                  placeholder="Paste HTML/CSS, a Website URL, or describe a vibe: 'Make it look like a minimalist dark-mode crypto dashboard with neon accents'..."
+                  className="min-h-[120px] rounded-3xl border-2 border-black/10 focus:border-black bg-black/[0.02] text-sm font-medium resize-none px-5 py-4 transition-all placeholder:text-black/20"
+                />
+                <div className="absolute right-4 bottom-4 flex gap-2">
+                   <button onClick={() => setPrompt("Minimalist brutalist design with high contrast black and yellow")} className="px-2 py-1 bg-white border border-black/10 rounded-lg text-[9px] font-bold text-black/40 hover:text-black transition-colors">Example 1</button>
+                   <button onClick={() => setPrompt("Soft organic shapes, earthy clay tones, luxury ceramic aesthetic")} className="px-2 py-1 bg-white border border-black/10 rounded-lg text-[9px] font-bold text-black/40 hover:text-black transition-colors">Example 2</button>
+                </div>
+              </div>
+              
+              <div className="flex flex-col gap-2 shrink-0">
+                <Button
+                  onClick={imagePreview ? () => processImage(imagePreview) : generateFromPrompt}
+                  disabled={isGenerating || isExtracting || (!prompt.trim() && !imagePreview)}
+                  className="w-32 h-20 rounded-3xl bg-black text-white font-black uppercase tracking-widest text-[10px] shadow-[4px_4px_0_0_rgba(0,0,0,0.3)] hover:-translate-y-1 hover:shadow-[6px_6px_0_0_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-none transition-all flex-col gap-2"
+                >
+                  {isGenerating || isExtracting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5 text-yellow-400" />}
+                  <span>{imagePreview ? "Re-Clone" : "Generate"}</span>
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  onClick={() => fileRef.current?.click()}
+                  className="w-32 h-14 rounded-2xl border-2 border-black font-black uppercase tracking-widest text-[9px] flex items-center gap-2 hover:bg-black hover:text-white transition-all shadow-[3px_3px_0_0_rgba(0,0,0,1)]"
+                >
+                  <Upload className="w-4 h-4" />
+                  {imagePreview ? "Change" : "Attach"}
+                </Button>
+              </div>
             </div>
+
+            {!imagePreview && (
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { label: "Elite Fitness", p: "Dark mode, glass cards, high-contrast, premium fitness" },
+                  { label: "Nordic Luxe",  p: "White space, light gray, soft shadows, scandinavian" },
+                  { label: "Cyber Punk",   p: "Neon purple and teal, pitch black background, glowing buttons" },
+                  { label: "Warm Clay",    p: "Terra cotta, beige, soft organic shapes, ceramic artisan" },
+                ].map(ps => (
+                  <button key={ps.label} onClick={() => setPrompt(ps.p)}
+                    className={cn("px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider border transition-all",
+                      prompt.includes(ps.label) ? "bg-black text-white border-black" : "bg-white text-black/40 border-black/5 hover:border-black/20 hover:text-black")}>
+                    {ps.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* ── Generated theme result ───────────────────────────────────── */}
