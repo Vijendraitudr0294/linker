@@ -686,7 +686,7 @@ const SettingsPage = () => {
 
               <div className="relative group/orbit flex flex-col gap-6 flex-1 overflow-y-auto no-scrollbar scrollbar-hide rounded-[32px] bg-black/[0.01] p-6 border border-black/5 shadow-inner">
                 <div className="absolute -inset-10 bg-primary/5 blur-[100px] rounded-full opacity-0 group-hover/orbit:opacity-100 transition-opacity duration-1000" />
-                <div className="relative transform origin-top transition-all duration-1000 ease-[cubic-bezier(0.23,1,0.32,1)] flex-1 hover:scale-[1.03]">
+                <div className="relative transform origin-top transition-all duration-1000 ease-apple-ease flex-1 hover:scale-[1.03]">
                   <ProfilePreview
                     settings={settings}
                     user={{...user, name, username, bio, social_links: socialLinks, social_stats: socialStats}}

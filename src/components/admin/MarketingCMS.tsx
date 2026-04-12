@@ -12,6 +12,7 @@ export const MarketingCMS = () => {
   const [page, setPage] = useState<MarketingPage>(DEFAULT_HOME_PAGE);
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchPage();
@@ -93,6 +94,51 @@ export const MarketingCMS = () => {
       sections: prev.sections.filter(s => s.id !== id)
     }));
     if (activeSectionId === id) setActiveSectionId(null);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, sectionId: string, itemIdx?: number) => {
+    try {
+      if (!e.target.files || e.target.files.length === 0) return;
+      const file = e.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `marketing/${fileName}`;
+
+      setUploading(true);
+      
+      const { error: uploadError } = await supabase.storage
+        .from('blog_images') // Reusing the same bucket for now, or use a specific one if exists
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('blog_images')
+        .getPublicUrl(filePath);
+
+      if (itemIdx !== undefined) {
+        setPage(prev => ({
+          ...prev,
+          sections: prev.sections.map(s => {
+            if (s.id === sectionId) {
+              const newItems = [...(s.content.items || [])];
+              if (newItems[itemIdx]) {
+                newItems[itemIdx] = { ...newItems[itemIdx], image_url: data.publicUrl };
+              }
+              return { ...s, content: { ...s.content, items: newItems } };
+            }
+            return s;
+          })
+        }));
+      } else {
+        updateSection(sectionId, { content: { ...page.sections.find(s => s.id === sectionId)?.content, image_url: data.publicUrl } });
+      }
+      toast.success("Image uploaded successfully");
+    } catch (error: any) {
+      toast.error(error.message || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
   };
 
   if (loading) return (
@@ -188,6 +234,8 @@ export const MarketingCMS = () => {
                  <SectionEditor 
                   section={page.sections.find(s => s.id === activeSectionId)!}
                   onChange={(updates) => updateSection(activeSectionId, updates)}
+                  onImageUpload={(e, itemIdx) => handleImageUpload(e, activeSectionId, itemIdx)}
+                  isUploading={uploading}
                  />
               </div>
            ) : (
@@ -205,7 +253,17 @@ export const MarketingCMS = () => {
   );
 };
 
-const SectionEditor = ({ section, onChange }: { section: MarketingSection, onChange: (updates: Partial<MarketingSection>) => void }) => {
+const SectionEditor = ({ 
+  section, 
+  onChange, 
+  onImageUpload,
+  isUploading
+}: { 
+  section: MarketingSection, 
+  onChange: (updates: Partial<MarketingSection>) => void,
+  onImageUpload: (e: React.ChangeEvent<HTMLInputElement>, itemIdx?: number) => void,
+  isUploading: boolean
+}) => {
   const content = section.content;
 
   const handleChange = (key: string, value: any) => {
@@ -233,13 +291,46 @@ const SectionEditor = ({ section, onChange }: { section: MarketingSection, onCha
             <div className="flex gap-4">
                <button 
                 onClick={() => onChange({ enabled: !section.enabled })}
-                className={cn("flex-1 h-14 rounded-xl border-2 font-black text-[10px] uppercase transition-all", section.enabled ? "bg-emerald-500 border-black text-white" : "bg-gray-50 border-gray-100")}
+                className={cn("flex-1 h-11 rounded-xl border-2 font-black text-[10px] uppercase transition-all", section.enabled ? "bg-emerald-500 border-black text-white" : "bg-gray-50 border-gray-100")}
                >
                  {section.enabled ? "Live Status" : "Offline Stage"}
                </button>
             </div>
          </div>
       </div>
+
+      {section.type === 'hero' && (
+         <div className="space-y-3 pt-4">
+           <label className="text-[10px] font-black uppercase tracking-widest text-black/40 flex items-center gap-2">
+              <ImageIcon className="w-3.5 h-3.5" /> Hero Visual Asset
+           </label>
+           <div className="flex gap-4">
+             <input 
+               value={content.image_url || ""}
+               onChange={(e) => handleChange('image_url', e.target.value)}
+               className="flex-1 p-4 rounded-xl border-2 border-gray-100 focus:border-black outline-none font-bold text-xs"
+               placeholder="Direct public URL..."
+             />
+             <div className="relative">
+                <Button variant="outline" className="h-11 rounded-xl border-2 border-black/10 hover:border-black font-black text-[10px] uppercase">
+                   {isUploading ? "..." : "Upload"}
+                </Button>
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={(e) => onImageUpload(e)}
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  disabled={isUploading}
+                />
+             </div>
+           </div>
+           {content.image_url && (
+             <div className="mt-4 w-full h-40 rounded-2xl border-2 border-black overflow-hidden relative">
+                <img src={content.image_url} alt="Preview" className="absolute inset-0 w-full h-full object-cover" />
+             </div>
+           )}
+         </div>
+       )}
 
       {(content.subtitle || content.description) !== undefined && (
         <div className="space-y-3">
@@ -285,16 +376,30 @@ const SectionEditor = ({ section, onChange }: { section: MarketingSection, onCha
                   <Settings className="w-5 h-5 text-gray-200 group-hover:text-black transition-colors" />
                </div>
                <div className="flex-1 space-y-3">
-                  <input 
-                    value={item.title}
-                    onChange={(e) => {
-                      const newItems = [...content.items];
-                      newItems[idx] = { ...item, title: e.target.value };
-                      handleChange('items', newItems);
-                    }}
-                    className="w-full bg-transparent border-none outline-none font-black text-sm uppercase tracking-tight"
-                    placeholder="Module Title"
-                  />
+                   <div className="flex justify-between items-start">
+                     <input 
+                       value={item.title}
+                       onChange={(e) => {
+                         const newItems = [...content.items];
+                         newItems[idx] = { ...item, title: e.target.value };
+                         handleChange('items', newItems);
+                       }}
+                       className="bg-transparent border-none outline-none font-black text-sm uppercase tracking-tight flex-1"
+                       placeholder="Module Title"
+                     />
+                     <div className="relative">
+                       <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors overflow-hidden relative">
+                         <ImageIcon className={cn("w-4 h-4", item.image_url ? "text-emerald-500" : "text-gray-300")} />
+                         <input 
+                           type="file" 
+                           accept="image/*"
+                           onChange={(e) => onImageUpload(e, idx)}
+                           className="absolute inset-0 opacity-0 cursor-pointer"
+                           disabled={isUploading}
+                         />
+                       </button>
+                     </div>
+                   </div>
                   <input 
                     value={item.description}
                     onChange={(e) => {
@@ -305,6 +410,11 @@ const SectionEditor = ({ section, onChange }: { section: MarketingSection, onCha
                     className="w-full bg-transparent border-none outline-none text-xs text-gray-500 font-medium"
                     placeholder="Narrative summary..."
                   />
+                  {item.image_url && (
+                     <div className="mt-2 w-full h-24 rounded-lg border-2 border-black/5 overflow-hidden">
+                       <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" />
+                     </div>
+                   )}
                </div>
             </div>
           ))}

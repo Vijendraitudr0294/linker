@@ -62,6 +62,7 @@ export const ContentCMS = () => {
   const [currentFaq, setCurrentFaq] = useState<Partial<FAQItem> | null>(null);
   const [currentPlan, setCurrentPlan] = useState<Partial<PricingPlan> | null>(null);
   const [search, setSearch] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const filteredPosts = posts.filter(p => 
     p.title.toLowerCase().includes(search.toLowerCase()) || 
@@ -241,6 +242,38 @@ export const ContentCMS = () => {
     } catch (err) { toast.error("Failed"); }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      if (!e.target.files || e.target.files.length === 0) return;
+      const file = e.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `post-images/${fileName}`;
+
+      setUploadingImage(true);
+      
+      const { error: uploadError } = await supabase.storage
+        .from('blog_images')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data } = supabase.storage
+        .from('blog_images')
+        .getPublicUrl(filePath);
+
+      setCurrentPost(prev => ({ ...prev, image_url: data.publicUrl }));
+      toast.success("Image successfully injected into bucket!");
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || "Upload failed. Storage bucket may not be configured.");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -304,11 +337,17 @@ export const ContentCMS = () => {
             >
               <Card className="group relative border-2 border-black p-0 overflow-hidden bg-white shadow-[6px_6px_0_0_rgba(0,0,0,0.05)] hover:shadow-[8px_8px_0_0_rgba(0,0,0,1)] hover:-translate-y-1 transition-all duration-300">
                 <div className="flex flex-col sm:flex-row">
-                  <div className="w-full sm:w-32 h-auto sm:min-h-full bg-gray-50 flex flex-row sm:flex-col items-center justify-center p-4 border-b-2 sm:border-b-0 sm:border-r-2 border-black select-none gap-4 sm:gap-0">
-                     <div className="w-12 h-12 rounded-xl bg-white border-2 border-dashed border-gray-200 flex items-center justify-center mb-3">
-                        <ImageIcon className="w-6 h-6 text-gray-200" />
-                     </div>
-                     <span className="text-[8px] font-black uppercase text-gray-300 tracking-widest">No Media</span>
+                  <div className="w-full sm:w-32 h-auto sm:min-h-full bg-gray-50 flex flex-row sm:flex-col items-center justify-center p-4 border-b-2 sm:border-b-0 sm:border-r-2 border-black select-none gap-4 sm:gap-0 relative overflow-hidden group-hover:bg-gray-100 transition-colors">
+                     {post.image_url ? (
+                       <img src={post.image_url} alt={post.title} className="absolute inset-0 w-full h-full object-cover" />
+                     ) : (
+                       <>
+                         <div className="w-12 h-12 rounded-xl bg-white border-2 border-dashed border-gray-200 flex items-center justify-center mb-3">
+                            <ImageIcon className="w-6 h-6 text-gray-200" />
+                         </div>
+                         <span className="text-[8px] font-black uppercase text-gray-300 tracking-widest">No Media</span>
+                       </>
+                     )}
                   </div>
                   <div className="flex-1 p-6 space-y-3">
                     <div className="flex items-center justify-between">
@@ -513,6 +552,35 @@ export const ContentCMS = () => {
                             className="text-xs font-bold border-2 border-black/5 focus:border-black rounded-xl p-4 min-h-[100px]"
                             placeholder="Brief preview text..."
                           />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-[9px] font-black uppercase tracking-widest text-black/40 px-1">Hero Asset (Direct URL or Upload)</label>
+                          <div className="flex gap-2">
+                            <Input 
+                              value={currentPost?.image_url || ""}
+                              onChange={(e) => setCurrentPost(prev => ({ ...prev, image_url: e.target.value }))}
+                              className="h-11 border-2 border-black/5 focus:border-black rounded-xl text-xs font-bold w-full"
+                              placeholder="https://..."
+                            />
+                            <div className="relative shrink-0">
+                              <Button variant="outline" className={cn("h-11 border-2 border-black/5 hover:border-black rounded-xl", uploadingImage && "opacity-50 pointer-events-none")}>
+                                <ImageIcon className="w-4 h-4 mr-2" /> {uploadingImage ? "Uploading..." : "Upload"}
+                              </Button>
+                              <input 
+                                type="file" 
+                                accept="image/*"
+                                onChange={handleImageUpload}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                disabled={uploadingImage}
+                              />
+                            </div>
+                          </div>
+                          {currentPost?.image_url && (
+                            <div className="mt-2 w-full h-32 rounded-xl border-2 border-black overflow-hidden relative">
+                              <img src={currentPost.image_url} alt="Hero Asset Preview" className="absolute inset-0 w-full h-full object-cover" />
+                            </div>
+                          )}
                         </div>
 
                         <div className="grid grid-cols-1 gap-4">

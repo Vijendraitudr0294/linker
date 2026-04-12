@@ -153,6 +153,9 @@ export default {
         marquee: "marquee 25s linear infinite",
         marquee2: "marquee2 25s linear infinite",
       },
+      transitionTimingFunction: {
+        'apple-ease': 'cubic-bezier(0.23, 1, 0.32, 1)',
+      },
     },
   },
   plugins: [tailwindcssAnimate],
