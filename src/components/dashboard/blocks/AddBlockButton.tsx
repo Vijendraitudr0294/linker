@@ -20,6 +20,7 @@ const BLOCK_OPTIONS: BlockOption[] = [
   { id: 'music', label: 'Music', icon: Music, color: 'bg-[#EC4899]', description: 'Spotify & SoundCloud' },
   { id: 'section', label: 'Heading', icon: Folders, color: 'bg-[#3B82F6]', description: 'Group your links' },
   { id: 'tip-jar', label: 'Tip Jar', icon: Zap, color: 'bg-[#EAB308]', description: 'Accept global payments' },
+  { id: 'app', label: 'App Center', icon: Smartphone, color: 'bg-[#6366F1]', description: 'App Store / Play Store' },
   { id: 'gallery', label: 'Gallery', icon: ImageIcon, color: 'bg-[#14B8A6]', description: 'Visual portfolios' },
 ];
 
