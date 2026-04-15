@@ -3,8 +3,8 @@ import { motion } from "framer-motion";
 import { Mail, MessageCircle, MapPin, Send } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import BiotraCCNavbar from "@/components/landing/legacy/BiotraCCNavbar";
-import BiotraCCFooter from "@/components/landing/legacy/BiotraCCFooter";
+import LandingNav from "@/components/landing/LandingNav";
+import LandingFooter from "@/components/landing/LandingFooter";
 
 const contacts = [
   { icon: Mail, label: "EMAIL", value: "support@biotra.ai", color: "bg-[#FBCFE8]" },
@@ -29,7 +29,7 @@ const ContactPage = () => {
 
   return (
     <div className="min-h-screen bg-[#F3F4F6] font-sans selection:bg-[#22C55E] selection:text-black">
-      <BiotraCCNavbar />
+      <LandingNav />
 
       <main className="pt-36 pb-24 px-6">
         <div className="max-w-7xl mx-auto">
@@ -113,7 +113,7 @@ const ContactPage = () => {
         </div>
       </main>
 
-      <BiotraCCFooter />
+      <LandingFooter />
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Heart, Zap, Shield, Sparkles } from "lucide-react";
-import BiotraCCNavbar from "@/components/landing/legacy/BiotraCCNavbar";
-import BiotraCCFooter from "@/components/landing/legacy/BiotraCCFooter";
+import LandingNav from "@/components/landing/LandingNav";
+import LandingFooter from "@/components/landing/LandingFooter";
 
 const pillars = [
   { icon: Shield, title: "DATA AUTONOMY", desc: "YOU OWN EVERY CLICK, VIEWER THRESHOLD, AND CATALOG ITEM DIRECTLY.", color: "bg-[#FBCFE8]" },
@@ -12,7 +12,7 @@ const pillars = [
 const About = () => {
   return (
     <div className="min-h-screen bg-[#F3F4F6] font-sans selection:bg-[#22C55E] selection:text-black">
-      <BiotraCCNavbar />
+      <LandingNav />
 
       <main className="pt-36 pb-24 px-6">
         <div className="max-w-7xl mx-auto">
@@ -75,7 +75,7 @@ const About = () => {
         </div>
       </main>
 
-      <BiotraCCFooter />
+      <LandingFooter />
     </div>
   );
 };
