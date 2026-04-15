@@ -226,7 +226,7 @@ const WhatWeDo = () => {
       title: "Identity Orchestration",
       description: "Unified digital footprint across all platforms with decentralized protocol security.",
       icon: Cpu,
-      image: "/biotra_tech_vision_1_1776275989608.png"
+      image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80"
     },
     {
       title: "Market Integrity",
