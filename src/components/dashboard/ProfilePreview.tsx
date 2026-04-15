@@ -13,6 +13,7 @@ interface ProfilePreviewProps {
   settings: any;
   links?: any[];
   catalogItems?: any[];
+  blocks?: any[]; // Dynamic blocks from the builder
   compact?: boolean;
   noFrame?: boolean;
   onShare?: () => void;
@@ -22,7 +23,7 @@ import { UnifiedProfileHeader } from "@/components/public/UnifiedProfileHeader";
 import { ProfileLinkBlock } from "@/components/public/ProfileLinkBlock";
 import { RetroStickers } from "@/components/public/RetroStickers";
 
-const ProfilePreview = ({ user, settings, links = [], catalogItems = [], compact = false, noFrame = false, onShare }: ProfilePreviewProps) => {
+const ProfilePreview = ({ user, settings, links = [], catalogItems = [], blocks, compact = false, noFrame = false, onShare }: ProfilePreviewProps) => {
   const [activeTab, setActiveTab] = useState<"links" | "shop">("links");
 
   const appearance: ProfileAppearance = useMemo(() => ({
@@ -57,9 +58,91 @@ const ProfilePreview = ({ user, settings, links = [], catalogItems = [], compact
 
   const hasLinks = links.length > 0;
   const hasShopContent = catalogItems.length > 0;
-  const hasTabs = hasLinks && hasShopContent;
+  const hasTabs = !blocks && hasLinks && hasShopContent; // Only show tabs if not in "Block Mode"
   const isBrutalism = appearance.layout_type === "brutalism";
   const isRetroPop = appearance.theme_id?.includes("retro-pop");
+
+  const renderBlock = (block: any) => {
+    if (!block.enabled) return null;
+
+    switch (block.type) {
+      case "header":
+        return (
+          <UnifiedProfileHeader 
+            key={block.id}
+            user={user}
+            appearance={appearance}
+            palette={palette}
+            isBrutalism={isBrutalism}
+            socialLinks={socialLinks}
+            onShare={onShare}
+            onConnect={() => {}}
+            compact={compact}
+          />
+        );
+      case "social-icons":
+        return (
+          <div key={block.id} className="flex flex-wrap justify-center gap-4 mb-8">
+            {socialLinks.map((s: any, idx: number) => (
+              <SocialIcon key={idx} platform={s.platform} url={s.url} color={isBrutalism ? "#000" : palette.cardText} />
+            ))}
+          </div>
+        );
+      case "links":
+        return (
+          <div key={block.id} className={cn(
+            "grid gap-4 w-full mb-8",
+            (appearance.layout_type === "grid" || appearance.layout_type === "bento") ? "grid-cols-2" : "grid-cols-1"
+          )}>
+            {links.map((link, i) => (
+              <ProfileLinkBlock 
+                key={link.id}
+                index={i}
+                link={link}
+                appearance={appearance}
+                palette={palette}
+                isBrutalism={isBrutalism}
+                layoutType={appearance.layout_type}
+              />
+            ))}
+          </div>
+        );
+      case "shop":
+      case "product-grid-2-col":
+      case "featured-product":
+        return (
+          <div key={block.id} className="mb-8 w-full">
+            <PublicCatalog 
+              items={catalogItems} 
+              profileUserId={user?.user_id}
+              textColor={isBrutalism ? "#000000" : palette.cardText}
+              buttonBg={isBrutalism ? "#000000" : palette.btnBg}
+              buttonText={isBrutalism ? "#ffffff" : palette.btnText}
+              buttonStyle={isBrutalism ? "square" : appearance.button_style}
+              catalogCardBg={isBrutalism ? "#ffffff" : palette.cardBg}
+              cardBorder={isBrutalism ? "#000000" : palette.cardBorder}
+              hasPhoto={Boolean(user?.avatar_url)}
+            />
+          </div>
+        );
+      case "contact":
+      case "newsletter-signup":
+      case "testimonials":
+      case "video-embed":
+      case "music-player":
+      case "location":
+      case "countdown":
+        // Placeholder for more complex blocks
+        return (
+           <div key={block.id} className="p-6 border-2 border-dashed border-black/10 rounded-2xl mb-8 flex flex-col items-center gap-2 opacity-40">
+              <Zap size={20} />
+              <p className="text-[10px] font-black uppercase tracking-widest">{block.label}</p>
+           </div>
+        );
+      default:
+        return null;
+    }
+  };
 
   const screenContent = (
     <div
@@ -69,106 +152,122 @@ const ProfilePreview = ({ user, settings, links = [], catalogItems = [], compact
       <ThemeEffects appearance={appearance} />
       {isRetroPop && <RetroStickers />}
       
-      {/* Designer Fix: Radial Glow Overlay for Depth */}
       {!isBrutalism && (
         <div className="absolute inset-0 z-0 pointer-events-none opacity-40 bg-[radial-gradient(circle_at_50%_30%,rgba(255,255,255,0.12)_0%,transparent_70%)]" />
       )}
 
-      <div className={cn("relative w-full z-10", compact ? "pt-4 px-3 pb-2" : "pt-8 px-5 pb-4")}>
-        <UnifiedProfileHeader 
-          user={user}
-          appearance={appearance}
-          palette={palette}
-          isBrutalism={isBrutalism}
-          socialLinks={socialLinks}
-          onShare={onShare}
-          onConnect={() => {}}
-          compact={compact}
-        />
+      <div className={cn("relative w-full z-10 flex flex-col items-center", compact ? "pt-4 px-3 pb-2" : "pt-8 px-5 pb-4")}>
+        {blocks ? (
+          <div className="w-full flex flex-col">
+            {blocks.map(renderBlock)}
+          </div>
+        ) : (
+          <>
+            <UnifiedProfileHeader 
+              user={user}
+              appearance={appearance}
+              palette={palette}
+              isBrutalism={isBrutalism}
+              socialLinks={socialLinks}
+              onShare={onShare}
+              onConnect={() => {}}
+              compact={compact}
+            />
 
-        {hasTabs && (
-          <div className="w-full flex items-center justify-center mb-6 mt-2 px-2">
-            <div className={cn(
-              "p-1 flex items-center gap-1 w-full max-w-[320px]",
-              isBrutalism ? "border-4 border-black bg-white" : "bg-black/30 backdrop-blur-2xl border border-white/5 shadow-inner rounded-full"
-            )}>
-              {["shop", "links"].map(tab => (
-                <button 
-                  key={tab}
-                  onClick={() => setActiveTab(tab as any)}
+            {hasTabs && (
+              <div className="w-full flex items-center justify-center mb-6 mt-2 px-2">
+                <div className={cn(
+                  "p-1 flex items-center gap-1 w-full max-w-[320px]",
+                  isBrutalism ? "border-4 border-black bg-white" : "bg-black/30 backdrop-blur-2xl border border-white/5 shadow-inner rounded-full"
+                )}>
+                  {["shop", "links"].map(tab => (
+                    <button 
+                      key={tab}
+                      onClick={() => setActiveTab(tab as any)}
+                      className={cn(
+                        "flex-1 relative z-10 py-2.5 rounded-full font-black uppercase tracking-[0.2em] text-[9px] transition-all duration-500",
+                        activeTab === tab
+                          ? (isBrutalism ? "bg-black text-white rounded-none" : "text-black drop-shadow-sm")
+                          : (isBrutalism ? "text-black" : "text-white/40 hover:text-white/70")
+                      )}
+                    >
+                      {activeTab === tab && !isBrutalism && (
+                        <motion.div 
+                          layoutId="previewTabPill"
+                          className="absolute inset-0 bg-white rounded-full -z-10 shadow-[0_4px_15px_rgba(255,255,255,0.2)]"
+                          transition={{ type: "spring", bounce: 0.15, duration: 0.6 }}
+                        />
+                      )}
+                      {tab === "shop" ? "Shop" : "Links"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <AnimatePresence mode="wait">
+              {activeTab === "links" ? (
+                <motion.div
+                  key="links-view"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
                   className={cn(
-                    "flex-1 relative z-10 py-2.5 rounded-full font-black uppercase tracking-[0.2em] text-[9px] transition-all duration-500",
-                    activeTab === tab
-                      ? (isBrutalism ? "bg-black text-white rounded-none" : "text-black drop-shadow-sm")
-                      : (isBrutalism ? "text-black" : "text-white/40 hover:text-white/70")
+                    "grid gap-4 w-full",
+                    (appearance.layout_type === "grid" || appearance.layout_type === "bento") ? "grid-cols-2" : "grid-cols-1"
                   )}
                 >
-                  {activeTab === tab && !isBrutalism && (
-                    <motion.div 
-                      layoutId="previewTabPill"
-                      className="absolute inset-0 bg-white rounded-full -z-10 shadow-[0_4px_15px_rgba(255,255,255,0.2)]"
-                      transition={{ type: "spring", bounce: 0.15, duration: 0.6 }}
+                  {links.map((link, i) => (
+                    <ProfileLinkBlock 
+                      key={link.id}
+                      index={i}
+                      link={link}
+                      appearance={appearance}
+                      palette={palette}
+                      isBrutalism={isBrutalism}
+                      layoutType={appearance.layout_type}
                     />
+                  ))}
+                  {!hasLinks && (
+                    <div className="col-span-full py-20 text-center opacity-20 border-2 border-dashed border-black/10 rounded-3xl">
+                       <Link2 className="w-8 h-8 mx-auto mb-2" />
+                       <p className="text-[10px] font-black uppercase tracking-widest">Awaiting digital nodes...</p>
+                    </div>
                   )}
-                  {tab === "shop" ? "Shop" : "Links"}
-                </button>
-              ))}
-            </div>
-          </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="shop-view"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="w-full"
+                >
+                  <PublicCatalog 
+                    items={catalogItems} 
+                    profileUserId={user?.user_id}
+                    textColor={isBrutalism ? "#000000" : palette.cardText}
+                    buttonBg={isBrutalism ? "#000000" : palette.btnBg}
+                    buttonText={isBrutalism ? "#ffffff" : palette.btnText}
+                    buttonStyle={isBrutalism ? "square" : appearance.button_style}
+                    catalogCardBg={isBrutalism ? "#ffffff" : palette.cardBg}
+                    cardBorder={isBrutalism ? "#000000" : palette.cardBorder}
+                    hasPhoto={Boolean(user?.avatar_url)}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </>
         )}
 
-        <AnimatePresence mode="wait">
-          {activeTab === "links" ? (
-            <motion.div
-              key="links-view"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className={cn(
-                "grid gap-4 w-full",
-                (appearance.layout_type === "grid" || appearance.layout_type === "bento") ? "grid-cols-2" : "grid-cols-1"
-              )}
-            >
-              {links.map((link, i) => (
-                <ProfileLinkBlock 
-                  key={link.id}
-                  index={i}
-                  link={link}
-                  appearance={appearance}
-                  palette={palette}
-                  isBrutalism={isBrutalism}
-                  layoutType={appearance.layout_type}
-                />
-              ))}
-              {!hasLinks && (
-                <div className="col-span-full py-20 text-center opacity-20 border-2 border-dashed border-black/10 rounded-3xl">
-                   <Link2 className="w-8 h-8 mx-auto mb-2" />
-                   <p className="text-[10px] font-black uppercase tracking-widest">Awaiting digital nodes...</p>
-                </div>
-              )}
-            </motion.div>
-          ) : (
-            <motion.div
-              key="shop-view"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="w-full"
-            >
-              <PublicCatalog 
-                items={catalogItems} 
-                profileUserId={user?.user_id}
-                textColor={isBrutalism ? "#000000" : palette.cardText}
-                buttonBg={isBrutalism ? "#000000" : palette.btnBg}
-                buttonText={isBrutalism ? "#ffffff" : palette.btnText}
-                buttonStyle={isBrutalism ? "square" : appearance.button_style}
-                catalogCardBg={isBrutalism ? "#ffffff" : palette.cardBg}
-                cardBorder={isBrutalism ? "#000000" : palette.cardBorder}
-                hasPhoto={Boolean(user?.avatar_url)}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Watermark */}
+        <div className="pt-6 flex flex-col items-center mt-auto" style={{ opacity: 0.2, color: palette.cardText }}>
+          <Zap className="w-3 h-3 mb-1" />
+          <span className="text-[8px] font-black tracking-[0.2em] uppercase">Built with Biotra</span>
+        </div>
+      </div>
+    </div>
+  );
 
         {/* Watermark */}
         <div className="pt-6 flex flex-col items-center mt-auto" style={{ opacity: 0.2, color: palette.cardText }}>

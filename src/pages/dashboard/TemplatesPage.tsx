@@ -813,6 +813,7 @@ const TemplatesPage = () => {
                     user={user}
                     links={activeLinks.map((l) => ({ id: l.id, title: l.title, platform: l.platform || "website" }))}
                     catalogItems={catalogItems.filter((i) => i.enabled)}
+                    blocks={pageBlocks}
                     compact={false}
                   />
                 </motion.div>
@@ -868,6 +869,7 @@ const TemplatesPage = () => {
                   user={user}
                   links={activeLinks.map((l) => ({ id: l.id, title: l.title, platform: l.platform || "website" }))}
                   catalogItems={catalogItems.filter((i) => i.enabled)}
+                  blocks={pageBlocks}
                   noFrame={true}
                 />
               </div>
