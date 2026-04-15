@@ -496,8 +496,9 @@ const PublicProfile = () => {
             hasPhoto={Boolean(profile.avatar_url)}
             cardBg={isBrutalism ? "#ffffff" : (palette.cardBg || "#ffffff")}
             cardBorder={isBrutalism ? "#111111" : (palette.cardBorder || "#111111")}
-            inputBg={isBrutalism ? "#F3F4F6" : `${palette.cardText}10`}
+            inputBg={isBrutalism ? "#ffffff" : `${palette.cardText}10`}
             inputBorder={isBrutalism ? "#111111" : `${palette.cardText}22`}
+            isBrutalism={isBrutalism}
           />
         </div>
 

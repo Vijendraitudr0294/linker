@@ -23,9 +23,23 @@ interface ContactFormProps {
   cardBg?: string;
   cardBorder?: string;
   compact?: boolean;
+  isBrutalism?: boolean;
 }
 
-const ContactForm = ({ profileUserId, textColor, buttonBg, buttonText, buttonStyle, hasPhoto, inputBg, inputBorder, cardBg, cardBorder, compact = false }: ContactFormProps) => {
+const ContactForm = ({
+  profileUserId,
+  textColor,
+  buttonBg,
+  buttonText,
+  buttonStyle,
+  hasPhoto,
+  inputBg,
+  inputBorder,
+  cardBg,
+  cardBorder,
+  compact = false,
+  isBrutalism = false
+}: ContactFormProps) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -37,9 +51,11 @@ const ContactForm = ({ profileUserId, textColor, buttonBg, buttonText, buttonSty
     switch (buttonStyle) {
       case "pill": return "rounded-full";
       case "square": return "rounded-none";
-      default: return "rounded-lg";
+      default: return "rounded-xl";
     }
   };
+
+  const isDarkText = textColor === "#000000" || textColor === "#111111";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +71,6 @@ const ContactForm = ({ profileUserId, textColor, buttonBg, buttonText, buttonSty
     setErrors({});
     setSending(true);
 
-    // Store in DB
     const { error } = await supabase.from("contact_messages").insert({
       profile_user_id: profileUserId,
       sender_name: result.data.name,
@@ -69,7 +84,6 @@ const ContactForm = ({ profileUserId, textColor, buttonBg, buttonText, buttonSty
       return;
     }
 
-    // Send email notification via edge function
     try {
       await supabase.functions.invoke("contact-notify", {
         body: {
@@ -80,7 +94,7 @@ const ContactForm = ({ profileUserId, textColor, buttonBg, buttonText, buttonSty
         },
       });
     } catch {
-      // Email is best-effort, message is already saved
+      // Email is best-effort
     }
 
     setSending(false);
@@ -88,114 +102,153 @@ const ContactForm = ({ profileUserId, textColor, buttonBg, buttonText, buttonSty
     setName("");
     setEmail("");
     setMessage("");
-    toast.success("Message sent!");
+    toast.success("Message sent successfully");
   };
 
   if (sent) {
     return (
       <div
         className={cn(
-          "w-full text-center border transition-all",
-          compact ? "p-4 rounded-xl border-2" : "p-6 rounded-2xl border-4"
+          "w-full text-center transition-all",
+          compact ? "p-4 border" : "p-8",
+          isBrutalism
+            ? (compact ? "rounded-xl border-2" : "rounded-none border-4")
+            : (compact ? "rounded-[1rem]" : "rounded-[2rem] border border-white/10 backdrop-blur-md")
         )}
         style={{ 
-          backgroundColor: cardBg || "#ffffff", 
+          backgroundColor: isBrutalism ? (cardBg || "#ffffff") : (cardBg || "rgba(255,255,255,0.05)"), 
           color: textColor, 
-          borderColor: cardBorder || `${textColor}15`,
+          borderColor: isBrutalism ? (cardBorder || "#000") : (cardBorder || "rgba(255,255,255,0.1)"),
           boxShadow: compact
             ? `0 8px 20px -12px ${buttonBg}35`
-            : `8px 8px 0 0 rgba(0,0,0,1)`
+            : isBrutalism ? `8px 8px 0 0 #000` : `0 20px 40px rgba(0,0,0,0.15)`
         }}
       >
-        <Mail className={cn("mx-auto mb-2 opacity-80", compact ? "w-6 h-6" : "w-8 h-8")} />
-        <p className={cn("font-black", compact ? "text-xs" : "text-sm uppercase tracking-[0.14em]")}>Message sent</p>
-        <button onClick={() => setSent(false)} className={cn("mt-2 font-bold underline opacity-70", compact ? "text-xs" : "text-sm")}>
-          Send another
+        <Mail className={cn("mx-auto mb-3 opacity-80", compact ? "w-6 h-6" : "w-10 h-10")} />
+        <p className={cn("font-black tracking-wide", compact ? "text-xs uppercase" : "text-lg")}>Message Delivered</p>
+        <p className={cn("opacity-60 font-medium mt-2", compact ? "text-[10px]" : "text-sm")}>Thanks for reaching out. We'll be in touch soon.</p>
+        <button onClick={() => setSent(false)} className={cn("mt-4 font-bold underline opacity-80 hover:opacity-100 transition-opacity", compact ? "text-xs" : "text-sm")}>
+          Send another message
         </button>
       </div>
     );
   }
 
+  // Common input styles based on theme
+  const getBaseInputClass = () => cn(
+    "w-full focus:outline-none focus:ring-2 focus:ring-current/20 transition-all placeholder:opacity-40 font-medium",
+    isBrutalism ? "rounded-none border-2 border-black" : "rounded-2xl border",
+    compact ? "px-3 py-2 text-xs" : "h-[52px] px-4 text-sm"
+  );
+  
+  const getTextAreaClass = () => cn(
+    "w-full focus:outline-none focus:ring-2 focus:ring-current/20 resize-none transition-all placeholder:opacity-40 font-medium leading-relaxed",
+    isBrutalism ? "rounded-none border-2 border-black" : "rounded-2xl border",
+    compact ? "px-3 py-2 text-xs" : "px-4 py-3.5 text-sm"
+  );
+
+  const defaultInputBg = isBrutalism ? "#fff" : "rgba(255,255,255,0.06)";
+  const defaultInputBorder = isBrutalism ? "#000" : "rgba(255,255,255,0.15)";
+  const activeInputBg = inputBg || defaultInputBg;
+  const activeInputBorder = inputBorder || defaultInputBorder;
+
   return (
     <form
       onSubmit={handleSubmit}
       className={cn(
-        "w-full space-y-3 border",
-        compact ? "p-3 rounded-xl border-2" : "p-5 md:p-6 rounded-2xl border-4"
+        "w-full flex flex-col",
+        compact ? "gap-2 p-3 border" : "gap-4 p-5 md:p-8",
+        isBrutalism 
+          ? (compact ? "rounded-xl border-2" : "rounded-none border-4")
+          : (compact ? "rounded-[1rem]" : "rounded-[2rem] border backdrop-blur-md relative overflow-hidden")
       )}
       style={{ 
-        backgroundColor: cardBg || "#ffffff", 
+        backgroundColor: isBrutalism ? (cardBg || "#ffffff") : (cardBg || "rgba(255,255,255,0.03)"), 
         color: textColor, 
-        borderColor: cardBorder || `${textColor}15`,
+        borderColor: isBrutalism ? (cardBorder || "#000") : (cardBorder || "rgba(255,255,255,0.1)"),
         boxShadow: compact
-          ? `0 8px 20px -12px ${buttonBg}35`
-          : `8px 8px 0 0 rgba(0,0,0,1)`
+          ? `0 4px 12px -8px ${buttonBg}50`
+          : isBrutalism ? `8px 8px 0 0 rgba(0,0,0,1)` : `0 20px 40px -10px rgba(0,0,0,0.15)`
       }}
     >
-      <div className={cn("flex items-center gap-2", compact ? "mb-0.5" : "mb-2")}>
-        <Mail className={cn("opacity-80", compact ? "w-3 h-3" : "w-4 h-4")} />
-        <span className={cn(compact ? "text-xs font-bold" : "text-[11px] font-black uppercase tracking-[0.16em]")}>Send Message</span>
+      <div className={cn("flex flex-col", compact ? "mb-1" : "mb-2")}>
+        <div className="flex items-center gap-2 mb-1.5 opacity-90">
+          <Mail className={cn(compact ? "w-3 h-3" : "w-5 h-5")} />
+          <span className={cn(compact ? "text-xs font-bold" : "text-[14px] font-black uppercase tracking-[0.16em]")}>Send Message</span>
+        </div>
+        {!compact && <p className="text-[13px] font-medium opacity-60">Quick note and we will reply soon.</p>}
       </div>
-      {!compact && <p className="text-sm font-bold text-black/60 -mt-1 mb-1">Quick note and we will reply soon.</p>}
-      {!compact && <label className="text-[10px] font-black uppercase tracking-[0.14em] opacity-60">Name</label>}
-      <input
-        type="text"
-        placeholder="Your name"
-        value={name}
-        onChange={(e) => { setName(e.target.value); setErrors((p) => ({ ...p, name: "" })); }}
-        className={cn(
-          "w-full rounded-xl border focus:outline-none focus:ring-2 focus:ring-current/20 transition-colors",
-          compact ? "px-2.5 py-1.5 text-xs" : "h-12 px-3.5 text-sm font-bold",
-          errors.name ? "border-red-400" : ""
-        )}
-        style={{ color: textColor, backgroundColor: inputBg || 'rgba(128,128,128,0.1)', borderColor: errors.name ? undefined : (inputBorder || `${textColor}20`) }}
-        maxLength={100}
-      />
-      {errors.name && <p className="text-[10px] text-red-400">{errors.name}</p>}
-      {!compact && <label className="text-[10px] font-black uppercase tracking-[0.14em] opacity-60">Email</label>}
-      <input
-        type="email"
-        placeholder="Your email"
-        value={email}
-        onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: "" })); }}
-        className={cn(
-          "w-full rounded-xl border focus:outline-none focus:ring-2 focus:ring-current/20 transition-colors",
-          compact ? "px-2.5 py-1.5 text-xs" : "h-12 px-3.5 text-sm font-bold",
-          errors.email ? "border-red-400" : ""
-        )}
-        style={{ color: textColor, backgroundColor: inputBg || 'rgba(128,128,128,0.1)', borderColor: errors.email ? undefined : (inputBorder || `${textColor}20`) }}
-        maxLength={255}
-      />
-      {errors.email && <p className="text-[10px] text-red-400">{errors.email}</p>}
-      {!compact && <label className="text-[10px] font-black uppercase tracking-[0.14em] opacity-60">Message</label>}
-      <textarea
-        placeholder="Your message..."
-        value={message}
-        onChange={(e) => { setMessage(e.target.value); setErrors((p) => ({ ...p, message: "" })); }}
-        rows={compact ? 2 : 3}
-        className={cn(
-          "w-full rounded-xl border focus:outline-none focus:ring-2 focus:ring-current/20 resize-none transition-colors",
-          compact ? "px-2.5 py-1.5 text-xs" : "px-3.5 py-2.5 text-sm font-medium",
-          errors.message ? "border-red-400" : ""
-        )}
-        style={{ color: textColor, backgroundColor: inputBg || 'rgba(128,128,128,0.1)', borderColor: errors.message ? undefined : (inputBorder || `${textColor}20`) }}
-        maxLength={1000}
-      />
-      {errors.message && <p className="text-[10px] text-red-400">{errors.message}</p>}
+
+      <div className={cn("flex flex-col", compact ? "gap-2" : "gap-4")}>
+        <div className="flex flex-col gap-1.5">
+          {!compact && <label className="text-[10px] font-black uppercase tracking-[0.15em] opacity-50 ml-1">Name</label>}
+          <input
+            type="text"
+            placeholder="Your name"
+            value={name}
+            onChange={(e) => { setName(e.target.value); setErrors((p) => ({ ...p, name: "" })); }}
+            className={getBaseInputClass()}
+            style={{ 
+              color: textColor, 
+              backgroundColor: activeInputBg, 
+              borderColor: errors.name ? '#f87171' : activeInputBorder 
+            }}
+            maxLength={100}
+          />
+          {errors.name && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.name}</p>}
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          {!compact && <label className="text-[10px] font-black uppercase tracking-[0.15em] opacity-50 ml-1">Email</label>}
+          <input
+            type="email"
+            placeholder="Your email"
+            value={email}
+            onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: "" })); }}
+            className={getBaseInputClass()}
+            style={{ 
+              color: textColor, 
+              backgroundColor: activeInputBg, 
+              borderColor: errors.email ? '#f87171' : activeInputBorder 
+            }}
+            maxLength={255}
+          />
+          {errors.email && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.email}</p>}
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          {!compact && <label className="text-[10px] font-black uppercase tracking-[0.15em] opacity-50 ml-1">Message</label>}
+          <textarea
+            placeholder="Your message..."
+            value={message}
+            onChange={(e) => { setMessage(e.target.value); setErrors((p) => ({ ...p, message: "" })); }}
+            rows={compact ? 2 : 3}
+            className={getTextAreaClass()}
+            style={{ 
+              color: textColor, 
+              backgroundColor: activeInputBg, 
+              borderColor: errors.message ? '#f87171' : activeInputBorder 
+            }}
+            maxLength={1000}
+          />
+          {errors.message && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.message}</p>}
+        </div>
+      </div>
+
       <button
         type="submit"
         disabled={sending}
         className={cn(
-          "w-full font-black uppercase tracking-[0.1em] flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50",
-          compact ? "py-3 px-3 text-[10px]" : "h-12 px-4 text-[12px] border-4 border-black shadow-[6px_6px_0_0_rgba(0,0,0,1)]",
+          "w-full flex items-center justify-center gap-2 transition-all disabled:opacity-50 mt-1 hover:brightness-110",
+          compact ? "py-2.5 px-3 text-[10px]" : "h-[54px] px-6 text-[13px] font-black tracking-[0.1em]",
+          isBrutalism 
+            ? "border-4 border-black uppercase shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:shadow-none active:translate-y-1 active:translate-x-1" 
+            : "uppercase shadow-xl active:scale-[0.98]",
           getBtnRadius()
         )}
-        style={{ 
-          backgroundColor: buttonBg, 
-          color: buttonText
-        }}
+        style={{ backgroundColor: buttonBg, color: buttonText }}
       >
-        {sending ? <Loader2 className={cn("animate-spin", compact ? "w-3.5 h-3.5" : "w-4.5 h-4.5")} /> : <Send className={cn(compact ? "w-3.5 h-3.5" : "w-4.5 h-4.5")} />}
+        {sending ? <Loader2 className={cn("animate-spin", compact ? "w-3.5 h-3.5" : "w-5 h-5")} /> : <Send className={cn(compact ? "w-3.5 h-3.5" : "w-5 h-5", isBrutalism ? "" : "opacity-90")} />}
         {sending ? "Sending..." : "Send Message"}
       </button>
     </form>
