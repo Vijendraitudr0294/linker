@@ -41,6 +41,7 @@ import SocialflowPage from "./pages/dashboard/SocialflowPage";
 import QRForgePage from "./pages/dashboard/QRForgePage";
 import FormsPage from "./pages/dashboard/FormsPage";
 import TemplatesPage from "./pages/dashboard/TemplatesPage";
+import AppearancePage from "./pages/dashboard/AppearancePage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import PublicRoute from "./components/auth/PublicRoute";
 import PublicRouteErrorBoundary from "./components/PublicRouteErrorBoundary";
@@ -142,8 +143,8 @@ const App = () => (
                 <Route path="apps" element={<AppsIntegrationsPage />} />
                 <Route path="links" element={<LinkEditor />} />
                 <Route path="forms" element={<FormsPage />} />
-                <Route path="appearance" element={<Navigate to="/dashboard/links" replace />} />
-                <Route path="templates" element={<Navigate to="/dashboard/links" replace />} />
+                <Route path="appearance" element={<AppearancePage />} />
+                <Route path="templates" element={<TemplatesPage />} />
                 <Route path="analytics" element={<AnalyticsPage />} />
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="messages" element={<MessagesPage />} />
