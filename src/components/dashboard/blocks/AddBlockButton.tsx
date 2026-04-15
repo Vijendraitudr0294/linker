@@ -24,14 +24,22 @@ const BLOCK_OPTIONS: BlockOption[] = [
   { id: 'gallery', label: 'Gallery', icon: ImageIcon, color: 'bg-[#14B8A6]', description: 'Visual portfolios' },
 ];
 
-export default function AddBlockButton({ onSelect }: { onSelect: (type: string) => void }) {
+export default function AddBlockButton({ onSelect, onOpen }: { onSelect: (type: string) => void; onOpen?: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
+
+  const handleToggle = () => {
+    if (!isOpen) {
+      // Notify parent so it can close mobile sidebar before the menu appears
+      onOpen?.();
+    }
+    setIsOpen(!isOpen);
+  };
 
   return (
     <div className="relative w-full">
       <div className="flex flex-col gap-3">
         <Button 
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={handleToggle}
           className={cn(
             "w-full h-14 rounded-full bg-[#8B5CF6] hover:bg-[#7C3AED] text-white transition-all flex items-center justify-center gap-3 font-black text-lg shadow-[0_8px_30px_rgb(139,92,246,0.3)] hover:shadow-[0_8px_30px_rgb(139,92,246,0.5)] active:scale-95",
             isOpen && "bg-zinc-900"

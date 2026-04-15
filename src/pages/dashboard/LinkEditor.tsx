@@ -45,6 +45,7 @@ import TemplatePicker from "@/components/dashboard/links/TemplatePicker";
 import { buildTemplateUrl, getLinkTemplateCategories, inferPlatformFromTag } from "@/lib/linkTemplates";
 import AddBlockButton from "@/components/dashboard/blocks/AddBlockButton";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSidebar } from "@/components/ui/sidebar";
 
 const tutorialSteps = [
   {
@@ -118,6 +119,9 @@ const LinkEditor = () => {
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  // Close the mobile sidebar sheet so it doesn't overlap the block picker
+  const { setOpenMobile } = useSidebar();
+  const closeMobileSidebar = () => setOpenMobile(false);
 
   // Thumbnail detector for card view
   const getThumbnail = (url: string, platform: string) => {
@@ -496,7 +500,7 @@ const LinkEditor = () => {
 
           {/* New Integrated Block Setup */}
           <div className="mt-4">
-            <AddBlockButton onSelect={handleAddBlockSelect} />
+            <AddBlockButton onSelect={handleAddBlockSelect} onOpen={closeMobileSidebar} />
           </div>
 
           <motion.div
