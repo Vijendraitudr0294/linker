@@ -60,7 +60,7 @@ const BiotraCCTestimonials = () => {
     fetchTestimonials();
   }, []);
   return (
-    <section id="users" className="py-40 bg-[#FDE047] border-b-8 border-black font-sans hidden md:block">
+    <section id="users" className="py-40 bg-white border-b-8 border-black font-sans hidden md:block">
       <div className="max-w-[1600px] mx-auto px-6">
         
         {/* Header */}
@@ -81,7 +81,7 @@ const BiotraCCTestimonials = () => {
         </motion.div>
 
         {/* Cards */}
-        <div className="flex justify-center gap-6 overflow-x-auto pb-12 pt-4 px-4 snap-x">
+        <div className="flex justify-center gap-6 overflow-x-auto pb-12 pt-4 px-4 snap-x scrollbar-hide">
           {testimonials.map((t, index) => (
             <motion.div 
                key={index} 

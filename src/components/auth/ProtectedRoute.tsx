@@ -1,13 +1,14 @@
 import { Navigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
-import { isAdminUser } from "@/lib/authRoles";
+import { isAdminUser, isSuperAdminUser } from "@/lib/authRoles";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   adminOnly?: boolean;
+  superAdminOnly?: boolean;
 }
 
-const ProtectedRoute = ({ children, adminOnly }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ children, adminOnly, superAdminOnly }: ProtectedRouteProps) => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const loading = useAuthStore((s) => s.loading);
   const user = useAuthStore((s) => s.user);
@@ -25,8 +26,13 @@ const ProtectedRoute = ({ children, adminOnly }: ProtectedRouteProps) => {
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
+  if (superAdminOnly && !isSuperAdminUser(user)) {
+    console.warn("Unauthorized superadmin access attempt by:", user?.email);
+    return <Navigate to="/dashboard" replace />;
+  }
+
   if (adminOnly && !isAdminUser(user)) {
-    console.warn("Unauthorized access attempt to admin route by:", user?.email);
+    console.warn("Unauthorized admin access attempt by:", user?.email);
     return <Navigate to="/dashboard" replace />;
   }
 

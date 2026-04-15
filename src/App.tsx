@@ -52,6 +52,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import CookiePolicy from "./pages/CookiePolicy";
 import Blog from "./pages/Blog";
+import BlogPostPage from "./pages/BlogPost";
 import HelpCenter from "./pages/HelpCenter";
 import ApiDocs from "./pages/ApiDocs";
 import StatusPage from "./pages/StatusPage";
@@ -153,14 +154,15 @@ const App = () => (
                 <Route path="orders" element={<OrdersPage />} />
                 <Route path="socialflow" element={<SocialflowPage />} />
                 <Route path="qrforge" element={<QRForgePage />} />
-                <Route path="admin" element={<ProtectedRoute adminOnly><AdminPage /></ProtectedRoute>} />
-                <Route path="admin/settings" element={<ProtectedRoute adminOnly><PlatformSettingsPage /></ProtectedRoute>} />
-                <Route path="admin/user/:userId" element={<ProtectedRoute adminOnly><AdminUserEditPage /></ProtectedRoute>} />
+                <Route path="admin" element={<ProtectedRoute superAdminOnly><AdminPage /></ProtectedRoute>} />
+                <Route path="admin/settings" element={<ProtectedRoute superAdminOnly><PlatformSettingsPage /></ProtectedRoute>} />
+                <Route path="admin/user/:userId" element={<ProtectedRoute superAdminOnly><AdminUserEditPage /></ProtectedRoute>} />
               </Route>
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/cookies" element={<CookiePolicy />} />
               <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:slug" element={<BlogPostPage />} />
               <Route path="/r/:shortCode" element={<QRRedirectPage />} />
               <Route path="/help" element={<HelpCenter />} />
               <Route path="/api-docs" element={<ApiDocs />} />

@@ -28,7 +28,7 @@ export const MarketingHero = ({ content }: any) => (
             {content.secondaryCTA.label}
           </Link>
         </div>
-        <div className="inline-flex items-center gap-4 p-4 border-4 border-black rounded-2xl bg-yellow-300 font-black uppercase text-[11px] tracking-widest shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
+        <div className="inline-flex items-center gap-4 p-4 border-4 border-black rounded-2xl bg-emerald-400 font-black uppercase text-[11px] tracking-widest shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
            <Zap className="w-5 h-5 fill-black" /> {content.trustLine}
         </div>
       </motion.div>
@@ -53,7 +53,7 @@ export const MarketingHero = ({ content }: any) => (
          </div>
          {/* Floating Labels */}
          <div className="absolute top-10 -right-4 px-6 py-2 bg-pink-300 border-4 border-black font-black uppercase text-xs rotate-12 shadow-[6px_6px_0_0_rgba(0,0,0,1)] animate-bounce">Live Builder</div>
-         <div className="absolute bottom-20 -left-4 px-6 py-2 bg-yellow-300 border-4 border-black font-black uppercase text-xs -rotate-12 shadow-[6px_6px_0_0_rgba(0,0,0,1)]">Secure OS</div>
+         <div className="absolute bottom-20 -left-4 px-6 py-2 bg-emerald-400 border-4 border-black font-black uppercase text-xs -rotate-12 shadow-[6px_6px_0_0_rgba(0,0,0,1)]">Secure OS</div>
       </motion.div>
     </div>
   </section>
@@ -74,7 +74,7 @@ export const MarketingFeatures = ({ content }: any) => (
         {(content.items || []).map((item: any, i: number) => {
           const Icon = ICON_MAP[item.icon] || Zap;
           const colors = [
-            "bg-emerald-400", "bg-pink-300", "bg-yellow-300", 
+            "bg-emerald-400", "bg-pink-300", "bg-indigo-300", 
             "bg-blue-300", "bg-fuchsia-300", "bg-orange-300"
           ];
           const color = colors[i % colors.length];
@@ -120,6 +120,52 @@ export const MarketingCTA = ({ content }: any) => (
       <div className="mt-20 flex flex-col items-center gap-4">
          <div className="px-6 py-2 bg-emerald-400 border-4 border-black font-[1000] uppercase text-[10px] tracking-[0.4em] rotate-1">Standing Backup Online</div>
          <p className="text-white/30 font-black text-[9px] uppercase tracking-[0.6em]">Zero Third-Party Dependencies // Absolute Data Ownership</p>
+      </div>
+    </div>
+  </section>
+);
+export const MarketingTeam = ({ content }: any) => (
+  <section className="py-40 bg-white border-b-8 border-black">
+    <div className="container max-w-[1400px] mx-auto px-10">
+      <div className="text-left max-w-4xl mb-24">
+        <h2 className="text-[56px] md:text-[80px] font-[1000] tracking-tighter leading-[0.9] text-black uppercase mb-8">
+           <span className="bg-black text-white px-6 inline-block mb-4 italic">Executive</span><br />
+           The Core Leadership
+        </h2>
+        <p className="text-xl font-black text-black/50 uppercase tracking-[0.2em]">Pioneer Nodes // Strategic Orchestration</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+        {(content.members || []).map((member: any, i: number) => (
+          <motion.div 
+            key={i} 
+            initial={{ opacity: 0, scale: 0.95 }} 
+            whileInView={{ opacity: 1, scale: 1 }} 
+            viewport={{ once: true }}
+            transition={{ delay: i * 0.1 }}
+            className="group"
+          >
+            <div className="relative mb-8">
+               <div className="absolute inset-0 bg-black rounded-3xl translate-x-3 translate-y-3 group-hover:translate-x-0 group-hover:translate-y-0 transition-transform" />
+               <div className="relative aspect-square border-4 border-black rounded-3xl overflow-hidden bg-gray-100">
+                  {member.image_url ? (
+                    <img src={member.image_url} alt={member.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                       <User className="w-12 h-12 text-black/20" />
+                    </div>
+                  )}
+               </div>
+            </div>
+            <h3 className="text-2xl font-black text-black uppercase tracking-tight mb-1">{member.name}</h3>
+            <div className="inline-block px-3 py-1 bg-black text-white text-[10px] font-black uppercase tracking-widest mb-4 italic">
+               {member.role}
+            </div>
+            <p className="text-gray-500 text-xs font-bold uppercase tracking-wide leading-relaxed">
+               {member.bio}
+            </p>
+          </motion.div>
+        ))}
       </div>
     </div>
   </section>

@@ -27,7 +27,7 @@ import {
 import { parseCatalogCategory } from "@/lib/catalogCategory";
 import { readCatalogTaxonomy, writeCatalogTaxonomy, type CatalogTaxonomyCategory } from "@/lib/catalogTaxonomy";
 import { Textarea } from "@/components/ui/textarea";
-import { isAdminUser } from "@/lib/authRoles";
+import { isSuperAdminUser } from "@/lib/authRoles";
 
 const PlatformSettingsPage = () => {
   const user = useAuthStore((s) => s.user);
@@ -91,7 +91,7 @@ const PlatformSettingsPage = () => {
     void fetchCatalogMeta();
   }, []);
 
-  if (!isAdminUser(user)) return <Navigate to="/dashboard" replace />;
+  if (!isSuperAdminUser(user)) return <Navigate to="/dashboard" replace />;
 
   const handleToggle = async (key: string, value: boolean) => {
     const ok = await updateSettings({ [key]: value });
@@ -339,6 +339,56 @@ const PlatformSettingsPage = () => {
                     onBlur={() => handleSaveField({ default_theme_id: settings.default_theme_id })}
                     placeholder="liquid-sunset"
                   />
+                </div>
+              </div>
+            </Card>
+            
+            {/* Financial Core */}
+            <Card className="p-10 rounded-[40px] border-black/5 bg-white shadow-2xl shadow-black/[0.02] space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-black/5 flex items-center justify-center text-primary">
+                  <ShoppingBag className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-black tracking-tight">Financial Core</h2>
+                  <p className="text-[12px] font-medium text-black/40 mt-1">Payment gateway orchestration</p>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-[11px] font-black uppercase tracking-[0.2em] text-black/40">Razorpay Key ID</Label>
+                  <Input 
+                    className="h-14 rounded-2xl border-black/5 bg-black/[0.02] text-black font-bold focus:bg-white transition-all px-6" 
+                    value={settings.razorpay_key_id || ""} 
+                    onChange={(e) => updateSettings({ razorpay_key_id: e.target.value })}
+                    onBlur={() => handleSaveField({ razorpay_key_id: settings.razorpay_key_id })}
+                    placeholder="rzp_live_..." 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[11px] font-black uppercase tracking-[0.2em] text-black/40">Stripe Publishable Key</Label>
+                  <Input 
+                    className="h-14 rounded-2xl border-black/5 bg-black/[0.02] text-black font-bold focus:bg-white transition-all px-6" 
+                    value={settings.stripe_publishable_key || ""} 
+                    onChange={(e) => updateSettings({ stripe_publishable_key: e.target.value })}
+                    onBlur={() => handleSaveField({ stripe_publishable_key: settings.stripe_publishable_key })}
+                    placeholder="pk_live_..." 
+                  />
+                </div>
+                <div className="flex items-center justify-between p-6 bg-black/[0.02] rounded-[32px] border border-black/5">
+                  <div>
+                    <p className="text-[13px] font-black text-black">Transaction Mode</p>
+                    <p className="text-[11px] text-black/40 font-medium italic">Toggle Sandbox vs Production</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className={`text-[10px] font-black uppercase tracking-widest ${settings.is_test_mode ? "text-amber-600" : "text-black/20"}`}>Test</span>
+                    <Switch 
+                      checked={!settings.is_test_mode} 
+                      onCheckedChange={(val) => handleToggle("is_test_mode", !val)}
+                      className="data-[state=checked]:bg-emerald-500"
+                    />
+                    <span className={`text-[10px] font-black uppercase tracking-widest ${!settings.is_test_mode ? "text-emerald-600" : "text-black/20"}`}>Live</span>
+                  </div>
                 </div>
               </div>
             </Card>

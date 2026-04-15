@@ -37,7 +37,7 @@ export const useCatalogDetail = ({ item, profileUserId, settings }: any) => {
   const categoryLabel = parsedCategory.subcategory ? `${parsedCategory.primary} / ${parsedCategory.subcategory}` : parsedCategory.primary;
 
   const media = useMemo(() => {
-    let items = (item.media && item.media.length > 0) ? [...item.media] : [];
+    const items = (item.media && item.media.length > 0) ? [...item.media] : [];
     
     // If no media but external URL is a video, use it
     const externalVideoUrl = toEmbedVideoUrl(item.external_url || "");

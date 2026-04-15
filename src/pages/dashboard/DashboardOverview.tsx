@@ -23,34 +23,42 @@ const DashboardOverview = () => {
   const settings = useAppearanceStore((s) => s.settings);
   const navigate = useNavigate();
   const [profileViews, setProfileViews] = useState<number | null>(null);
+  const [totalOrders, setTotalOrders] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user?.user_id) return;
     const fetchStats = async () => {
       setLoading(true);
-      const { count } = await supabase
-        .from("profile_views")
-        .select("id", { count: "exact", head: true })
-        .eq("profile_user_id", user.user_id);
-      setProfileViews(count ?? 0);
+      const [pvRes, ordersRes] = await Promise.all([
+        supabase
+          .from("profile_views")
+          .select("id", { count: "exact", head: true })
+          .eq("profile_user_id", user.user_id),
+        supabase
+          .from("catalog_orders")
+          .select("id", { count: "exact", head: true })
+          .eq("profile_user_id", user.user_id),
+      ]);
+      setProfileViews(pvRes.count ?? 0);
+      setTotalOrders(ordersRes.count ?? 0);
       setLoading(false);
     };
     fetchStats();
   }, [user?.user_id]);
 
   const stats = [
-    { label: "Profile Registration", value: loading ? "..." : String(profileViews ?? 0), trend: "+12.2%", color: "bg-[#D1FAE5]", icon: Users2 },
-    { label: "Profile Views", value: loading ? "..." : String(profileViews ?? 0), trend: "+5.1%", color: "bg-[#FEF9C3]", icon: Eye },
-    { label: "Total Clicks", value: String(totalClicks), trend: "+8.4%", color: "bg-[#FCE7F3]", icon: MousePointerClick },
-    { label: "Total Revenue", value: "$1,234", trend: "+20.5%", color: "bg-[#E0F2FE]", icon: ShoppingBag },
+    { label: "Total Links", value: loading ? "..." : String(links.length), color: "bg-[#D1FAE5]", icon: Users2 },
+    { label: "Profile Views", value: loading ? "..." : String(profileViews ?? 0), color: "bg-white", icon: Eye },
+    { label: "Total Clicks", value: loading ? "..." : String(totalClicks), color: "bg-[#FCE7F3]", icon: MousePointerClick },
+    { label: "Total Orders", value: loading ? "..." : String(totalOrders), color: "bg-[#E0F2FE]", icon: ShoppingBag },
   ];
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8 bg-[#F5F5DC]/30 p-4 rounded-[40px] font-bruddle min-h-screen">
+    <div className="flex flex-col lg:flex-row gap-8 bg-gray-50/50 p-4 rounded-[40px] font-bruddle min-h-screen">
       
       {/* MAIN CONTENT ZONE */}
-      <div className="flex-1 flex flex-col gap-8">
+      <div className="flex-1 flex flex-col gap-8 order-2 lg:order-1 overflow-hidden">
         
         {/* BRUDDLE TOP BAR */}
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -89,9 +97,6 @@ const DashboardOverview = () => {
                     </div>
                     <div className="flex flex-col gap-1">
                         <h3 className="text-3xl font-black text-black">{s.value}</h3>
-                        <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-600">
-                            <TrendingUp className="w-3 h-3" /> {s.trend}
-                        </div>
                     </div>
                 </motion.div>
             ))}
@@ -130,13 +135,13 @@ const DashboardOverview = () => {
             <motion.div 
                 whileHover={{ scale: 1.01 }}
                 onClick={() => navigate('/dashboard/catalog')}
-                className="bg-white border-4 border-black p-6 shadow-[10px_10px_0_0_rgba(254,240,138,1)] cursor-pointer hover:shadow-none transition-all flex items-center justify-between"
+                className="bg-white border-4 border-black p-6 shadow-[10px_10px_0_0_rgba(0,0,0,0.1)] cursor-pointer hover:shadow-none transition-all flex items-center justify-between"
             >
                 <div>
                    <p className="text-[10px] font-black uppercase tracking-widest text-black/60 mb-1">Commerce</p>
                    <h3 className="text-xl font-black uppercase tracking-tight text-black">Add Shop Items</h3>
                 </div>
-                <div className="w-12 h-12 bg-yellow-100 border-2 border-black rounded-2xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-gray-100 border-2 border-black rounded-2xl flex items-center justify-center">
                    <ShoppingBag className="w-6 h-6 text-black" />
                 </div>
             </motion.div>
@@ -171,8 +176,8 @@ const DashboardOverview = () => {
         </div>
 
         {/* REACH CHART SUBSTRATE */}
-        <div className="bruddle-card p-10 bg-white shadow-2xl">
-            <div className="flex items-center justify-between mb-12">
+        <div className="bruddle-card p-6 sm:p-10 bg-white shadow-2xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 sm:mb-12 gap-4">
                 <div>
                     <h3 className="text-2xl font-black text-black tracking-tight">Your Audience</h3>
                     <p className="text-xs font-medium text-black/40 mt-1">See how many people are visiting your page over time.</p>
@@ -189,7 +194,7 @@ const DashboardOverview = () => {
                 </div>
             </div>
             
-            <div className="relative w-full aspect-[21/9] bg-[#F9FAFB] border-2 border-black rounded-[24px] flex items-center justify-center group overflow-hidden">
+            <div className="relative w-full aspect-[4/3] md:aspect-[21/9] bg-[#F9FAFB] border-2 border-black rounded-[24px] flex items-center justify-center group overflow-hidden">
                 <div className="absolute inset-0 opacity-10 pointer-events-none">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#000_1px,transparent_1px)] bg-[size:30px_30px]" />
                 </div>
@@ -219,43 +224,51 @@ const DashboardOverview = () => {
         {/* BOTTOM DOUBLE GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-10">
             {/* Table Card */}
-            <div className="bruddle-card bg-white p-8">
-                <div className="flex items-center justify-between mb-8">
+            <div className="bruddle-card bg-white p-5 sm:p-8">
+                <div className="flex flex-wrap items-center justify-between mb-6 sm:mb-8 gap-2">
                     <h3 className="text-xl font-black text-black uppercase tracking-tight">Most visited pages</h3>
                     <MoreHorizontal className="w-5 h-5 text-black/20" />
                 </div>
                 <div className="space-y-4">
-                    {[
-                        { name: "Home", views: "7.8k", unique: "4.5k", bounce: "23%", color: "bg-emerald-100" },
-                        { name: "About", views: "4.2k", unique: "3.1k", bounce: "15%", color: "bg-yellow-100" },
-                        { name: "Products", views: "3.5k", unique: "2.8k", bounce: "34%", color: "bg-pink-100" },
-                    ].map((p) => (
-                        <div key={p.name} className="flex items-center justify-between p-4 border-2 border-black rounded-2xl hover:bg-black/5 transition-all cursor-pointer">
+                    {activeLinks > 0 ? links.slice(0, 3).map((l, i) => (
+                        <div key={l.id} className="flex items-center justify-between p-4 border-2 border-black rounded-2xl hover:bg-black/5 transition-all cursor-pointer">
                             <div className="flex items-center gap-4">
-                                <div className={cn("w-10 h-10 border-2 border-black rounded-xl flex items-center justify-center", p.color)}>
+                                <div className={cn("w-10 h-10 border-2 border-black rounded-xl flex items-center justify-center", ["bg-emerald-100", "bg-pink-100", "bg-blue-100"][i % 3])}>
                                     <Globe className="w-4 h-4" />
                                 </div>
-                                <span className="font-bold text-sm uppercase">{p.name}</span>
+                                <span className="font-bold text-sm uppercase truncate max-w-[140px]">{l.title}</span>
                             </div>
                             <div className="flex gap-8 text-[10px] font-black">
-                                <span className="text-black/40">{p.views}</span>
-                                <span className="text-black">{p.bounce}</span>
+                                <span className="text-black/40">{l.clicks || 0} CLICKS</span>
+                                <span className="text-emerald-500">LIVE</span>
                             </div>
                         </div>
-                    ))}
+                    )) : (
+                        ["Home", "About", "Products"].map((p, i) => (
+                            <div key={p} className="flex items-center justify-between p-4 border-2 border-black rounded-2xl opacity-40 grayscale">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 border-2 border-black rounded-xl flex items-center justify-center bg-gray-100">
+                                        <Globe className="w-4 h-4" />
+                                    </div>
+                                    <span className="font-bold text-sm uppercase">{p}</span>
+                                </div>
+                                <span className="text-[10px] font-black">0 VIEWS</span>
+                            </div>
+                        ))
+                    )}
                 </div>
             </div>
 
             {/* Donut Card */}
-            <div className="bruddle-card bg-white p-8">
-                <div className="flex items-center justify-between mb-8">
+            <div className="bruddle-card bg-white p-5 sm:p-8">
+                <div className="flex flex-wrap items-center justify-between mb-6 sm:mb-8 gap-2">
                     <h3 className="text-xl font-black text-black uppercase tracking-tight">My Leads</h3>
                     <select className="bg-[#F3F4F6] border-2 border-black rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest outline-none">
                         <option>Last 30 Days</option>
                         <option>Last 7 Days</option>
                     </select>
                 </div>
-                <div className="flex flex-col md:flex-row items-center gap-12">
+                <div className="flex flex-col md:flex-row items-center gap-6 md:gap-12">
                     <div className="relative w-48 h-48">
                         <div className="absolute inset-0 border-[24px] border-black rounded-full" />
                         <div className="absolute inset-0 border-[24px] border-[#D1FAE5] rounded-full clip-path-donut-1" />
@@ -267,7 +280,7 @@ const DashboardOverview = () => {
                     <div className="flex-1 space-y-4 w-full">
                         {[
                             { label: "Direct", value: "45%", color: "bg-emerald-400" },
-                            { label: "Email", value: "24%", color: "bg-[#FEF9C3]" },
+                            { label: "Email", value: "24%", color: "bg-gray-200" },
                             { label: "Call", value: "11%", color: "bg-[#FCE7F3]" },
                             { label: "Other", value: "20%", color: "bg-[#E0F2FE]" },
                         ].map((l) => (
@@ -286,20 +299,20 @@ const DashboardOverview = () => {
       </div>
 
       {/* RIGHT SIDEBAR PREVIEW - SWAPPED TO TOP PER USER REQUEST */}
-      <div className="w-full lg:w-[420px] flex flex-col gap-8 shrink-0">
+      <div className="w-full xl:w-[420px] lg:w-[380px] flex flex-col gap-8 shrink-0 order-1 lg:order-2">
           
           {/* PROFILE PREVIEW MINI - NOW ON TOP */}
-          <div className="bruddle-card-blue p-8 relative overflow-hidden group min-h-[600px] flex flex-col">
+          <div className="bruddle-card-blue p-5 sm:p-8 relative overflow-hidden group min-h-[500px] sm:min-h-[600px] flex flex-col">
               <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:rotate-12 transition-all pointer-events-none">
                   <Smartphone size={160} strokeWidth={1} />
               </div>
-              <div className="flex items-center justify-between mb-8 relative z-10">
+              <div className="flex items-center justify-between mb-6 sm:mb-8 relative z-10">
                 <h3 className="text-xl font-black text-black uppercase tracking-tight">Live View</h3>
                 <Badge className="bg-white/40 text-black border-2 border-black rounded-full px-4 py-1 text-[9px] font-black uppercase tracking-widest">Live</Badge>
               </div>
               
-              <div className="flex-1 flex flex-col justify-center items-center py-4">
-                <div className="w-full max-w-[320px] aspect-[9/18.5] relative z-10 transition-all transform scale-100 origin-center">
+              <div className="flex-1 flex flex-col justify-center items-center py-2 sm:py-4">
+                <div className="w-full max-w-[280px] sm:max-w-[320px] aspect-[9/18.5] relative z-10 transition-all transform origin-top mx-auto">
                   <ProfilePreview 
                     settings={settings} 
                     user={user} 
@@ -327,9 +340,9 @@ const DashboardOverview = () => {
           </div>
 
           {/* CALENDAR BLOCK - NOW BELOW PREVIEW */}
-          <div className="bruddle-card-green p-8">
+          <div className="bruddle-card-green p-5 sm:p-8">
               <div className="flex items-center justify-between mb-10">
-                 <h3 className="text-xl font-black text-black uppercase tracking-tight">March, 2024</h3>
+                 <h3 className="text-xl font-black text-black uppercase tracking-tight">{new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>
                  <div className="flex gap-2">
                     <div className="w-8 h-8 rounded-xl bg-white border-2 border-black flex items-center justify-center cursor-pointer hover:bg-black hover:text-white transition-all">
                         <Plus className="w-4 h-4" />
@@ -338,15 +351,33 @@ const DashboardOverview = () => {
               </div>
               <div className="grid grid-cols-7 gap-2 mb-10 text-center">
                  {['S','M','T','W','T','F','S'].map((d, index) => <span key={`${d}-${index}`} className="text-[10px] font-black text-black/30">{d}</span>)}
-                 {Array.from({ length: 31 }).map((_, i) => (
-                    <div key={i} className={cn(
-                        "aspect-square flex items-center justify-center text-[10px] font-black border-2 border-transparent transition-all cursor-pointer rounded-xl",
-                        i + 1 === 18 && "bg-white border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)]",
-                        "hover:bg-white/50"
-                    )}>
-                        {i + 1}
-                    </div>
-                 ))}
+                 {(() => {
+                    const now = new Date();
+                    const year = now.getFullYear();
+                    const month = now.getMonth();
+                    const firstDay = new Date(year, month, 1).getDay();
+                    const daysInMonth = new Date(year, month + 1, 0).getDate();
+                    const today = now.getDate();
+                    
+                    const cells = [];
+                    // Empty cells for first week offset
+                    for (let i = 0; i < firstDay; i++) {
+                       cells.push(<div key={`empty-${i}`} className="aspect-square" />);
+                    }
+                    // Day cells
+                    for (let i = 1; i <= daysInMonth; i++) {
+                       const isToday = i === today;
+                       cells.push(
+                        <div key={i} className={cn(
+                           "aspect-square flex items-center justify-center text-[10px] font-black border-2 border-transparent transition-all cursor-pointer rounded-xl",
+                           isToday ? "bg-white border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] text-[#10b981]" : "hover:bg-white/50 text-black/80"
+                        )}>
+                           {i}
+                        </div>
+                       );
+                    }
+                    return cells;
+                 })()}
               </div>
               
               <div className="space-y-4">
@@ -354,7 +385,7 @@ const DashboardOverview = () => {
                  {[
                     { time: "09:00", task: "Product Update V1", color: "border-l-pink-400", path: "/dashboard/catalog" },
                     { time: "11:30", task: "Sovereign Sync", color: "border-l-emerald-400", path: "/dashboard/links" },
-                    { time: "14:00", task: "Community Node", color: "border-l-yellow-400", path: "/dashboard/apps" },
+                    { time: "14:00", task: "Community Node", color: "border-l-indigo-400", path: "/dashboard/apps" },
                  ].map((t) => (
                     <div 
                       key={t.task} 

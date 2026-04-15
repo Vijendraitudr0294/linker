@@ -1,7 +1,7 @@
 import { Zap, Shield, Rocket } from "lucide-react";
 import { motion } from "framer-motion";
 
-const features = [
+const DEFAULT_FEATURES = [
   {
     icon: Zap,
     title: "CONNECT EVERYTHING",
@@ -18,23 +18,29 @@ const features = [
     icon: Rocket,
     title: "GROW FAST",
     description: "Advanced analytics and AI tools to help you scale your audience with data-driven insights.",
-    color: "#FDE047"
+    color: "#38BDF8"
   }
 ];
 
-const BiotraCCFeatures = () => {
+const BiotraCCFeatures = ({ heading, items }: { heading?: string; items?: any[] }) => {
+  const displayHeading = heading || "HOW IT HELPS YOU";
+  const displayFeatures = items?.map((item, i) => ({
+      ...item,
+      icon: DEFAULT_FEATURES[i % DEFAULT_FEATURES.length].icon,
+      color: DEFAULT_FEATURES[i % DEFAULT_FEATURES.length].color,
+  })) || DEFAULT_FEATURES;
   return (
     <div className="py-32 bg-white border-b-8 border-black">
       <div className="max-w-7xl mx-auto px-6">
         <h2 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter text-black mb-16 uppercase text-center">
-          HOW IT HELPS YOU
+          {displayHeading}
         </h2>
 
       <div className="w-full relative py-12 overflow-hidden">
         {/* Shadow overlays for smooth scroll illusion at edges optionally */}
         
         <div className="flex animate-marquee whitespace-nowrap gap-8 px-4 w-max">
-          {[...features, ...features, ...features, ...features].map((feature, i) => (
+          {[...displayFeatures, ...displayFeatures, ...displayFeatures, ...displayFeatures].map((feature, i) => (
             <div 
               key={`${feature.title}-${i}`}
               className="p-10 border-4 border-black rounded-[32px] space-y-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all shrink-0 w-[400px] whitespace-normal flex flex-col"

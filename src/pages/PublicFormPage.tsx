@@ -202,7 +202,7 @@ const PublicFormPage = () => {
       
       if (styleConfig.formMode === "quiz") {
         let score = 0;
-        let total = questions.length;
+        const total = questions.length;
         questions.forEach(f => {
           if (f.correctAnswer === values[f.id]) score++;
         });
@@ -386,6 +386,38 @@ const PublicFormPage = () => {
                                  </button>
                               );
                            })}
+                        </div>
+                      ) : currentField.type === "date" ? (
+                        <input autoFocus type="date" value={(values[currentField.id] as string) || ""} onChange={(e) => setFieldValue(currentField.id, e.target.value)} className="w-full h-14 px-4 text-xl font-black border-b-2 border-black/10 focus:border-black outline-none bg-transparent" />
+                      ) : currentField.type === "email" ? (
+                        <input autoFocus type="email" placeholder="name@domain.com" value={(values[currentField.id] as string) || ""} onChange={(e) => setFieldValue(currentField.id, e.target.value)} className="w-full h-14 px-4 text-xl font-black border-b-2 border-black/10 focus:border-black outline-none bg-transparent" />
+                      ) : currentField.type === "phone" ? (
+                        <input autoFocus type="tel" placeholder="+91..." value={(values[currentField.id] as string) || ""} onChange={(e) => setFieldValue(currentField.id, e.target.value)} className="w-full h-14 px-4 text-xl font-black border-b-2 border-black/10 focus:border-black outline-none bg-transparent" />
+                      ) : currentField.type === "rating" ? (
+                        <div className="flex gap-2">
+                           {[1, 2, 3, 4, 5].map(num => (
+                              <button key={num} onClick={() => setFieldValue(currentField.id, num)} className={cn("w-12 h-12 flex items-center justify-center border-2 border-black font-black text-lg transition-all", values[currentField.id] === num ? "bg-emerald-500 text-white shadow-[3px_3px_0_0_rgba(0,0,0,1)]" : "bg-white hover:bg-emerald-50")}>
+                                {num}
+                              </button>
+                           ))}
+                        </div>
+                      ) : currentField.type === "file" ? (
+                        <div className="space-y-4">
+                           <div className="relative">
+                              <input type="file" onChange={(e) => onFileUpload(currentField, e)} className="hidden" id={`file-${currentField.id}`} disabled={!!uploadingField} />
+                              <label htmlFor={`file-${currentField.id}`} className={cn("flex items-center gap-4 p-6 border-2 border-dashed border-black/20 cursor-pointer hover:border-black transition-all", values[currentField.id] && "bg-emerald-50 border-emerald-500")}>
+                                 {uploadingField === currentField.id ? (
+                                    <Loader2 className="w-6 h-6 animate-spin" />
+                                 ) : values[currentField.id] ? (
+                                    <Icons.CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                                 ) : (
+                                    <Icons.UploadCloud className="w-6 h-6 opacity-30" />
+                                 )}
+                                 <span className="font-black uppercase tracking-widest text-[10px]">
+                                    {uploadingField === currentField.id ? "Inverting pixels..." : values[currentField.id] ? (values[currentField.id] as any).name : "Click to select asset"}
+                                 </span>
+                              </label>
+                           </div>
                         </div>
                       ) : (
                         <input autoFocus type="text" value={(values[currentField.id] as string) || ""} onChange={(e) => setFieldValue(currentField.id, e.target.value)} className="w-full h-14 px-4 text-xl font-black border-b-2 border-black/10 focus:border-black outline-none bg-transparent" />

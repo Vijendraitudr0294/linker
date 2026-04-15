@@ -54,7 +54,7 @@ const QRRedirectPage = () => {
           .single();
 
         let qr = supaQr;
-        let savedCodes = JSON.parse(localStorage.getItem("qrforge_codes") || "[]");
+        const savedCodes = JSON.parse(localStorage.getItem("qrforge_codes") || "[]");
 
         if (supaErr || !qr) {
             // Check LocalStorage strictly for local demo mode if supabase lacks internet
@@ -143,14 +143,14 @@ const QRRedirectPage = () => {
             
             if (isIOS && appConfig.appStoreUrl) {
                 // iOS App Store with ref param
-                let iosUrl = appConfig.appStoreUrl.startsWith("http") ? appConfig.appStoreUrl : `https://${appConfig.appStoreUrl}`;
+                const iosUrl = appConfig.appStoreUrl.startsWith("http") ? appConfig.appStoreUrl : `https://${appConfig.appStoreUrl}`;
                 const separator = iosUrl.includes("?") ? "&" : "?";
                 const redirectUrl = `${iosUrl}${separator}ref=${shortCode}`;
                 
                 setTimeout(() => { window.location.href = redirectUrl; }, 600);
             } else if (isAndroid && appConfig.googlePlayUrl) {
                 // Android Play Store with referrer param (standard for attribution)
-                let androidUrl = appConfig.googlePlayUrl.startsWith("http") ? appConfig.googlePlayUrl : `https://${appConfig.googlePlayUrl}`;
+                const androidUrl = appConfig.googlePlayUrl.startsWith("http") ? appConfig.googlePlayUrl : `https://${appConfig.googlePlayUrl}`;
                 const separator = androidUrl.includes("?") ? "&" : "?";
                 // Google Play Store uses 'referrer' specifically for tracking
                 const redirectUrl = `${androidUrl}${separator}referrer=${shortCode}`;
@@ -159,7 +159,7 @@ const QRRedirectPage = () => {
             } else {
                 // Web Fallback or Landing Page
                 if (appConfig.webUrl) {
-                   let webUrl = appConfig.webUrl.startsWith("http") ? appConfig.webUrl : `https://${appConfig.webUrl}`;
+                   const webUrl = appConfig.webUrl.startsWith("http") ? appConfig.webUrl : `https://${appConfig.webUrl}`;
                    const sep = webUrl.includes("?") ? "&" : "?";
                    setTimeout(() => { window.location.href = `${webUrl}${sep}ref=${shortCode}`; }, 800);
                 } else {

@@ -1,8 +1,15 @@
+# Biotra — https://biotra.cc
+# Allow all search engines to index public pages
+
 User-agent: Googlebot
 Allow: /
+Disallow: /dashboard/
+Disallow: /r/
 
 User-agent: Bingbot
 Allow: /
+Disallow: /dashboard/
+Disallow: /r/
 
 User-agent: Twitterbot
 Allow: /
@@ -12,5 +19,10 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /dashboard/
+Disallow: /r/
 
 Sitemap: https://biotra.cc/sitemap.xml
+
+# Crawl-delay for polite bots
+Crawl-delay: 1

@@ -26,6 +26,9 @@ export interface PlatformSettings {
   theme_presets?: any[] | null;
   niche_templates?: any[] | null;
   demo_catalog_packs?: Record<string, any> | null;
+  razorpay_key_id?: string | null;
+  stripe_publishable_key?: string | null;
+  is_test_mode?: boolean | null;
 }
 
 interface PlatformState {
@@ -61,6 +64,9 @@ const PLATFORM_SETTINGS_SELECT = [
   "theme_presets",
   "niche_templates",
   "demo_catalog_packs",
+  "razorpay_key_id",
+  "stripe_publishable_key",
+  "is_test_mode",
   "created_at",
   "updated_at",
 ].join(", ");
@@ -82,7 +88,7 @@ export const usePlatformStore = create<PlatformState>()((set, get) => ({
         .single();
         
       if (data && !error) {
-        set({ settings: data as PlatformSettings, initialized: true });
+        set({ settings: data as any as PlatformSettings, initialized: true });
       } else if (error) {
         // FALLBACK: If a column is missing (e.g. database not migrated), try fetching only the essential columns
         if (error.message.includes("column") || error.code === 'PGRST204' || error.message.includes("does not exist")) {
@@ -104,7 +110,7 @@ export const usePlatformStore = create<PlatformState>()((set, get) => ({
             .single();
             
           if (safeData && !safeError) {
-            set({ settings: safeData as PlatformSettings, initialized: true });
+            set({ settings: safeData as any as PlatformSettings, initialized: true });
             return;
           }
           console.error("Failed to fetch platform settings even with safe list:", safeError?.message);

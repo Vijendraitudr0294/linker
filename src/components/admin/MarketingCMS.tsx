@@ -213,6 +213,10 @@ export const MarketingCMS = () => {
                   <Settings className="w-5 h-5 text-gray-300 group-hover:text-black transition-colors" />
                   <span className="text-[8px] font-black uppercase tracking-widest">Add Units</span>
                </button>
+               <button onClick={() => addSection('team')} className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-gray-50 hover:border-black transition-all bg-gray-50/20 group">
+                  <User className="w-5 h-5 text-gray-300 group-hover:text-black transition-colors" />
+                  <span className="text-[8px] font-black uppercase tracking-widest">Add Team</span>
+               </button>
             </div>
           </div>
         </div>
@@ -420,6 +424,74 @@ const SectionEditor = ({
           ))}
         </div>
       )}
+
+       {section.type === 'team' && content.members && (
+        <div className="space-y-4 pt-8 border-t-2 border-gray-50">
+          <label className="text-[10px] font-black uppercase tracking-widest text-black/40">Team Grid Nodes</label>
+          {content.members.map((member: any, idx: number) => (
+            <div key={idx} className="p-6 rounded-3xl border-2 border-gray-100 bg-gray-50/20 flex gap-6 group hover:border-black transition-all">
+               <div className="w-14 h-14 rounded-2xl bg-white border-2 border-black overflow-hidden shrink-0 group-hover:scale-105 transition-transform">
+                  {member.image_url ? (
+                    <img src={member.image_url} alt={member.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                       <User className="w-6 h-6 text-black/10" />
+                    </div>
+                  )}
+               </div>
+               <div className="flex-1 space-y-3">
+                   <div className="flex justify-between items-start">
+                     <div className="flex-1 space-y-1">
+                        <input 
+                          value={member.name}
+                          onChange={(e) => {
+                            const newMembers = [...content.members];
+                            newMembers[idx] = { ...member, name: e.target.value };
+                            handleChange('members', newMembers);
+                          }}
+                          className="bg-transparent border-none outline-none font-black text-sm uppercase tracking-tight w-full"
+                          placeholder="Node Name"
+                        />
+                        <input 
+                          value={member.role}
+                          onChange={(e) => {
+                            const newMembers = [...content.members];
+                            newMembers[idx] = { ...member, role: e.target.value };
+                            handleChange('members', newMembers);
+                          }}
+                          className="bg-transparent border-none outline-none text-[10px] font-black uppercase tracking-widest text-emerald-600 block w-full"
+                          placeholder="Protocol Role"
+                        />
+                     </div>
+                     <div className="relative">
+                       <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors overflow-hidden relative">
+                         <ImageIcon className={cn("w-4 h-4", member.image_url ? "text-emerald-500" : "text-gray-300")} />
+                         <input 
+                           type="file" 
+                           accept="image/*"
+                           onChange={(e) => onImageUpload(e, idx)}
+                           className="absolute inset-0 opacity-0 cursor-pointer"
+                           disabled={isUploading}
+                         />
+                       </button>
+                     </div>
+                   </div>
+                   <textarea 
+                     value={member.bio}
+                     onChange={(e) => {
+                       const newMembers = [...content.members];
+                       newMembers[idx] = { ...member, bio: e.target.value };
+                       handleChange('members', newMembers);
+                     }}
+                     className="w-full bg-transparent border-none outline-none text-xs text-gray-500 font-medium resize-none"
+                     rows={2}
+                     placeholder="Mission objective..."
+                   />
+               </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -428,7 +500,16 @@ function getDefaultsForType(type: MarketingSection['type']) {
   switch(type) {
     case 'hero': return { title: "NEW HORIZON HERO", subtitle: "Define your digital frontier here.", primaryCTA: { label: "Initialize", href: "/register" } };
     case 'features': return { heading: "ELITE CAPABILITIES", items: [{ title: "SYNC PROTOCOL", description: "Seamless data orchestration." }] };
-    case 'cta': return { title: "READY TO SCALE?", buttonLabel: "JOIN NOW", buttonHref: "/register" };
+    case 'team': return { 
+      heading: "THE LEGENDS", 
+      members: [
+        { name: "Nano Banana", role: "FOUNDER & VIBE LEAD", bio: "The organic intelligence behind the Biotra algorithm. Small in scale, massive in impact.", image_url: "" },
+        { name: "Mia", role: "CEO", bio: "Shih Tzu Dog. Lead visionary and strategic biscuits enthusiast.", image_url: "" },
+        { name: "Billu", role: "CTO", bio: "White Indi Cat. Chief Technical Orchestrator. Master of system purr-formance.", image_url: "" },
+        { name: "Myra", role: "CMO", bio: "Chow Chow Dog. Chief Marketing Officer. Expert in brand fluffiness.", image_url: "" },
+        { name: "Brandy", role: "CXO", bio: "Indian Brown & White Cat. Chief eXperience Orchestrator.", image_url: "" }
+      ] 
+    };
     default: return { heading: "NEW MODULE UNIT" };
   }
 }

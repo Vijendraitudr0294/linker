@@ -41,7 +41,7 @@ export const UnifiedProfileHeader = ({
           whileHover={{ scale: 1.05 }}
           className={cn(
              "relative shrink-0 rounded-full p-1 transition-all",
-             compact ? "w-20 h-20 sm:w-24 sm:h-24" : "w-28 h-28 sm:w-36 sm:h-36",
+             compact ? "w-16 h-16 sm:w-20 sm:h-20" : "w-16 h-16 sm:w-24 sm:h-24",
              isBrutalism ? "border-4 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] rounded-none" : "shadow-xl"
           )}
           style={!isBrutalism ? { backgroundColor: `${palette.cardBg}10`, boxShadow: `0 0 0 1px ${palette.cardBorder}40` } : {}}
@@ -68,8 +68,8 @@ export const UnifiedProfileHeader = ({
         {/* Text & Actions Area - Column 2 */}
         <div className="flex flex-col flex-1 min-w-0">
           <h1 className={cn(
-             "font-black tracking-tight leading-tight mb-2 truncate",
-             compact ? "text-xl" : "text-2xl sm:text-3xl"
+             "font-black tracking-tight leading-tight mb-2 line-clamp-2",
+             compact ? "text-base" : "text-lg sm:text-3xl"
           )} style={{ color: contrastText }}>
             {user?.name || user?.username || "Your Name"}
           </h1>
@@ -101,7 +101,7 @@ export const UnifiedProfileHeader = ({
                     )}
                     style={!isBrutalism ? { backgroundColor: `${palette.cardBg}20`, borderColor: `${palette.cardBorder}50`, color: contrastText } : { color: "#000" }}
                  >
-                    <SocialIcon platform={l.platform} className={compact ? "w-3.5 h-3.5" : "w-4 h-4 sm:w-5 sm:h-5"} />
+                    <SocialIcon platform={l.platform} className={compact ? "w-4 h-4" : "w-5 h-5"} />
                  </motion.a>
               ))}
             </div>

@@ -8,22 +8,26 @@ const sections = [
     color: "bg-[#22C55E]",
     links: [
       { label: "HOME", path: "/" },
-      { label: "PRICING", path: "/#pricing" },
       { label: "BLOG", path: "/blog" },
-      { label: "CONTACT", path: "/contact" },
-      { label: "FAQ", path: "/#faq" },
+      { label: "FAQ", path: "/faq" },
+      { label: "LOGIN", path: "/login" },
+      { label: "REGISTER", path: "/register" },
     ],
   },
   {
     title: "PLATFORM",
     color: "bg-[#FDE047]",
     links: [
-      { label: "CREATOR STUDIO", path: "/dashboard" },
+      { label: "DASHBOARD", path: "/dashboard" },
       { label: "LINK EDITOR", path: "/dashboard/links" },
       { label: "SHOP / CATALOG", path: "/dashboard/catalog" },
       { label: "QR FORGE", path: "/dashboard/qrforge" },
       { label: "ANALYTICS", path: "/dashboard/analytics" },
       { label: "FORMS", path: "/dashboard/forms" },
+      { label: "THEMES", path: "/dashboard/appearance" },
+      { label: "TEMPLATES", path: "/dashboard/templates" },
+      { label: "SOCIAL FLOW", path: "/dashboard/socialflow" },
+      { label: "SETTINGS", path: "/dashboard/settings" },
     ],
   },
   {
@@ -32,8 +36,7 @@ const sections = [
     links: [
       { label: "PRIVACY POLICY", path: "/privacy" },
       { label: "TERMS OF SERVICE", path: "/terms" },
-      { label: "SECURITY", path: "/security" },
-      { label: "COOKIES", path: "/cookies" },
+      { label: "COOKIE POLICY", path: "/cookies" },
     ],
   },
   {
@@ -44,6 +47,7 @@ const sections = [
       { label: "API DOCS", path: "/api-docs" },
       { label: "STATUS PAGE", path: "/status" },
       { label: "CHANGELOG", path: "/changelog" },
+      { label: "SITEMAP", path: "/sitemap" },
     ],
   },
 ];
@@ -62,6 +66,9 @@ export default function SitemapPage() {
             <h1 className="text-[72px] md:text-[120px] font-black tracking-tighter text-black uppercase leading-[0.85]">
               SITEMAP.
             </h1>
+            <p className="text-sm font-black uppercase tracking-widest text-black/40 mt-4 max-w-md">
+              Every page on Biotra, organized for humans and search engines.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -91,6 +98,17 @@ export default function SitemapPage() {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* XML Sitemap Link */}
+          <div className="mt-16 text-center">
+            <a 
+              href="/sitemap.xml" 
+              target="_blank"
+              className="inline-flex items-center gap-3 px-8 py-4 bg-white border-4 border-black rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-[6px_6px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px] transition-all"
+            >
+              📄 VIEW XML SITEMAP (FOR GOOGLE)
+            </a>
           </div>
         </div>
       </main>

@@ -382,7 +382,7 @@ export const nicheTemplates: NicheTemplate[] = [
       backgroundColor: t.bg,
       cardColor: t.bg === "white" ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.7)",
       textColor: t.bg === "black" ? "white" : "#333",
-      buttonStyle: "rounded" as "rounded",
+      buttonStyle: "rounded" as const,
       buttonBg: t.btn,
       buttonText: "white",
       fontFamily: t.font,

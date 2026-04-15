@@ -46,7 +46,7 @@ const Offline = () => {
             <span className="bg-emerald-400 px-6 border-8 border-black shadow-[12px_12px_0_0_rgba(0,0,0,1)] inline-block my-4">LOST.</span>
         </h1>
 
-        <div className="inline-block px-8 py-4 bg-yellow-400 border-4 border-black rounded-2xl shadow-[8px_8px_0_0_rgba(0,0,0,1)] mb-12">
+        <div className="inline-block px-8 py-4 bg-pink-300 border-4 border-black rounded-2xl shadow-[8px_8px_0_0_rgba(0,0,0,1)] mb-12">
             <h2 className="text-xl md:text-2xl font-[1000] uppercase tracking-tighter text-black">YOU ARE OFFLINE</h2>
         </div>
 
@@ -56,7 +56,7 @@ const Offline = () => {
 
         <button 
             onClick={handleRetry}
-            className="group px-16 py-6 bg-black text-white border-4 border-black rounded-[24px] text-xl font-black uppercase tracking-widest shadow-[12px_12px_0_0_rgba(250,204,21,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-4 active:scale-95"
+            className="group px-16 py-6 bg-black text-white border-4 border-black rounded-[24px] text-xl font-black uppercase tracking-widest shadow-[12px_12px_0_0_rgba(16,185,129,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-4 active:scale-95"
         >
             <RefreshCcw className="w-6 h-6 group-hover:rotate-180 transition-transform duration-700" />
             Try Again
@@ -65,7 +65,7 @@ const Offline = () => {
 
       {/* Extreme Floating Neo-Brutalist shapes */}
       <div className="absolute top-10 left-10 w-24 h-24 bg-emerald-100 border-4 border-black -rotate-12 opacity-50" />
-      <div className="absolute bottom-10 right-10 w-32 h-32 bg-yellow-100 border-4 border-black rotate-6 opacity-50" />
+      <div className="absolute bottom-10 right-10 w-32 h-32 bg-blue-100 border-4 border-black rotate-6 opacity-50" />
     </div>
   );
 };

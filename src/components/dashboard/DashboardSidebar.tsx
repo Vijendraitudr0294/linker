@@ -1,10 +1,11 @@
-import { LayoutDashboard, Palette, QrCode, ShieldCheck, Target, Search, Phone, Puzzle, Link2, ShoppingBag, FileText, LayoutTemplate, ChevronDown } from "lucide-react";
+import { LayoutDashboard, Palette, QrCode, ShieldCheck, Target, Search, Phone, Puzzle, Link2, ShoppingBag, FileText, LayoutTemplate, ChevronDown, LogOut, Settings } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuthStore } from "@/stores/authStore";
 import { usePlatformStore } from "@/stores/platformStore";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { isAdminUser, isSuperAdminUser } from "@/lib/authRoles";
 import {
   Sidebar,
   SidebarContent,
@@ -74,7 +75,8 @@ export function DashboardSidebar() {
       ? location.pathname === "/dashboard"
       : location.pathname.startsWith(path);
 
-  const isAdmin = user?.role === "admin" || user?.role === "superadmin";
+  const isAdmin = isAdminUser(user);
+  const isSuperAdmin = isSuperAdminUser(user);
 
   const handleLogout = async () => {
     await logout();
@@ -201,13 +203,13 @@ export function DashboardSidebar() {
 
         {!collapsed && (
            <div className="px-6 py-2 mt-2">
-              <span className="text-[12px] font-medium text-white/40 hover:text-white transition-colors cursor-pointer flex items-center gap-3">
+              <Link to="/help" className="text-[12px] font-medium text-white/40 hover:text-white transition-colors cursor-pointer flex items-center gap-3">
                  <Phone className="w-[14px] h-[14px]" /> Help & Support
-              </span>
+              </Link>
            </div>
         )}
 
-        {isAdmin && !collapsed && (
+        {isSuperAdmin && !collapsed && (
            <SidebarGroup className="mt-8 border-t border-white/10 pt-4">
               <SidebarGroupLabel className="px-2 text-[10px] font-medium text-white/40 mb-2 uppercase tracking-wide">
                 Admin
@@ -233,8 +235,47 @@ export function DashboardSidebar() {
         )}
       </SidebarContent>
 
-      <SidebarFooter className="p-4">
-         {/* Footer completely removed for ultra-clean look like reference image. Handled via top-bar. */}
+      <SidebarFooter className="p-4 border-t border-white/10">
+         {!collapsed ? (
+           <div className="space-y-3">
+             {/* User Profile Card */}
+             <div className="flex items-center gap-3 px-2 py-2">
+               <div className="w-9 h-9 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center text-black text-[11px] font-black shrink-0 border border-white/10">
+                 {user?.name?.[0]?.toUpperCase() || user?.username?.[0]?.toUpperCase() || "?"}
+               </div>
+               <div className="min-w-0">
+                 <p className="text-[12px] font-bold text-white truncate">{user?.name || user?.username || "User"}</p>
+                 <p className="text-[10px] text-white/40 truncate">{user?.email || ""}</p>
+               </div>
+             </div>
+
+             {/* Settings & Logout */}
+             <div className="flex items-center gap-2">
+               <Link
+                 to="/dashboard/settings"
+                 className="flex-1 h-9 flex items-center justify-center gap-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-white text-[11px] font-medium transition-all"
+               >
+                 <Settings className="w-3.5 h-3.5" />
+                 Settings
+               </Link>
+               <button
+                 onClick={handleLogout}
+                 className="flex-1 h-9 flex items-center justify-center gap-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 text-[11px] font-medium transition-all"
+               >
+                 <LogOut className="w-3.5 h-3.5" />
+                 Sign Out
+               </button>
+             </div>
+           </div>
+         ) : (
+           <button
+             onClick={handleLogout}
+             title="Sign Out"
+             className="w-full h-10 flex items-center justify-center rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-all"
+           >
+             <LogOut className="w-4 h-4" />
+           </button>
+         )}
       </SidebarFooter>
     </Sidebar>
   );

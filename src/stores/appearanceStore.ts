@@ -78,7 +78,7 @@ const defaultSettings: AppearanceSettings = {
 
 type TabLabelSettings = Pick<AppearanceSettings, "shopTabLabel" | "linksTabLabel">;
 
-let hasShownTabLabelCompatibilityNotice = false;
+const hasShownTabLabelCompatibilityNotice = false;
 const unsupportedAppearanceColumns = new Set<string>();
 const appearanceDbColumns = [
   "theme_id",

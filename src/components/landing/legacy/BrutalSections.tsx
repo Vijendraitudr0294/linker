@@ -45,7 +45,7 @@ const BrutalSections = () => {
       </section>
 
       {/* SMART QR CODES */}
-      <section id="codes" className="py-32 bg-[#FDE047] border-b-8 border-black overflow-hidden">
+      <section id="codes" className="py-32 bg-[#E0E7FF] border-b-8 border-black overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
           <motion.div 
              initial={{ opacity: 0, x: -50 }}

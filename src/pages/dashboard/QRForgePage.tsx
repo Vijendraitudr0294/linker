@@ -289,7 +289,7 @@ const QRForgePage = () => {
           </div>
 
           <Card className="bruddle-card overflow-hidden bg-white">
-            <div className="p-6 border-b-2 border-black flex items-center justify-between">
+            <div className="p-4 md:p-6 border-b-2 border-black flex flex-wrap items-center justify-between gap-4">
               <h3 className="font-black text-black text-xl tracking-tight">Your Codes</h3>
               {qrs.length > 0 && (
                  <Button variant="ghost" size="sm" onClick={async () => { if(confirm("Are you sure you want to delete ALL QR codes?")) { await clearAllQRCodes.mutateAsync(); toast.success("All codes deleted!"); } }} className="text-red-500 hover:text-red-600 h-9 rounded-xl border-2 border-red-500 text-[10px] font-black uppercase tracking-widest">
@@ -309,8 +309,8 @@ const QRForgePage = () => {
                 </div>
               )}
               {qrs.map((qr) => (
-                <div key={qr.id} className="p-6 flex items-center justify-between hover:bg-black/[0.02] transition-colors">
-                  <div className="flex items-center gap-5">
+                <div key={qr.id} className="p-4 md:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-0 hover:bg-black/[0.02] transition-colors">
+                  <div className="flex items-center gap-4 md:gap-5 w-full">
                     <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center border-2 border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
                       <QRCodeSVG 
                         value={qr.mode === "dynamic" ? `${window.location.origin}/r/${qr.short_code}` : qr.content} 
@@ -345,8 +345,8 @@ const QRForgePage = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-8">
-                    <div className="text-right">
+                  <div className="flex items-center justify-between md:justify-end gap-4 md:gap-8 w-full md:w-auto border-t-2 md:border-t-0 border-black/5 pt-4 md:pt-0 mt-2 md:mt-0">
+                    <div className="text-left md:text-right">
                       <p className="text-2xl font-black text-black leading-none">{qr.scans_count || 0}</p>
                       <p className="text-[9px] text-black/40 font-black uppercase tracking-widest mt-1">Scans</p>
                     </div>

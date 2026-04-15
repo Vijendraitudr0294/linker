@@ -7,6 +7,7 @@ import BiotraCCFeatures from "@/components/landing/legacy/BiotraCCFeatures";
 import PricingPlans from "@/components/landing/legacy/PricingPlans";
 import BiotraCCFAQ from "@/components/landing/legacy/BiotraCCFAQ";
 import BiotraCCCTA from "@/components/landing/legacy/BiotraCCCTA";
+import BiotraCCTeam from "@/components/landing/legacy/BiotraCCTeam";
 import BiotraCCFooter from "@/components/landing/legacy/BiotraCCFooter";
 
 const Index = () => {
@@ -17,8 +18,8 @@ const Index = () => {
             <main>
                 <CreatorsHero />
                 <TickerTape />
-                
                 <BrutalSections />
+                <BiotraCCTeam />
                 <BiotraCCTestimonials />
                 <BiotraCCFeatures />
                 <PricingPlans />

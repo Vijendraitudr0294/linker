@@ -1,19 +1,16 @@
-import { Check } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
-const plans = [
+const DEFAULT_PLANS = [
   {
     name: "FREE",
     price: "$0",
     tagline: "PERFECT FOR BASELINE DIGITAL IDENTITY.",
-    features: [
-      "Basic profile builder",
-      "60+ visual layouts",
-      "Contact forms",
-      "Standard analytics"
-    ],
+    features: ["Basic profile builder", "60+ visual layouts", "Contact forms", "Standard analytics"],
     buttonText: "INITIALIZE FREE",
     theme: "light"
   },
@@ -21,18 +18,43 @@ const plans = [
     name: "STAGE",
     price: "$12/MO",
     tagline: "ADVANCED TOOLS FOR ELITE DIGITAL INFLUENCE.",
-    features: [
-      "Everything in Free",
-      "Advanced graph metrics",
-      "Custom domain setup",
-      "White-label profiles"
-    ],
+    features: ["Everything in Free", "Advanced graph metrics", "Custom domain setup", "White-label profiles"],
     buttonText: "UPGRADE STAGE ->",
     theme: "dark"
   }
 ];
 
 const PricingPlans = () => {
+  const [plans, setPlans] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("pricing_plans" as any)
+          .select("*")
+          .eq("published", true)
+          .order("sort_order", { ascending: true });
+        if (error) throw error;
+        if (data && data.length > 0) {
+          setPlans(data.map((p: any) => ({
+            ...p,
+            theme: p.is_popular ? "dark" : "light",
+            tagline: p.description?.toUpperCase() || (p.is_popular ? "ADVANCED TOOLS" : "BASIC TOOLS"),
+            buttonText: p.button_text || (p.is_popular ? "UPGRADE STAGE ->" : "INITIALIZE FREE"),
+          })));
+        } else {
+          setPlans(DEFAULT_PLANS);
+        }
+      } catch {
+        setPlans(DEFAULT_PLANS);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPlans();
+  }, []);
   return (
     <div id="pricing" className="py-32 bg-white border-b-8 border-black">
       <div className="max-w-7xl mx-auto px-6">
@@ -40,8 +62,14 @@ const PricingPlans = () => {
           UPGRADE YOUR <br /> DIGITAL OS.
         </h2>
 
-        <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
-          {plans.map((plan, index) => (
+        {loading ? (
+             <div className="flex flex-col items-center justify-center py-20 gap-4">
+                <Loader2 className="w-10 h-10 animate-spin text-black" />
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-black/40 text-center">Inverting Yield Curves...</p>
+             </div>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
+            {plans.map((plan, index) => (
             <motion.div 
               key={plan.name}
               initial={{ opacity: 0, y: 40 }}
@@ -99,7 +127,8 @@ const PricingPlans = () => {
               </div>
             </motion.div>
           ))}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

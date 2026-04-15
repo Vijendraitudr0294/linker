@@ -38,7 +38,7 @@
 
     /* Vibrant Accents */
     --vibrant-pink: 326 100% 60%;
-    --vibrant-yellow: 48 100% 50%;
+    --vibrant-yellow: 210 40% 96.1%; /* Neutralized */
     --vibrant-blue: 198 93% 46%; /* #0984E3 */
     --vibrant-cyan: 191 91% 50%;
     
@@ -125,9 +125,18 @@
   }
   
   p {
-    @apply text-muted-foreground font-normal;
+    @apply text-muted-foreground font-medium;
     font-size: 16px;
     line-height: 1.6;
+  }
+
+  .substrate-label {
+    @apply font-black uppercase tracking-[0.2em] text-[10px] text-black/40;
+  }
+
+  .substrate-heading {
+    @apply font-black tracking-tight leading-tight;
+    font-family: var(--font-display);
   }
 
   code, kbd, pre, .label {
@@ -141,8 +150,25 @@
   }
 
   /* VibeHub Design System - Twenty.com Style */
-  .vibe-glass {
-    @apply backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl shadow-2xl;
+  /* Bruddle/Biotra Design System V2 */
+  .premium-glass {
+    @apply backdrop-blur-xl bg-white/5 border border-white/10 rounded-[32px] shadow-2xl transition-all duration-300;
+  }
+
+  .premium-glass:hover {
+    @apply translate-y-[-4px] shadow-3xl bg-white/10;
+  }
+
+  .substrate-card {
+    @apply bg-white border-2 border-black rounded-[40px] overflow-hidden transition-all duration-300;
+  }
+
+  .substrate-card-inner {
+    @apply rounded-[32px];
+  }
+
+  .interactive-scale {
+    @apply transition-transform duration-300 hover:scale-[1.02] active:scale-[0.98];
   }
 
   .vibe-aura-indigo {
@@ -187,7 +213,7 @@
   }
   
   .bruddle-card-green { @apply bg-[#D1FAE5] bruddle-card; }
-  .bruddle-card-yellow { @apply bg-[#FEF9C3] bruddle-card; }
+  .bruddle-card-yellow { @apply bg-slate-50 bruddle-card; }
   .bruddle-card-pink { @apply bg-[#FCE7F3] bruddle-card; }
   .bruddle-card-blue { @apply bg-[#E0F2FE] bruddle-card; }
   

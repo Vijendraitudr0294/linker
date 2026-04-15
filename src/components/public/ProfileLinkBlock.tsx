@@ -50,15 +50,15 @@ export const ProfileLinkBlock = ({
         "block w-full p-4 group no-underline",
         isBento 
           ? (isFirst ? "col-span-2 flex flex-row items-center gap-4 min-h-[100px]" : "text-center flex flex-col justify-center min-h-[140px]") 
-          : "flex flex-row items-center gap-4",
+          : layoutType === "grid" ? "text-center flex flex-col justify-center p-4 min-h-[100px]" : "flex flex-row items-center gap-4",
         !isBrutalism && "rounded-2xl"
       )}
       style={getProfileCardStyle(appearance, palette)}
     >
-      <div className={cn("flex items-center gap-4 transition-all", (isBento && !isFirst) ? "flex-col" : "flex-row")}>
+      <div className={cn("flex items-center gap-4 transition-all", (isBento && !isFirst) || layoutType === "grid" ? "flex-col text-center" : "flex-row")}>
         <div className={cn(
           "flex items-center justify-center shrink-0 transition-all duration-300 group-hover:rotate-12 group-hover:scale-110",
-          isBento ? (isFirst ? "w-14 h-14" : "w-12 h-12 mb-1") : "w-12 h-12",
+          (isBento || layoutType === "grid") ? (isFirst && layoutType !== "grid" ? "w-14 h-14" : "w-12 h-12 mb-1") : "w-12 h-12",
           isBrutalism
             ? "bg-black text-white rounded-none border-2 border-black"
             : "rounded-full"
@@ -69,11 +69,11 @@ export const ProfileLinkBlock = ({
             <Link2 className="w-5 h-5" style={{ color: isBrutalism ? "#fff" : palette.btnBg }} />
           )}
         </div>
-        <div className="min-w-0 flex-1 w-full flex flex-col items-start justify-center">
+        <div className={cn("min-w-0 flex-1 w-full flex flex-col justify-center", (isBento || layoutType === "grid") ? "items-center" : "items-start")}>
           <span className={cn(
-            "font-black uppercase tracking-tight block w-full truncate",
-            isBento 
-              ? (isFirst ? "text-base text-left" : "text-[10px] sm:text-[11px] line-clamp-2 leading-tight text-center") 
+            "font-black uppercase tracking-tight block w-full line-clamp-2",
+            (isBento || layoutType === "grid") 
+              ? (isFirst && layoutType !== "grid" ? "text-base text-left" : "text-[10px] sm:text-[11px] line-clamp-2 leading-tight text-center") 
               : "text-sm text-left",
             isBrutalism ? "text-black" : ""
           )} style={{ color: isBrutalism ? "#000" : palette.cardText }}>
@@ -85,7 +85,7 @@ export const ProfileLinkBlock = ({
             </span>
           )}
         </div>
-        {(!isBento || isFirst) && <ExternalLink className="ml-auto w-4 h-4 opacity-20" style={{ color: palette.cardText }} />}
+        {(!isBento || isFirst) && layoutType !== "grid" && <ExternalLink className="ml-auto w-4 h-4 opacity-20" style={{ color: palette.cardText }} />}
       </div>
     </motion.a>
   );

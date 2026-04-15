@@ -22,7 +22,7 @@ const BiotraCCNavbar = () => {
             <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-black fill-black" />
           </div>
           <span className="text-lg sm:text-xl font-black tracking-tighter uppercase italic text-black">BIOTRA</span>
-          <span className="hidden md:inline-block px-2 py-0.5 bg-[#FDE047] border-2 border-black rounded-full text-[9px] font-black tracking-widest uppercase shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
+          <span className="hidden md:inline-block px-2 py-0.5 bg-white border-2 border-black rounded-full text-[9px] font-black tracking-widest uppercase shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
             v1.2 // STABLE
           </span>
         </Link>
@@ -63,7 +63,7 @@ const BiotraCCNavbar = () => {
             START &gt;
           </Link>
           <button 
-            className="lg:hidden w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center border-2 border-black rounded-xl sm:rounded-full bg-[#FDE047] text-black shadow-[2px_2px_0_0_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-none pointer-events-auto transition-transform"
+            className="lg:hidden w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center border-2 border-black rounded-xl sm:rounded-full bg-white text-black shadow-[2px_2px_0_0_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-none pointer-events-auto transition-transform"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             {isMenuOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}

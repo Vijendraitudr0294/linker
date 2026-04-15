@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   UploadCloud, Loader2, FileText, Plus, GripVertical, Trash2, Eye, Sparkles, 
   PauseCircle, PlayCircle, StopCircle, XCircle, RotateCcw, Copy, ExternalLink, 
@@ -53,6 +54,7 @@ const fieldCatalog: { type: FieldType; label: string }[] = [
   { type: "short_text", label: "Short Text" },
   { type: "email", label: "Email" },
   { type: "phone", label: "Phone" },
+  { type: "date", label: "Date Picker" },
   { type: "long_text", label: "Long Text" },
   { type: "dropdown", label: "Dropdown" },
   { type: "rating", label: "Rating (1-5)" },
@@ -198,11 +200,24 @@ const FormsPage = () => {
 
   const [selectedSubmission, setSelectedSubmission] = useState<FormSubmissionRecord | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [subPage, setSubPage] = useState(0);
+  const [selectedSubs, setSelectedSubs] = useState<string[]>([]);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const PAGE_SIZE = 15;
 
   const filteredTemplates = useMemo(() => templates.filter((t) => t.category === activeCategory), [activeCategory]);
   const selectedField = fields.find((f) => f.id === selectedFieldId) || null;
   const activeForm = forms.find((f) => f.id === activeFormId) || null;
   const publicFormUrl = buildPublicFormUrl(window.location.origin, activeForm);
+
+  const getFieldLabel = (fieldKey: string) => {
+    // If we're looking at a specific form, check its schema
+    const field = fields.find(f => f.id === fieldKey);
+    if (field) return field.label;
+    
+    // Fallback: cleaning up the technical key
+    return fieldKey.replace(/^field_\d+_/, '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
 
   const refreshForms = async () => {
     try {
@@ -484,6 +499,23 @@ const FormsPage = () => {
     }
   };
 
+  const handleBulkDelete = async () => {
+    if (!selectedSubs.length) return;
+    if (!confirm(`Wipe ${selectedSubs.length} response nodes from database?`)) return;
+    setIsBulkDeleting(true);
+    try {
+      const { error } = await supabase.from("form_submissions").delete().in("id", selectedSubs);
+      if (error) throw error;
+      toast.success("Nodes purged.");
+      setSelectedSubs([]);
+      if (activeFormId) void refreshSubmissions(activeFormId);
+    } catch { 
+      toast.error("Purge fail."); 
+    } finally { 
+      setIsBulkDeleting(false); 
+    }
+  };
+
   const handleStop = async () => {
     if (!activeFormId) return;
     setActionLoading("stop");
@@ -525,12 +557,13 @@ const FormsPage = () => {
     return true;
   });
 
-  const csvEscape = (val: any) => {
-    const str = String(val ?? "");
-    return str.includes(",") || str.includes('"') || str.includes("\n") 
-      ? `"${str.replace(/"/g, '""')}"` 
-      : str;
-  };
+  // Reset to page 0 whenever filters change
+  useEffect(() => { setSubPage(0); }, [submissionSearch, submissionDateFrom, submissionDateTo]);
+
+  const paginatedSubmissions = filteredSubmissions.slice(subPage * PAGE_SIZE, (subPage + 1) * PAGE_SIZE);
+  const totalPages = Math.ceil(filteredSubmissions.length / PAGE_SIZE);
+
+  // csvEscape is defined at module level above — used for CSV exports
 
   const exportSubmissionsCsv = () => {
     if (!filteredSubmissions.length) {
@@ -1188,15 +1221,19 @@ const FormsPage = () => {
                  
                  <div className="h-[250px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                       <AreaChart data={[
-                          { name: 'Mon', count: 12 },
-                          { name: 'Tue', count: 25 },
-                          { name: 'Wed', count: 18 },
-                          { name: 'Thu', count: 42 },
-                          { name: 'Fri', count: 35 },
-                          { name: 'Sat', count: 58 },
-                          { name: 'Sun', count: 45 },
-                       ]}>
+                       <AreaChart data={(() => {
+                          const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                          const now = new Date();
+                          const data = Array.from({ length: 7 }).map((_, i) => {
+                             const d = new Date(now);
+                             d.setDate(d.getDate() - (6 - i));
+                             const dayName = days[d.getDay()];
+                             const dateStr = d.toLocaleDateString();
+                             const count = submissions.filter(s => new Date(s.created_at).toLocaleDateString() === dateStr).length;
+                             return { name: dayName, count };
+                          });
+                          return data;
+                       })()}>
                           <defs>
                              <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
@@ -1515,12 +1552,59 @@ const FormsPage = () => {
                     placeholder="Search by response content or ID..."
                     className="bg-transparent border-none text-sm font-bold w-full focus:ring-0"
                   />
+                  {selectedSubs.length > 0 && (
+                     <button 
+                       onClick={handleBulkDelete}
+                       disabled={isBulkDeleting}
+                       className="h-9 px-4 bg-red-500 text-white border-2 border-black rounded-lg font-black text-[9px] uppercase shadow-[3px_3px_0_0_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all flex items-center gap-2 mr-2"
+                     >
+                        {isBulkDeleting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Icons.Trash2 className="w-3 h-3" />}
+                        Wipe {selectedSubs.length} Nodes
+                     </button>
+                  )}
+                  {submissionSearch && (
+                    <button onClick={() => setSubmissionSearch('')} className="text-black/40 hover:text-black transition-colors">
+                      <Icons.X className="w-4 h-4" />
+                    </button>
+                  )}
                </div>
-               <div className="flex items-center gap-2">
+               <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Filter Date:</span>
-                  <input type="date" value={submissionDateFrom} onChange={(e) => setSubmissionDateFrom(e.target.value)} className="text-[10px] font-black border-2 border-black bg-white px-2 py-1" />
-                  <span className="text-[10px] font-black">-</span>
-                  <input type="date" value={submissionDateTo} onChange={(e) => setSubmissionDateTo(e.target.value)} className="text-[10px] font-black border-2 border-black bg-white px-2 py-1" />
+                  <div className="relative flex items-center">
+                    <input
+                      type="date"
+                      value={submissionDateFrom}
+                      onChange={(e) => setSubmissionDateFrom(e.target.value)}
+                      className="text-[11px] font-bold border-2 border-black bg-white px-3 py-1.5 h-9 focus:outline-none focus:border-emerald-500 transition-colors"
+                    />
+                    {submissionDateFrom && (
+                      <button onClick={() => setSubmissionDateFrom('')} className="absolute right-1 text-black/30 hover:text-black">
+                        <Icons.X className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                  <span className="text-[10px] font-black">—</span>
+                  <div className="relative flex items-center">
+                    <input
+                      type="date"
+                      value={submissionDateTo}
+                      onChange={(e) => setSubmissionDateTo(e.target.value)}
+                      className="text-[11px] font-bold border-2 border-black bg-white px-3 py-1.5 h-9 focus:outline-none focus:border-emerald-500 transition-colors"
+                    />
+                    {submissionDateTo && (
+                      <button onClick={() => setSubmissionDateTo('')} className="absolute right-1 text-black/30 hover:text-black">
+                        <Icons.X className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                  {(submissionDateFrom || submissionDateTo) && (
+                    <button
+                      onClick={() => { setSubmissionDateFrom(''); setSubmissionDateTo(''); }}
+                      className="text-[10px] font-black uppercase tracking-widest text-red-500 hover:underline"
+                    >
+                      Clear
+                    </button>
+                  )}
                </div>
             </div>
 
@@ -1528,6 +1612,14 @@ const FormsPage = () => {
                <table className="w-full text-left border-collapse">
                   <thead>
                      <tr className="bg-black text-white text-[10px] font-black uppercase tracking-widest">
+                        <th className="p-4 border-r border-white/10 w-10">
+                           <input 
+                               type="checkbox" 
+                               checked={selectedSubs.length === paginatedSubmissions.length && paginatedSubmissions.length > 0} 
+                               onChange={(e) => setSelectedSubs(e.target.checked ? paginatedSubmissions.map(s => s.id) : [])}
+                               className="w-4 h-4 accent-emerald-500 border-2 border-white rounded cursor-pointer"
+                           />
+                        </th>
                         <th className="p-4 border-r border-white/10">ID</th>
                         <th className="p-4 border-r border-white/10">Date</th>
                         <th className="p-4 border-r border-white/10">Response Data</th>
@@ -1543,39 +1635,72 @@ const FormsPage = () => {
                            </td>
                         </tr>
                      ) : (
-                        filteredSubmissions.map((sub) => (
-                           <tr key={sub.id} className="border-b-2 border-black/5 hover:bg-emerald-50/30 transition-colors">
-                              <td className="p-4 text-[10px] font-black opacity-40 font-mono">#{sub.id.slice(-6)}</td>
-                              <td className="p-4 text-[11px] font-bold">{new Date(sub.created_at).toLocaleString()}</td>
-                              <td className="p-4">
-                                 <div className="flex flex-wrap gap-2">
-                                    {Object.entries(sub.payload || {}).map(([key, val]) => (
-                                       <div key={key} className="bg-black/5 p-2 border border-black/10 rounded-sm">
-                                          <p className="text-[8px] font-black uppercase text-black/40 mb-0.5">{key}</p>
-                                          <p className="text-[11px] font-bold truncate max-w-[200px]">{String(val)}</p>
-                                       </div>
-                                    ))}
-                                 </div>
-                              </td>
-                              <td className="p-4 text-center">
-                                  <button 
-                                    onClick={() => { setSelectedSubmission(sub); setIsDetailOpen(true); }}
-                                    className="text-[10px] font-black uppercase text-emerald-600 hover:underline"
-                                  >
-                                    View Details
-                                  </button>
+                        paginatedSubmissions.map((sub) => {
+                           const payloadEntries = Object.entries(sub.payload || {});
+                           return (
+                            <tr key={sub.id} className="border-b-2 border-black/5 hover:bg-emerald-50/30 transition-colors">
+                               <td className="p-4 border-r border-black/5">
+                                  <input 
+                                     type="checkbox" 
+                                     checked={selectedSubs.includes(sub.id)} 
+                                     onChange={(e) => {
+                                       e.stopPropagation();
+                                       setSelectedSubs(prev => prev.includes(sub.id) ? prev.filter(id => id !== sub.id) : [...prev, sub.id]);
+                                     }}
+                                     className="w-4 h-4 accent-emerald-500 border-2 border-black rounded cursor-pointer"
+                                  />
                                </td>
-                           </tr>
-                        ))
+                               <td className="p-4 text-[10px] font-black opacity-40 font-mono">#{sub.id.slice(-6)}</td>
+                               <td className="p-4">
+                                 <p className="text-[11px] font-bold">{new Date(sub.created_at).toLocaleDateString()}</p>
+                                 <p className="text-[9px] font-black text-black/30 uppercase tracking-widest">{new Date(sub.created_at).toLocaleTimeString()}</p>
+                               </td>
+                               <td className="p-4">
+                                  <div className="flex flex-col gap-1.5 max-w-[360px]">
+                                     {payloadEntries.length === 0 ? (
+                                       <span className="text-[10px] font-bold text-black/30">No data</span>
+                                     ) : payloadEntries.slice(0, 3).map(([key, val]) => (
+                                        <div key={key} className="flex items-start gap-2">
+                                           <span className="text-[9px] font-black uppercase tracking-widest text-black/30 w-24 shrink-0 pt-0.5 truncate">{getFieldLabel(key)}:</span>
+                                           <span className="text-[11px] font-semibold text-black truncate max-w-[220px]">{String(val)}</span>
+                                        </div>
+                                     ))}
+                                     {payloadEntries.length > 3 && (
+                                       <span className="text-[9px] font-black text-black/30 uppercase tracking-widest">+{payloadEntries.length - 3} more fields</span>
+                                     )}
+                                  </div>
+                               </td>
+                               <td className="p-4 text-center">
+                                   <button 
+                                     onClick={() => { setSelectedSubmission(sub); setIsDetailOpen(true); }}
+                                     className="text-[10px] font-black uppercase text-emerald-600 hover:underline"
+                                   >
+                                     View Details
+                                   </button>
+                                </td>
+                            </tr>
+                           );
+                         })
                      )}
                   </tbody>
                </table>
             </div>
             <div className="p-4 bg-black/5 border-t-2 border-black flex justify-between items-center">
-               <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Showing {filteredSubmissions.length} of {submissions.length} results</span>
+               <span className="text-[10px] font-black uppercase tracking-widest opacity-40">
+                  Showing {paginatedSubmissions.length} of {filteredSubmissions.length} results
+                  {totalPages > 1 && ` · Page ${subPage + 1} of ${totalPages}`}
+               </span>
                <div className="flex gap-2">
-                  <button className="px-3 py-1 border-2 border-black bg-white text-[10px] font-black uppercase disabled:opacity-20" disabled>Prev</button>
-                  <button className="px-3 py-1 border-2 border-black bg-white text-[10px] font-black uppercase disabled:opacity-20" disabled>Next</button>
+                  <button
+                    className="px-4 py-1.5 border-2 border-black bg-white text-[10px] font-black uppercase disabled:opacity-30 hover:bg-black hover:text-white transition-all"
+                    disabled={subPage === 0}
+                    onClick={() => setSubPage(p => Math.max(0, p - 1))}
+                  >Prev</button>
+                  <button
+                    className="px-4 py-1.5 border-2 border-black bg-white text-[10px] font-black uppercase disabled:opacity-30 hover:bg-black hover:text-white transition-all"
+                    disabled={subPage >= totalPages - 1}
+                    onClick={() => setSubPage(p => Math.min(totalPages - 1, p + 1))}
+                  >Next</button>
                </div>
             </div>
          </div>
@@ -1594,7 +1719,7 @@ const FormsPage = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      {Object.entries(selectedSubmission?.payload || {}).map(([key, val]) => (
                         <div key={key} className="border-2 border-black p-4 bg-white shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
-                           <p className="text-[9px] font-black uppercase tracking-widest text-black/40 mb-1">{key}</p>
+                           <p className="text-[9px] font-black uppercase tracking-widest text-black/40 mb-1">{getFieldLabel(key)}</p>
                            <p className="text-sm font-black whitespace-pre-wrap">{String(val)}</p>
                         </div>
                      ))}

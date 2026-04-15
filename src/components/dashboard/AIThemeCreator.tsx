@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import ThemePreviewCard from "@/components/dashboard/ThemePreviewCard";
 import type { ThemePreset } from "@/data/themes";
 import { extractPaletteFromImage, type ExtractedPalette } from "@/lib/colorExtractor";
+import { isAdminUser, isSuperAdminUser } from "@/lib/authRoles";
 
 // ── Gemini Integration ──────────────────────────────────────────────────────
 const GEMINI_MODELS = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
@@ -174,7 +175,8 @@ const AIThemeCreator = () => {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const user = useAuthStore((s) => s.user);
-  const isAdmin = user?.role === "admin" || user?.role === "superadmin";
+  const isAdmin = isAdminUser(user);
+  const isSuperAdmin = isSuperAdminUser(user);
   const fetchPlatformSettings = usePlatformStore((s) => s.fetchSettings);
 
   useEffect(() => { fetchPlatformSettings(); }, [fetchPlatformSettings]);
@@ -185,6 +187,7 @@ const AIThemeCreator = () => {
   const previewTheme: ThemePreset | null = generatedTheme ? {
     id: "preview",
     name: themeName || generatedTheme.name,
+    category: "AI Lab",
     backgroundColor: generatedTheme.backgroundColor,
     cardColor: generatedTheme.cardColor,
     textColor: generatedTheme.textColor,
@@ -491,7 +494,7 @@ Rules:
   const tabs = [
     { id: "generate" as GalleryTab, label: "Generator", icon: Brush },
     { id: "gallery"  as GalleryTab, label: "Gallery",   icon: LayoutGrid },
-    ...(isAdmin ? [{ id: "admin" as GalleryTab, label: "Admin", icon: Globe }] : []),
+    ...(isSuperAdmin ? [{ id: "admin" as GalleryTab, label: "Admin", icon: Globe }] : []),
   ];
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -790,7 +793,7 @@ Rules:
                       {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                       Save
                     </Button>
-                    {isAdmin && (
+                    {isSuperAdmin && (
                       <Button onClick={() => handleSave(true)} disabled={isSaving}
                         className="h-11 rounded-xl bg-[#D1FAE5] text-black border-2 border-black font-black uppercase tracking-widest text-[10px] shadow-[3px_3px_0_0_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all shrink-0 px-4">
                         <Globe className="w-4 h-4 mr-2" /> Publish

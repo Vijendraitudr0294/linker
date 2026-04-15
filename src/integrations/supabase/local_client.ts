@@ -129,7 +129,7 @@ class MockQueryBuilder {
   }
 
   private async execute() {
-    let data = getTableData(this.tableName);
+    const data = getTableData(this.tableName);
     const matches = (r: any) => this.filters.length === 0 || this.filters.every(f => f(r));
 
     if (this.action === 'select') {
@@ -190,7 +190,7 @@ class MockQueryBuilder {
 
     if (this.action === 'upsert') {
       const records = Array.isArray(this.payload) ? this.payload : [this.payload];
-      let updatedData = [...data];
+      const updatedData = [...data];
       const finalResults: any[] = [];
 
       for (const rec of records) {
@@ -258,8 +258,71 @@ class MockQueryBuilder {
 }
 
 // Full Mock Client Export
-const MOCK_USER_ID = "9ec4e865-939b-4431-a16f-0611665798eb"; 
-const MOCK_EMAIL = "djbabbly@gmail.com";
+const SUPERADMIN_USER_ID = "9ec4e865-939b-4431-a16f-0611665798eb"; 
+const SUPERADMIN_EMAIL = "djbabbly@gmail.com";
+
+// Resolve user identity from email — only djbabbly gets superadmin
+const resolveUserByEmail = (email?: string): { id: string; email: string } => {
+  const normalizedEmail = (email || "").trim().toLowerCase();
+
+  // Check if this email exists in the local profiles DB
+  const profiles = getTableData('profiles');
+  const match = profiles.find((p: any) => p.email?.toLowerCase() === normalizedEmail);
+
+  if (match) {
+    return { id: match.user_id, email: match.email };
+  }
+
+  // Superadmin shortcut
+  if (normalizedEmail === SUPERADMIN_EMAIL) {
+    return { id: SUPERADMIN_USER_ID, email: SUPERADMIN_EMAIL };
+  }
+
+  // Unknown email — create a regular user profile on-the-fly
+  const newUserId = crypto.randomUUID();
+  const username = normalizedEmail.split('@')[0].replace(/[^a-z0-9_]/g, '') || 'user' + Math.floor(Math.random() * 9999);
+  const newProfile = {
+    id: crypto.randomUUID(),
+    user_id: newUserId,
+    name: username,
+    email: normalizedEmail,
+    username,
+    bio: '',
+    avatar_url: '',
+    role: 'user',
+    status: 'active',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    social_links: [],
+    upi_id: '',
+    social_stats: {},
+    creator_metrics: {},
+  };
+  const allProfiles = [...profiles, newProfile];
+  saveTableData('profiles', allProfiles);
+  console.log(`✅ Created new mock user profile: ${normalizedEmail} (role: user)`);
+  return { id: newUserId, email: normalizedEmail };
+};
+
+// Get currently logged-in user from localStorage
+const getLoggedInUser = (): { id: string; email: string } | null => {
+  const userId = localStorage.getItem('mock_user_id');
+  const userEmail = localStorage.getItem('mock_user_email');
+  if (!userId || !userEmail) return null;
+  return { id: userId, email: userEmail };
+};
+
+const setLoggedInUser = (user: { id: string; email: string }) => {
+  localStorage.setItem('is_logged_in', 'true');
+  localStorage.setItem('mock_user_id', user.id);
+  localStorage.setItem('mock_user_email', user.email);
+};
+
+const clearLoggedInUser = () => {
+  localStorage.removeItem('is_logged_in');
+  localStorage.removeItem('mock_user_id');
+  localStorage.removeItem('mock_user_email');
+};
 
 export const supabaseMock = {
   from(tableName: string) {
@@ -268,34 +331,38 @@ export const supabaseMock = {
   auth: {
     getSession: () => {
       const isLoggedIn = localStorage.getItem('is_logged_in') === 'true';
-      if (!isLoggedIn) return Promise.resolve({ data: { session: null }, error: null });
-      return Promise.resolve({ data: { session: { user: { id: MOCK_USER_ID, email: MOCK_EMAIL } } }, error: null });
+      const user = getLoggedInUser();
+      if (!isLoggedIn || !user) return Promise.resolve({ data: { session: null }, error: null });
+      return Promise.resolve({ data: { session: { user, access_token: 'mock-token' } }, error: null });
     },
     getUser: () => {
       const isLoggedIn = localStorage.getItem('is_logged_in') === 'true';
-      if (!isLoggedIn) return Promise.resolve({ data: { user: null }, error: null });
-      return Promise.resolve({ data: { user: { id: MOCK_USER_ID, email: MOCK_EMAIL } }, error: null });
+      const user = getLoggedInUser();
+      if (!isLoggedIn || !user) return Promise.resolve({ data: { user: null }, error: null });
+      return Promise.resolve({ data: { user }, error: null });
     },
     onAuthStateChange: (cb: any) => {
       const isLoggedIn = localStorage.getItem('is_logged_in') === 'true';
-      if (isLoggedIn) {
-        cb("SIGNED_IN", { user: { id: MOCK_USER_ID, email: MOCK_EMAIL } });
+      const user = getLoggedInUser();
+      if (isLoggedIn && user) {
+        cb("SIGNED_IN", { user });
       } else {
         cb("SIGNED_OUT", null);
       }
       return { data: { subscription: { unsubscribe: () => {} } } };
     },
-    signUp: () => {
-      localStorage.setItem('is_logged_in', 'true');
-      return Promise.resolve({ data: { user: { id: MOCK_USER_ID, email: MOCK_EMAIL } }, error: null });
+    signUp: ({ email: inputEmail }: { email?: string; password?: string } = {}) => {
+      const user = resolveUserByEmail(inputEmail);
+      setLoggedInUser(user);
+      return Promise.resolve({ data: { user }, error: null });
     },
-    signInWithPassword: () => {
-      localStorage.setItem('is_logged_in', 'true');
-      return Promise.resolve({ data: { session: { user: { id: MOCK_USER_ID, email: MOCK_EMAIL } } }, error: null });
+    signInWithPassword: ({ email: inputEmail }: { email?: string; password?: string } = {}) => {
+      const user = resolveUserByEmail(inputEmail);
+      setLoggedInUser(user);
+      return Promise.resolve({ data: { user, session: { user, access_token: 'mock-token' } }, error: null });
     },
     signOut: () => {
-      localStorage.removeItem('is_logged_in');
-      // We no longer remove local_db_loaded to ensure persistence across sessions
+      clearLoggedInUser();
       return Promise.resolve({ error: null });
     },
   },
@@ -324,7 +391,7 @@ export const supabaseMock = {
       const { p_user_id, p_links } = params;
       const data = getTableData('links');
       const results: any[] = [];
-      let updatedData = [...data];
+      const updatedData = [...data];
 
       for (const rec of (p_links || [])) {
         const matchIdx = updatedData.findIndex(r => r.id === rec.id && r.user_id === p_user_id);
@@ -362,7 +429,7 @@ export const supabaseMock = {
     if (name === 'reorder_links') {
       const { p_user_id, p_order } = params;
       const data = getTableData('links');
-      let updatedData = [...data];
+      const updatedData = [...data];
       
       for (const item of (p_order || [])) {
         const idx = updatedData.findIndex(r => r.id === item.id && r.user_id === p_user_id);

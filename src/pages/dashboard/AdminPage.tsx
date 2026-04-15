@@ -31,7 +31,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { format, subDays, startOfDay, formatDistanceToNow } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
-import { isAdminUser } from "@/lib/authRoles";
+import { isAdminUser, isSuperAdminUser } from "@/lib/authRoles";
 import { MarketingCMS } from "@/components/admin/MarketingCMS";
 import { ContentCMS } from "@/components/admin/BlogCMS";
 
@@ -110,7 +110,7 @@ const AdminPage = () => {
   const [activeTab, setActiveTab ] = useState("orchestration");
 
   useEffect(() => {
-    if (isAdminUser(user)) {
+    if (isSuperAdminUser(user)) {
        fetchAll();
        fetchSettings();
     }
@@ -286,7 +286,7 @@ const AdminPage = () => {
     }
   };
 
-  if (!isAdminUser(user)) return <Navigate to="/dashboard" replace />;
+  if (!isSuperAdminUser(user)) return <Navigate to="/dashboard" replace />;
 
   const filteredUsers = users.filter((u) =>
     (u.name || "").toLowerCase().includes(search.toLowerCase()) ||
@@ -357,7 +357,7 @@ const AdminPage = () => {
         <div className="flex items-center gap-3">
            <div className="hidden md:block text-right">
               <p className="text-[10px] font-black uppercase tracking-widest text-black/40">Synchronized Node</p>
-              <p className="text-xs font-black text-black">DC-72080-IN</p>
+              <p className="text-xs font-black text-black">NODE-{user?.user_id?.slice(0, 8).toUpperCase() || "LOADING"}</p>
            </div>
            <Button 
             className="h-12 px-8 bg-white border-2 border-black text-black font-black uppercase tracking-widest transition-all hover:bg-black hover:text-white shadow-[6px_6px_0_0_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
@@ -606,7 +606,7 @@ const AdminPage = () => {
                       className="h-10 border-2 border-black/10 focus:border-black rounded-xl text-xs font-bold" 
                       placeholder="rzp_live_..." 
                       defaultValue={platformSettings?.razorpay_key_id}
-                      onBlur={(e) => handleFeatureToggle('razorpay_key_id', e.target.value)}
+                      onBlur={(e) => updateSettings({ razorpay_key_id: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
@@ -615,7 +615,7 @@ const AdminPage = () => {
                       className="h-10 border-2 border-black/10 focus:border-black rounded-xl text-xs font-bold" 
                       placeholder="pk_live_..." 
                       defaultValue={platformSettings?.stripe_publishable_key}
-                      onBlur={(e) => handleFeatureToggle('stripe_publishable_key', e.target.value)}
+                      onBlur={(e) => updateSettings({ stripe_publishable_key: e.target.value })}
                     />
                   </div>
                   <div className="flex items-center justify-between p-4 bg-black/5 rounded-2xl">
@@ -627,7 +627,7 @@ const AdminPage = () => {
                       <span className="text-[9px] font-black uppercase text-amber-600">Test</span>
                       <Switch 
                         checked={!platformSettings?.is_test_mode} 
-                        onCheckedChange={(val) => handleFeatureToggle('is_test_mode', !val)}
+                        onCheckedChange={(val) => updateSettings({ is_test_mode: !val })}
                         className="data-[state=checked]:bg-emerald-500"
                       />
                       <span className="text-[9px] font-black uppercase text-emerald-600">Live</span>

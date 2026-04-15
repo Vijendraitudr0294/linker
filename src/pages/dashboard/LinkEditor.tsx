@@ -1012,7 +1012,7 @@ const LinkEditor = () => {
                 </div>
               </div>
 
-              <div className="w-full">
+              <div className="w-full max-w-[320px] mx-auto aspect-[9/18.5] relative rounded-[2rem] border-4 border-black overflow-hidden bg-white shadow-xl shadow-black/20">
                 {previewPanel}
               </div>
 
