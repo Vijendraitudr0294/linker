@@ -23,7 +23,7 @@ import { UnifiedProfileHeader } from "@/components/public/UnifiedProfileHeader";
 import { ProfileLinkBlock } from "@/components/public/ProfileLinkBlock";
 import { RetroStickers } from "@/components/public/RetroStickers";
 
-const ProfilePreview = ({ user, settings, links = [], catalogItems = [], blocks, compact = false, noFrame = false, onShare }: ProfilePreviewProps) => {
+const ProfilePreview = ({ user, settings, links = [], catalogItems = [], blocks, compact = false, noFrame = false, onShare }: ProfilePreviewProps): JSX.Element => {
   const [activeTab, setActiveTab] = useState<"links" | "shop">("links");
 
   const appearance: ProfileAppearance = useMemo(() => ({

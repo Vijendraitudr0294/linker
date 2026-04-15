@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
-const DashboardOverview = () => {
+const DashboardOverview = (): JSX.Element => {
   const user = useAuthStore((s) => s.user);
   const { data: links = [] } = useLinks(user?.user_id);
   const totalClicks = links.reduce((sum, l) => sum + (l.clicks || 0), 0);
