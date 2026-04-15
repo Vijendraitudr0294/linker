@@ -543,6 +543,108 @@ const TeamSection = () => {
   );
 };
 
+// UNIVERSE SECTION (VOICE: THE MANY)
+const UniverseSection = () => {
+    const categories = [
+        {
+            title: "Creators & Influencers",
+            color: "bg-[#FEF08A]", // Yellow
+            items: ["Instagram Influencer", "YouTuber", "TikTok Creator", "Blogger", "Content Creator", "Affiliate Marketer"]
+        },
+        {
+            title: "🛍️ E-commerce & Sellers",
+            color: "bg-[#D1FAE5]", // Emerald
+            items: ["Small Business Owner", "Online Store", "Dropshipper", "Instagram Seller", "Etsy Seller", "Reseller"]
+        },
+        {
+            title: "💼 Professionals",
+            color: "bg-[#DBEAFE]", // Blue
+            items: ["Freelancer", "Consultant", "Coach / Mentor", "Job Seeker", "Personal Brand", "Speaker"]
+        },
+        {
+            title: "🎤 Artists & Musicians",
+            color: "bg-[#FBCFE8]", // Pink
+            items: ["Musician", "Singer", "DJ", "Band", "Performer", "Visual Artist"]
+        },
+        {
+            title: "🏢 Businesses & Startups",
+            color: "bg-[#CFFAFE]", // Cyan
+            items: ["Startup", "Agency", "Company / Brand", "Restaurant / Cafe", "Real Estate Agent", "Service Provider"]
+        },
+        {
+            title: "💅 Beauty & Lifestyle",
+            color: "bg-[#FFEDD5]", // Orange
+            items: ["Makeup Artist", "Fashion Influencer", "Fitness Trainer", "Wellness Coach", "Salon / Spa", "Bakers"]
+        },
+        {
+            title: "🎮 Gaming",
+            color: "bg-[#EDE9FE]", // Purple
+            items: ["Gamer", "Streamer", "Esports Player", "Entertainment Creator"]
+        },
+        {
+            title: "🎓 Educators & Health",
+            color: "bg-[#F3F4F6]", // gray
+            items: ["Teacher", "Course Creator", "Tutor", "Doctor", "Yoga Instructor", "Gym Owner"]
+        }
+    ];
+
+    return (
+        <section id="universe" className="py-32 bg-white border-b-8 border-black">
+            <div className="container max-w-[1400px] mx-auto px-10">
+                <div className="mb-24 flex flex-col items-center text-center">
+                    <div className="inline-block px-4 py-2 bg-black text-white font-black text-[10px] uppercase tracking-widest mb-8 border-2 border-black rounded-lg shadow-[4px_4px_0_0_rgba(16,185,129,1)]">VERSATILITY NODE</div>
+                    <h2 className="text-[48px] md:text-[82px] font-[1000] leading-[0.85] tracking-tighter uppercase mb-8 italic">
+                      THE <span className="bg-yellow-400 px-6 border-8 border-black shadow-[12px_12px_0_0_rgba(0,0,0,1)]">UNIVERSAL</span> <br /> HUB.
+                    </h2>
+                    <p className="text-[14px] font-[1000] uppercase text-black/40 tracking-[0.4em]">CROSS-INDUSTRY SYNC // LIMITLESS IDENTITY</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    {categories.map((cat, i) => (
+                        <motion.div 
+                            key={i}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            whileInView={{ opacity: 1, scale: 1 }}
+                            viewport={{ once: true }}
+                            className={cn(
+                                "p-8 border-4 border-black rounded-[32px] shadow-[8px_8px_0_0_rgba(0,0,0,1)] flex flex-col gap-6 hover:shadow-[12px_12px_0_0_rgba(0,0,0,1)] transition-all",
+                                cat.color
+                            )}
+                        >
+                            <h3 className="text-xl font-[1000] uppercase tracking-tighter border-b-2 border-black/10 pb-4">{cat.title}</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {cat.items.map((item, j) => (
+                                    <span key={j} className="px-3 py-1.5 bg-white/50 border-2 border-black rounded-lg text-[10px] font-black uppercase tracking-wider">
+                                        {item}
+                                    </span>
+                                ))}
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+
+                <div className="mt-24 p-12 bg-black text-white rounded-[48px] border-4 border-black shadow-[16px_16px_0_0_rgba(16,185,129,1)] relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-400/20 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 group-hover:scale-125 transition-transform duration-1000" />
+                    <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12">
+                        <div className="max-w-2xl">
+                            <div className="inline-flex items-center gap-2 text-emerald-400 font-black text-[10px] uppercase tracking-[0.3em] mb-4">
+                                <Rocket className="w-4 h-4" /> Pro Tip
+                            </div>
+                            <h3 className="text-3xl md:text-5xl font-[1000] uppercase mb-6 leading-none tracking-tighter">MIX & MATCH YOUR STACK.</h3>
+                            <p className="text-lg font-black text-white/60 uppercase">
+                                BIOTRA IS MODULAR. A DOCTOR CAN SELL COURSES, A MUSICIAN CAN BOOK GIGS, AND A STARTUP CAN BUILD A COMMUNITY. ONE ACCOUNT. ALL TOOLS.
+                            </p>
+                        </div>
+                        <Link to="/register" className="shrink-0 px-12 py-6 bg-emerald-400 text-black border-4 border-black rounded-2xl text-xl font-[1000] uppercase tracking-widest shadow-[8px_8px_0_0_rgba(255,255,255,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all">
+                            JOIN THE UNIVERSE
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+};
+
 // END OF SECTIONS
 
 export default function Index() {
@@ -634,6 +736,7 @@ export default function Index() {
 
             <Solutions />
             <TeamSection />
+            <UniverseSection />
             <FAQSection />
             <Testimonials />
             <LandingFooter />

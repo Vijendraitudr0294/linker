@@ -17,6 +17,7 @@ export const LandingNav = () => {
     const navLinks = [
         { label: "Design", href: "/#studio", color: "hover:text-pink-500" },
         { label: "Codes", href: "/#forge", color: "hover:text-yellow-500" },
+        { label: "Universe", href: "/#universe", color: "hover:text-fuchsia-400" },
         { label: "Users", href: "/#solutions", color: "hover:text-emerald-500" },
         { label: "Team", href: "/#team", color: "hover:text-blue-600" },
         { label: "FAQ", href: "/faq", color: "hover:text-blue-500", isLink: true },
