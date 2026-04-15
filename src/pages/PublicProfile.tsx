@@ -346,15 +346,23 @@ const PublicProfile = () => {
         <div className="absolute inset-0 z-0 pointer-events-none opacity-40 bg-[radial-gradient(circle_at_50%_30%,rgba(255,255,255,0.12)_0%,transparent_70%)]" />
       )}
       
-      <div className={cn("relative z-10 w-full max-w-[620px] mx-auto px-3 md:px-0 pt-4 md:pt-8")}>
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className={cn("relative z-10 w-full max-w-[620px] mx-auto px-4 md:px-0 pt-4 md:pt-8")}
+        >
         <div
           className={cn(
-            "w-full min-h-[calc(100vh-1rem)] md:min-h-[860px] overflow-hidden rounded-[28px] md:rounded-[36px] border border-black/10 md:border-2 md:border-black/30 md:shadow-[0_24px_60px_rgba(0,0,0,0.45)]",
-            isBrutalism ? "bg-white" : "bg-black/20"
+            "w-full min-h-[calc(100vh-2rem)] md:min-h-[860px] overflow-hidden rounded-[40px] border-4 border-black/10 md:border-2 md:border-black/30 md:shadow-[0_40px_100px_rgba(0,0,0,0.6)] relative",
+            isBrutalism ? "bg-white shadow-[12px_12px_0_0_rgba(0,0,0,1)]" : "bg-black/20 backdrop-blur-3xl"
           )}
           style={bgStyle}
         >
-          <div className="w-full px-3 md:px-5 pt-4 md:pt-6 pb-10">
+          {/* Subtle noise texture for premium feel */}
+          <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/asfalt-dark.png')]" />
+          
+          <div className="w-full px-4 md:px-8 pt-6 md:pt-10 pb-16 relative z-10">
         <UnifiedProfileHeader 
           user={profile}
           appearance={appearance}
@@ -366,15 +374,15 @@ const PublicProfile = () => {
         />
 
         {hasLinks && hasShop && (
-          <div className="w-full flex items-center justify-center mb-8 px-4">
+          <div className="w-full flex items-center justify-center mb-10 px-2">
             <div className={cn(
-              "p-1.5 flex items-center gap-1 min-w-[280px] sm:min-w-[320px]",
-              isBrutalism ? "border-4 border-black bg-white" : "bg-black/30 backdrop-blur-2xl border border-white/5 shadow-inner rounded-full"
+              "p-2 flex items-center gap-1.5 w-full max-w-[360px]",
+              isBrutalism ? "border-4 border-black bg-white shadow-[6px_6px_0_0_rgba(0,0,0,1)]" : "bg-black/40 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-full"
             )}>
               <button 
                 onClick={() => setActiveTab("shop")}
                 className={cn(
-                  "flex-1 relative z-10 py-3 rounded-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-[11px] transition-all duration-500",
+                  "flex-1 relative z-10 py-3.5 rounded-full font-black uppercase tracking-[0.25em] text-[10px] sm:text-[11px] transition-all duration-500",
                   activeTab === "shop"
                     ? (isBrutalism ? "bg-black text-white rounded-none" : "text-black drop-shadow-sm")
                     : (isBrutalism ? "text-black" : "text-white/40 hover:text-white/70")
@@ -383,7 +391,7 @@ const PublicProfile = () => {
                 {activeTab === "shop" && !isBrutalism && (
                   <motion.div 
                     layoutId="activeTabPill"
-                    className="absolute inset-0 bg-white rounded-full -z-10 shadow-[0_4px_15px_rgba(255,255,255,0.2)]"
+                    className="absolute inset-0 bg-white rounded-full -z-10 shadow-[0_10px_25px_rgba(255,255,255,0.3)]"
                     transition={{ type: "spring", bounce: 0.15, duration: 0.6 }}
                   />
                 )}
@@ -393,7 +401,7 @@ const PublicProfile = () => {
               <button 
                 onClick={() => setActiveTab("links")}
                 className={cn(
-                  "flex-1 relative z-10 py-3 rounded-full font-black uppercase tracking-[0.2em] text-[10px] sm:text-[11px] transition-all duration-500",
+                  "flex-1 relative z-10 py-3.5 rounded-full font-black uppercase tracking-[0.25em] text-[10px] sm:text-[11px] transition-all duration-500",
                   activeTab === "links"
                     ? (isBrutalism ? "bg-black text-white rounded-none" : "text-black drop-shadow-sm")
                     : (isBrutalism ? "text-black" : "text-white/40 hover:text-white/70")
@@ -402,7 +410,7 @@ const PublicProfile = () => {
                 {activeTab === "links" && !isBrutalism && (
                   <motion.div 
                     layoutId="activeTabPill"
-                    className="absolute inset-0 bg-white rounded-full -z-10 shadow-[0_4px_15px_rgba(255,255,255,0.2)]"
+                    className="absolute inset-0 bg-white rounded-full -z-10 shadow-[0_10px_25px_rgba(255,255,255,0.3)]"
                     transition={{ type: "spring", bounce: 0.15, duration: 0.6 }}
                   />
                 )}
@@ -413,44 +421,52 @@ const PublicProfile = () => {
         )}
 
         <div className={cn(
-          "w-full px-4",
+          "w-full",
           (appearance.layout_type === "grid" || appearance.layout_type === "bento") && activeTab === "links"
-            ? "grid gap-4 md:gap-5 grid-cols-2" 
-            : "block"
+            ? "grid gap-5 md:gap-6 grid-cols-2" 
+            : "flex flex-col gap-6"
         )}>
           <AnimatePresence mode="wait">
             {activeTab === "links" ? (
               <motion.div
                 key="links-view"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 10 }}
-                transition={{ duration: 0.3 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.4, ease: "backOut" }}
                 className={cn(
-                  "grid gap-4 md:gap-5 w-full",
-                  (appearance.layout_type === "grid" || appearance.layout_type === "bento") ? "grid-cols-2" : "grid-cols-1"
+                  "w-full",
+                  (appearance.layout_type === "grid" || appearance.layout_type === "bento") 
+                    ? "grid gap-5 md:gap-6 grid-cols-2" 
+                    : "flex flex-col gap-5"
                 )}
               >
                 {links.map((link, i) => (
-                  <ProfileLinkBlock 
+                  <motion.div
                     key={link.id}
-                    index={i}
-                    link={link}
-                    appearance={appearance}
-                    palette={palette}
-                    isMusicStyle={isMusicStyle}
-                    isBrutalism={isBrutalism}
-                    layoutType={appearance.layout_type}
-                  />
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                  >
+                    <ProfileLinkBlock 
+                      index={i}
+                      link={link}
+                      appearance={appearance}
+                      palette={palette}
+                      isMusicStyle={isMusicStyle}
+                      isBrutalism={isBrutalism}
+                      layoutType={appearance.layout_type}
+                    />
+                  </motion.div>
                 ))}
               </motion.div>
             ) : (
               <motion.div
                 key="shop-view"
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.3 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.4, ease: "backOut" }}
                 className="w-full"
               >
                 <PublicCatalog 
@@ -470,7 +486,7 @@ const PublicProfile = () => {
           </AnimatePresence>
         </div>
         
-        <div className="mt-8 w-full">
+        <div className="mt-12 w-full">
           <ContactForm
             profileUserId={profile.user_id}
             textColor={isBrutalism ? "#111111" : (palette.cardText || "#111111")}
@@ -483,6 +499,18 @@ const PublicProfile = () => {
             inputBg={isBrutalism ? "#F3F4F6" : `${palette.cardText}10`}
             inputBorder={isBrutalism ? "#111111" : `${palette.cardText}22`}
           />
+        </div>
+
+        {/* Floating Share Button on Mobile */}
+        <div className="fixed bottom-6 right-6 z-[100] md:hidden">
+             <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={handleShareProfile}
+                className="w-14 h-14 bg-black text-white border-4 border-white border-opacity-20 rounded-full flex items-center justify-center shadow-[0_15px_30px_rgba(0,0,0,0.5)] active:shadow-none transition-all"
+             >
+                <Share2 size={24} />
+             </motion.button>
         </div>
 
         <footer className="mt-16 py-8 border-t border-white/10 flex flex-col items-center gap-3 text-center">
