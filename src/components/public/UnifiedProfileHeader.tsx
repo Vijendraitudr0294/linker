@@ -68,15 +68,15 @@ export const UnifiedProfileHeader = ({
         {/* Text & Actions Area - Column 2 */}
         <div className="flex flex-col flex-1 min-w-0">
           <h1 className={cn(
-             "font-black tracking-tight leading-tight mb-2 line-clamp-2",
-             compact ? "text-base" : "text-lg sm:text-3xl"
+             "font-black tracking-tight leading-tight mb-2 break-words",
+             compact ? "text-sm" : "text-lg sm:text-3xl"
           )} style={{ color: contrastText }}>
             {user?.name || user?.username || "Your Name"}
           </h1>
           
           <p className={cn(
-             "leading-relaxed mb-4 font-medium",
-             compact ? "text-xs line-clamp-2" : "text-sm sm:text-base line-clamp-3"
+             "leading-relaxed mb-4 font-medium break-words",
+             compact ? "text-[10px] line-clamp-2" : "text-sm sm:text-base line-clamp-3"
           )} style={{ color: contrastText, opacity: 0.8 }}>
             {user?.bio || "Building modern digital experiences."}
           </p>
