@@ -20,12 +20,9 @@ const CreatorsHero = () => {
 
   return (
     <section
-      className="relative overflow-hidden flex items-center"
+      className="relative overflow-hidden flex items-center min-h-screen py-32"
       style={{
-        height: "100vh",
-        maxHeight: "100dvh",
         backgroundColor: "#F3F4F6",
-        paddingTop: "80px",
       }}
     >
       {/* Main grid */}

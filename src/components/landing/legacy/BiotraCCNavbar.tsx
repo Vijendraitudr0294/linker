@@ -21,7 +21,7 @@ const BiotraCCNavbar = () => {
           <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[#22C55E] border-2 border-black rounded-lg flex items-center justify-center shadow-[2px_2px_0_0_rgba(0,0,0,1)] group-hover:rotate-12 transition-transform shrink-0">
             <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-black fill-black" />
           </div>
-          <span className="text-lg sm:text-xl font-black tracking-tighter uppercase italic text-black">BIOTRA</span>
+          <span className="text-base sm:text-lg lg:text-xl font-black tracking-tighter uppercase italic text-black">BIOTRA</span>
           <span className="hidden md:inline-block px-2 py-0.5 bg-white border-2 border-black rounded-full text-[9px] font-black tracking-widest uppercase shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
             v1.2 // STABLE
           </span>
@@ -58,7 +58,7 @@ const BiotraCCNavbar = () => {
           </Link>
           <Link
             to="/register"
-            className="bg-black text-white rounded-xl sm:rounded-2xl px-4 sm:px-6 h-9 sm:h-11 border-2 border-black shadow-[2px_2px_0_0_rgba(34,197,94,1)] sm:shadow-[4px_4px_0_0_rgba(34,197,94,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all font-black text-[9px] sm:text-[10px] tracking-[0.2em] uppercase flex items-center whitespace-nowrap pointer-events-auto"
+            className="bg-black text-white rounded-xl sm:rounded-2xl px-3 sm:px-6 h-8 sm:h-11 border-2 border-black shadow-[2px_2px_0_0_rgba(34,197,94,1)] sm:shadow-[4px_4px_0_0_rgba(34,197,94,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all font-black text-[8px] sm:text-[10px] tracking-[0.2em] uppercase flex items-center whitespace-nowrap pointer-events-auto"
           >
             START &gt;
           </Link>
