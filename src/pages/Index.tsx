@@ -466,6 +466,83 @@ const Testimonials = () => {
    );
 };
 
+// TEAM SECTION (VOICE: THE LEGENDS)
+const TeamSection = () => {
+  const members = [
+    {
+      name: "MIA",
+      role: "CEO",
+      color: "bg-[#FBCFE8]",
+      desc: "LEAD VISIONARY AND STRATEGIC BISCUITS ENTHUSIAST. ENSURES ALL OPERATIONS MEET THE HIGHEST STANDARDS OF CUTENESS AND COMFORT."
+    },
+    {
+      name: "BILLU",
+      role: "CTO",
+      color: "bg-white",
+      desc: "CHIEF TECHNICAL ORCHESTRATOR. MASTER OF SYSTEM PURR-FORMANCE AND CLOUD-CLIMBING ARCHITECTURES. ALWAYS WATCHES THE MICE (AND BUGS)."
+    },
+    {
+      name: "MYRA",
+      role: "CMO",
+      color: "bg-[#EF4444]",
+      desc: "CHIEF MARKETING OFFICER. EXPERT IN BRAND FLUFFINESS AND GLOBAL PAWPRINT EXPANSION. SPECIALIZES IN HEAVY-DUTY LOYALTY PROGRAMS."
+    },
+    {
+      name: "BRANDY",
+      role: "CXO",
+      color: "bg-[#FBBF24]",
+      desc: "CHIEF EXPERIENCE ORCHESTRATOR. OVERSEES THE USER JOURNEY FROM LANDING TO NAP-TIME. EXPERT IN HIGH-FRICTION CARPET DYNAMICS."
+    }
+  ];
+
+  return (
+    <section id="team" className="py-32 bg-[#F0F2F5] border-b-8 border-black overflow-hidden">
+      <div className="container max-w-[1400px] mx-auto px-10">
+        <div className="mb-24 flex flex-col items-center text-center">
+            <h2 className="text-[48px] md:text-[82px] font-[1000] leading-[0.85] tracking-tighter uppercase mb-8 italic">
+              THE <span className="bg-emerald-400 px-6 border-8 border-black shadow-[12px_12px_0_0_rgba(0,0,0,1)]">LEGENDS</span> <br /> BEHIND BIOTRA
+            </h2>
+            <p className="text-[14px] font-[1000] uppercase text-black/40 tracking-[0.4em]">PIONEER NODES // STRATEGIC ORCHESTRATION</p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
+          {members.map((m, i) => (
+            <motion.div 
+               key={i}
+               initial={{ opacity: 0, y: 30 }}
+               whileInView={{ opacity: 1, y: 0 }}
+               viewport={{ once: true }}
+               transition={{ delay: i * 0.1 }}
+               className="flex flex-col items-center group"
+            >
+              <div className={cn(
+                "w-full aspect-[4/5] sm:aspect-square md:aspect-[4/5] border-8 border-black rounded-[40px] shadow-[16px_16px_0_0_rgba(0,0,0,1)] transition-all duration-500 group-hover:translate-x-2 group-hover:translate-y-2 group-hover:shadow-none mb-10 overflow-hidden relative",
+                m.color
+              )}>
+                 <div className="absolute inset-x-0 bottom-0 py-4 bg-black/5 text-center font-black uppercase text-[10px] tracking-widest hidden group-hover:block">
+                   Node Verified
+                 </div>
+              </div>
+              <h3 className="text-3xl font-[1000] uppercase tracking-tighter mb-2">{m.name}</h3>
+              <div className="px-6 py-1 bg-black text-white text-[10px] font-black uppercase tracking-widest mb-8 border-2 border-black rounded">
+                {m.role}
+              </div>
+              <div className="relative p-8 bg-white border-4 border-black rounded-2xl shadow-[8px_8px_0_0_rgba(0,0,0,1)] flex-1">
+                 <div className="absolute top-0 right-0 w-8 h-8 -translate-y-4 translate-x-4 bg-white border-2 border-black rounded-full flex items-center justify-center shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
+                    <User size={14} className="stroke-[3]" />
+                 </div>
+                 <p className="text-[12px] font-black leading-relaxed uppercase text-black/70">
+                   {m.desc}
+                 </p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
 // END OF SECTIONS
 
 export default function Index() {
@@ -556,6 +633,7 @@ export default function Index() {
             </section>
 
             <Solutions />
+            <TeamSection />
             <FAQSection />
             <Testimonials />
             <LandingFooter />

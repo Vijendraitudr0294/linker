@@ -18,6 +18,7 @@ export const LandingNav = () => {
         { label: "Design", href: "/#studio", color: "hover:text-pink-500" },
         { label: "Codes", href: "/#forge", color: "hover:text-yellow-500" },
         { label: "Users", href: "/#solutions", color: "hover:text-emerald-500" },
+        { label: "Team", href: "/#team", color: "hover:text-blue-600" },
         { label: "FAQ", href: "/faq", color: "hover:text-blue-500", isLink: true },
         { label: "Sitemap", href: "/sitemap", color: "hover:text-fuchsia-500", isLink: true },
         { label: "Pricing", href: "/pricing", color: "hover:text-pink-500", isLink: true },
