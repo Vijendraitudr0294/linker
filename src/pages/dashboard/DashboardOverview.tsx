@@ -326,7 +326,7 @@ const DashboardOverview = () => {
 
               <div className="flex flex-col gap-4 mt-8 relative z-10">
                   <div className="flex gap-4">
-                    <Button className="flex-1 bg-black text-white border-2 border-black rounded-2xl py-7 font-black text-xs uppercase shadow-[4px_4px_0_0_rgba(255,255,255,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all" onClick={() => navigate('/dashboard/links?tab=styles')}>
+                    <Button className="flex-1 bg-black text-white border-2 border-black rounded-2xl py-7 font-black text-xs uppercase shadow-[4px_4px_0_0_rgba(255,255,255,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all" onClick={() => navigate('/dashboard/appearance')}>
                         <Palette className="w-4 h-4 mr-2" /> Style Studio
                     </Button>
                     <Button variant="outline" className="flex-1 bg-white text-black border-2 border-black rounded-2xl py-7 font-black text-xs uppercase hover:bg-black/5" onClick={() => window.open(`${window.location.origin}/p/${user?.username}`, '_blank')}>

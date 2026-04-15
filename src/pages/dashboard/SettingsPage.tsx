@@ -706,7 +706,7 @@ const SettingsPage = () => {
                    type="button"
                    variant="outline"
                    className="h-10 px-6 rounded-full text-[10px] font-black uppercase tracking-widest border-black/10 hover:bg-black text-black bg-white hover:text-white transition-all shadow-lg"
-                   onClick={() => navigate("/dashboard/links?tab=styles")}
+                   onClick={() => navigate("/dashboard/appearance")}
                  >
                    Visual Style
                  </Button>
