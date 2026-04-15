@@ -243,7 +243,7 @@ const DashboardOverview = () => {
                                 <span className="text-emerald-500">LIVE</span>
                             </div>
                         </div>
-                    ) : (
+                    )) : (
                         <div className="py-12 flex flex-col items-center justify-center text-center px-4 border-2 border-dashed border-black/10 rounded-3xl bg-black/[0.02]">
                             <div className="w-16 h-16 rounded-full bg-white border-2 border-black flex items-center justify-center mb-6 shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
                                 <Globe className="w-8 h-8 text-black/20" />
