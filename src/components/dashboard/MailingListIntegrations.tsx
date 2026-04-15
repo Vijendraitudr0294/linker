@@ -7,8 +7,10 @@ import { toast } from "sonner";
 import { CheckCircle2, Copy, ExternalLink, Link2, Mail, PlugZap, Unplug } from "lucide-react";
 import { useLinks, useLinkMutations } from "@/hooks/useLinksApi";
 import type { SocialPlatform } from "@/types/links";
+import { cn } from "@/lib/utils";
 import { usePlatformStore } from "@/stores/platformStore";
 import { getLinkTemplateCategories, inferPlatformFromTag } from "@/lib/linkTemplates";
+import { RefreshCw } from "lucide-react";
 
 type MailingProvider = {
   key: string;
