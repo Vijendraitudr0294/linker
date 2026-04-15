@@ -1,28 +1,8 @@
 {
-  "experimentalServices": {
-    "backend": {
-      "entrypoint": "backend",
-      "routePrefix": "/api"
-    }
-  },
-  "rewrites": [
+  "routes": [
     {
-      "source": "/((?!api/|sitemap.xml|robots.txt|manifest.json|assets/|images/|redesign/|team/).*)",
-      "destination": "/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/sitemap.xml",
-      "headers": [
-        { "key": "Content-Type", "value": "application/xml" }
-      ]
-    },
-    {
-      "source": "/robots.txt",
-      "headers": [
-        { "key": "Content-Type", "value": "text/plain" }
-      ]
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }

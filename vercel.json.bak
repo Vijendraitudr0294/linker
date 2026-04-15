@@ -1,0 +1,20 @@
+{
+  "github": {
+    "silent": true
+  },
+  "experimentalServices": {
+    "exact_screenshot_main": {
+      "output": "dist"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(api|sitemap.xml|robots.txt|manifest.json|assets|images|redesign|team)(.*)",
+      "destination": "/$1$2"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

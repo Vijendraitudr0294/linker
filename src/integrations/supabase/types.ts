@@ -101,6 +101,60 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_posts: {
+        Row: {
+          author_id: string
+          category: string
+          content: string
+          created_at: string
+          excerpt: string
+          id: string
+          image_url: string
+          published: boolean
+          read_time: string
+          seo_description: string | null
+          seo_keywords: string | null
+          seo_title: string | null
+          slug: string | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          author_id?: string | null
+          category?: string | null
+          content?: string | null
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          image_url?: string | null
+          published?: boolean | null
+          read_time?: string | null
+          seo_description?: string | null
+          seo_keywords?: string | null
+          seo_title?: string | null
+          slug?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          author_id?: string | null
+          category?: string | null
+          content?: string | null
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          image_url?: string | null
+          published?: boolean | null
+          read_time?: string | null
+          seo_description?: string | null
+          seo_keywords?: string | null
+          seo_title?: string | null
+          slug?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       catalog_analytics: {
         Row: {
           created_at: string
@@ -132,6 +186,81 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      faq_items: {
+        Row: {
+          answer: string
+          category: string
+          created_at: string
+          id: string
+          question: string
+          sort_order: number
+        }
+        Insert: {
+          answer: string
+          category?: string
+          created_at?: string
+          id?: string
+          question: string
+          sort_order?: number
+        }
+        Update: {
+          answer?: string
+          category?: string
+          created_at?: string
+          id?: string
+          question?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      pricing_plans: {
+        Row: {
+          billing_cycle: string | null
+          billing_period: string | null
+          button_text: string | null
+          created_at: string
+          currency: string | null
+          description: string | null
+          features: string[] | null
+          id: string
+          is_popular: boolean | null
+          name: string | null
+          price: string | null
+          published: boolean | null
+          sort_order: number | null
+        }
+        Insert: {
+          billing_cycle?: string | null
+          billing_period?: string | null
+          button_text?: string | null
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          features?: string[] | null
+          id?: string
+          is_popular?: boolean | null
+          name?: string | null
+          price?: string | null
+          published?: boolean | null
+          sort_order?: number | null
+        }
+        Update: {
+          billing_cycle?: string | null
+          billing_period?: string | null
+          button_text?: string | null
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          features?: string[] | null
+          id?: string
+          is_popular?: boolean | null
+          name?: string | null
+          price?: string | null
+          published?: boolean | null
+          sort_order?: number | null
+        }
+        Relationships: []
       }
       catalog_items: {
         Row: {

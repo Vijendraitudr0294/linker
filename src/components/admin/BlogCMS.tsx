@@ -15,72 +15,28 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import type { Database } from "@/integrations/supabase/types";
 
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+type BlogPost = Database["public"]["Tables"]["blog_posts"]["Row"];
+type FAQItem = Database["public"]["Tables"]["faq_items"]["Row"];
+type PricingPlan = Database["public"]["Tables"]["pricing_plans"]["Row"];
 
-// Helper: call Gemini API
+// Helper: call Gemini via Supabase Edge Function for security
 const callGemini = async (prompt: string, maxTokens = 4096): Promise<string> => {
-  if (!GEMINI_API_KEY) throw new Error("Gemini API key not configured. Add VITE_GEMINI_API_KEY to .env");
-  
-  const res = await fetch(GEMINI_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.8, maxOutputTokens: maxTokens },
-    }),
+  const { data, error } = await supabase.functions.invoke("blog-ai", {
+    body: { prompt, maxTokens },
   });
 
-  if (!res.ok) {
-    const err = await res.text().catch(() => "");
-    throw new Error(`Gemini API ${res.status}: ${err.slice(0, 200)}`);
+  if (error) {
+    console.error("AI Function Error:", error);
+    throw new Error("AI generation failed. Please try again later.");
   }
-
-  const data = await res.json();
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error("Empty AI response");
-  return text;
+  
+  if (!data?.text) throw new Error("Empty AI response");
+  return data.text;
 };
 
-interface BlogPost {
-  id: string;
-  title: string;
-  excerpt: string;
-  content: string;
-  category: string;
-  image_url: string;
-  author_id: string;
-  slug: string;
-  published: boolean;
-  created_at: string;
-  read_time: string;
-  seo_title?: string;
-  seo_description?: string;
-  seo_keywords?: string;
-}
 
-interface FAQItem {
-  id: string;
-  question: string;
-  answer: string;
-  sort_order: number;
-  published: boolean;
-  created_at: string;
-}
-
-interface PricingPlan {
-  id: string;
-  name: string;
-  price: string;
-  currency: string;
-  billing_cycle: string;
-  description: string;
-  features: string[];
-  button_text: string;
-  is_popular: boolean;
-  published: boolean;
-}
 
 export const ContentCMS = () => {
   const [activeTab, setActiveTab ] = useState<"blog" | "faq" | "pricing">("blog");
@@ -107,9 +63,9 @@ export const ContentCMS = () => {
   const fetchPlans = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.from("pricing_plans" as any).select("*").order("sort_order", { ascending: true });
+      const { data, error } = await supabase.from("pricing_plans").select("*").order("sort_order", { ascending: true });
       if (error) throw error;
-      setPlans((data as any) || []);
+      setPlans(data || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -121,11 +77,11 @@ export const ContentCMS = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from("faq_items" as any)
+        .from("faq_items")
         .select("*")
         .order("sort_order", { ascending: true });
       if (error) throw error;
-      setFaqs((data as any) || []);
+      setFaqs(data || []);
     } catch (err) {
       console.error("Error fetching FAQs:", err);
     } finally {
@@ -137,12 +93,12 @@ export const ContentCMS = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from("blog_posts" as any)
+        .from("blog_posts")
         .select("*")
         .order("created_at", { ascending: false });
       
       if (error) throw error;
-      setPosts((data as any) || []);
+      setPosts(data || []);
     } catch (err) {
       console.error("Error fetching posts:", err);
       if (posts.length === 0) {
@@ -198,7 +154,7 @@ export const ContentCMS = () => {
     if (!confirm("Are you sure you want to delete this post?")) return;
     
     try {
-      const { error } = await supabase.from("blog_posts" as any).delete().eq("id", id);
+      const { error } = await supabase.from("blog_posts").delete().eq("id", id);
       if (error) throw error;
       setPosts(prev => prev.filter(p => p.id !== id));
       toast.success("Post deleted successfully");
@@ -223,10 +179,10 @@ export const ContentCMS = () => {
 
       let error;
       if (currentPost.id) {
-        const { error: err } = await supabase.from("blog_posts" as any).update(postToSave).eq("id", currentPost.id);
+        const { error: err } = await supabase.from("blog_posts").update(postToSave).eq("id", currentPost.id);
         error = err;
       } else {
-        const { error: err } = await supabase.from("blog_posts" as any).insert([postToSave]);
+        const { error: err } = await supabase.from("blog_posts").insert([postToSave as any]);
         error = err;
       }
 
@@ -250,14 +206,14 @@ export const ContentCMS = () => {
     try {
       let error;
       if (currentFaq.id) {
-        const { error: err } = await supabase.from("faq_items" as any).update(currentFaq).eq("id", currentFaq.id);
+        const { error: err } = await supabase.from("faq_items").update(currentFaq).eq("id", currentFaq.id);
         error = err;
       } else {
-        const { error: err } = await supabase.from("faq_items" as any).insert([{
+        const { error: err } = await supabase.from("faq_items").insert([{
           ...currentFaq,
           sort_order: faqs.length > 0 ? Math.max(...faqs.map(f => f.sort_order || 0)) + 1 : 0,
           published: true
-        }]);
+        } as any]);
         error = err;
       }
 
@@ -275,7 +231,7 @@ export const ContentCMS = () => {
   const handleDeleteFaq = async (id: string) => {
     if (!confirm("Are you sure?")) return;
     try {
-      await supabase.from("faq_items" as any).delete().eq("id", id);
+      await supabase.from("faq_items").delete().eq("id", id);
       fetchFaqs();
       toast.success("FAQ purged");
     } catch (err) { toast.error("Failed"); }
@@ -474,14 +430,14 @@ Return ONLY the blog post title, nothing else. Make it compelling and keyword-ri
                 try {
                   let error;
                   if (currentPlan?.id) {
-                    const { error: err } = await supabase.from("pricing_plans" as any).update(currentPlan).eq("id", currentPlan.id);
+                    const { error: err } = await supabase.from("pricing_plans").update(currentPlan).eq("id", currentPlan.id);
                     error = err;
                   } else {
-                    const { error: err } = await supabase.from("pricing_plans" as any).insert([{
+                    const { error: err } = await supabase.from("pricing_plans").insert([{
                       ...currentPlan,
-                      sort_order: plans.length > 0 ? Math.max(...plans.map(p => (p as any).sort_order || 0)) + 1 : 0,
+                      sort_order: plans.length > 0 ? Math.max(...plans.map(p => p.sort_order || 0)) + 1 : 0,
                       published: currentPlan?.published ?? true
-                    }]);
+                    } as any]);
                     error = err;
                   }
                   if (error) throw error;
