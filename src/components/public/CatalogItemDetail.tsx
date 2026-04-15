@@ -84,6 +84,8 @@ import {
 } from "./catalog/CatalogDetailUtils";
 import { useCatalogDetail } from "@/hooks/useCatalogDetail";
 
+import { getContrastColor } from "@/lib/profileRenderer";
+
 const CatalogItemDetail = ({
   item,
   profileUserId,
@@ -210,8 +212,11 @@ const CatalogItemDetail = ({
 
             {item.external_url && (
               <Button
-                className="w-full h-12 rounded-xl font-black uppercase tracking-[0.12em] shadow-xl group"
-                style={{ backgroundColor: buttonBg, color: buttonText }}
+                className="w-full h-12 rounded-xl font-black uppercase tracking-[0.12em] shadow-xl group border-2 border-transparent hover:border-current"
+                style={{ 
+                  backgroundColor: buttonBg, 
+                  color: getContrastColor(buttonBg) 
+                }}
                 onClick={() => window.open(item.external_url, "_blank")}
               >
                 {typeMeta.label}
@@ -281,7 +286,14 @@ const CatalogItemDetail = ({
             </div>
           </div>
 
-          <Button className="w-full h-11 rounded-xl font-bold uppercase tracking-[0.12em]" style={{ backgroundColor: buttonBg, color: buttonText }} onClick={() => setStep("details")}>
+          <Button 
+            className="w-full h-11 rounded-xl font-bold uppercase tracking-[0.12em] border-2 border-transparent hover:border-current shadow-lg" 
+            style={{ 
+              backgroundColor: buttonBg, 
+              color: getContrastColor(buttonBg) 
+            }} 
+            onClick={() => setStep("details")}
+          >
             {primaryCtaLabel}
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
@@ -359,7 +371,14 @@ const CatalogItemDetail = ({
             <Button variant="outline" className="h-11 rounded-xl font-bold uppercase tracking-[0.12em] border" onClick={() => setStep("review")} style={{ borderColor: `${textColor}25` }}>
               Back
             </Button>
-            <Button className="h-11 rounded-xl font-bold uppercase tracking-[0.12em]" style={{ backgroundColor: buttonBg, color: buttonText }} onClick={goToPayment}>
+            <Button 
+              className="h-11 rounded-xl font-bold uppercase tracking-[0.12em] border-2 border-transparent hover:border-current shadow-lg" 
+              style={{ 
+                backgroundColor: buttonBg, 
+                color: getContrastColor(buttonBg) 
+              }} 
+              onClick={goToPayment}
+            >
               Continue
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
@@ -403,7 +422,15 @@ const CatalogItemDetail = ({
             <Button variant="outline" className="h-11 rounded-xl font-bold uppercase tracking-[0.12em] border" onClick={() => setStep("details")} style={{ borderColor: `${textColor}25` }}>
               Back
             </Button>
-            <Button disabled={isSubmitting} className="h-11 rounded-xl font-bold uppercase tracking-[0.12em]" style={{ backgroundColor: buttonBg, color: buttonText }} onClick={placeOrder}>
+            <Button 
+              disabled={isSubmitting} 
+              className="h-11 rounded-xl font-bold uppercase tracking-[0.12em] border-2 border-transparent hover:border-current shadow-lg" 
+              style={{ 
+                backgroundColor: buttonBg, 
+                color: getContrastColor(buttonBg) 
+              }} 
+              onClick={placeOrder}
+            >
               {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : `Confirm ${primaryCtaLabel}`}
             </Button>
           </div>
@@ -432,7 +459,14 @@ const CatalogItemDetail = ({
             <span className="font-bold">${subtotal.toFixed(2)}</span>
           </div>
         </div>
-        <Button className="w-full h-11 rounded-xl font-bold uppercase tracking-[0.12em]" style={{ backgroundColor: buttonBg, color: buttonText }} onClick={onClose}>
+        <Button 
+          className="w-full h-11 rounded-xl font-bold uppercase tracking-[0.12em] border-2 border-transparent hover:border-current shadow-lg" 
+          style={{ 
+            backgroundColor: buttonBg, 
+            color: getContrastColor(buttonBg) 
+          }} 
+          onClick={onClose}
+        >
           Done
         </Button>
       </div>

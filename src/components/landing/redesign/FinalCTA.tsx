@@ -2,17 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, Shield, Cpu, Zap, Globe, Activity, BarChart3, Heart } from "lucide-react";
 
-interface FinalCTAProps {
-  title?: string;
-  buttonLabel?: string;
-  buttonHref?: string;
-}
-
-const FinalCTA = ({
-  title = "Join the Sovereign Network.",
-  buttonLabel = "Create Free Account",
-  buttonHref = "/register"
-}: FinalCTAProps) => {
+const FinalCTA = () => {
   return (
     <section className="pt-24 lg:pt-40 pb-0 bg-background relative overflow-hidden font-body border-t border-surface-border transition-colors duration-700">
       {/* Structural Zen-G Background Grid */}
@@ -38,11 +28,7 @@ const FinalCTA = ({
                </motion.div>
 
                <h2 className="text-[44px] md:text-[72px] font-display font-black leading-[1] max-w-[800px] tracking-tighter text-foreground">
-                  {(title || "").split('Sovereign').map((p, i, a) => (
-                    <span key={i}>
-                      {p}{i < a.length - 1 && <span className="italic text-muted-foreground/20 uppercase">Sovereign</span>}
-                    </span>
-                  ))}
+                  Join the <span className="italic text-muted-foreground/20 uppercase">Sovereign</span> Network.
                </h2>
 
                <p className="max-w-[540px] text-muted-foreground font-light leading-relaxed tracking-tight text-lg">
@@ -51,12 +37,9 @@ const FinalCTA = ({
            </div>
 
            <div className="flex flex-col sm:flex-row items-center gap-12 group">
-               <Button 
-                onClick={() => window.location.href = buttonHref}
-                className="h-16 px-12 rounded-full bg-primary text-white font-display font-black uppercase tracking-[0.2em] text-[12px] hover:brightness-110 transition-all shadow-4xl hover:scale-[1.05] active:scale-95 group"
-               >
-                  {buttonLabel} <ArrowRight className="w-5 h-5 ml-4 group-hover:translate-x-3 transition-transform" />
-               </Button>
+              <Button className="h-16 px-12 rounded-full bg-primary text-white font-display font-black uppercase tracking-[0.2em] text-[12px] hover:brightness-110 transition-all shadow-4xl hover:scale-[1.05] active:scale-95 group">
+                 Create Free Account <ArrowRight className="w-5 h-5 ml-4 group-hover:translate-x-3 transition-transform" />
+              </Button>
               <div className="flex items-center gap-6">
                  <div className="w-12 h-[1px] bg-surface-border group-hover:bg-primary transition-all group-hover:w-20" />
                  <span className="label text-muted-foreground/30 text-[10px] tracking-[0.3em] font-black uppercase whitespace-nowrap">No Credit Card Required</span>

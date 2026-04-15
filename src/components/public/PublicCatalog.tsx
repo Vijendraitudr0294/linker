@@ -133,7 +133,9 @@ const PublicCatalog = ({ items, profileUserId, textColor, buttonBg, buttonText, 
                   )}
                   style={{
                     background: contentFilter === option.key ? `linear-gradient(135deg, ${chipGradientA}, ${chipGradientB})` : "rgba(255,255,255,0.05)",
-                    color: contentFilter === option.key ? chipTextColor : textColor,
+                    color: contentFilter === option.key 
+                      ? (contrastText(chipGradientA, buttonText) === "#ffffff" ? "#ffffff" : "#0f172a") 
+                      : textColor,
                     borderColor: contentFilter === option.key ? `${buttonBg}80` : `${textColor}15`,
                     boxShadow: contentFilter === option.key ? `0 8px 16px -8px ${buttonBg}66` : "none",
                     opacity: contentFilter === option.key ? 1 : 0.7

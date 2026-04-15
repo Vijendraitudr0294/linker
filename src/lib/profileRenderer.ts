@@ -20,6 +20,7 @@ export interface ProfilePalette {
   cardBorder: string;
   btnBg: string;
   btnText: string;
+  isDark: boolean;
 }
 
 export type ButtonStyleType = "rounded" | "pill" | "square" | "outline" | "shadow";
@@ -63,7 +64,8 @@ export function computePalette(appearance: ProfileAppearance): ProfilePalette {
   const btnBg = appearance.button_bg;
   // Designer Fix: Always ensure button text is readable against the button background
   const btnText = getContrastColor(btnBg);
-  return { cardBg, cardText, cardSub, cardBorder, btnBg, btnText };
+  const isDark = getContrastColor(appearance.background_color) === "#ffffff";
+  return { cardBg, cardText, cardSub, cardBorder, btnBg, btnText, isDark };
 }
 
 // ── Background Style ──

@@ -59,14 +59,14 @@ export const ProfileLinkBlock = ({
         <div className={cn(
           "flex items-center justify-center shrink-0 transition-all duration-300 group-hover:rotate-12 group-hover:scale-110",
           (isBento || layoutType === "grid") ? (isFirst && layoutType !== "grid" ? "w-14 h-14" : "w-12 h-12 mb-1") : "w-12 h-12",
-          isBrutalism
-            ? "bg-black text-white rounded-none border-2 border-black"
+            isBrutalism
+            ? (palette.isDark ? "bg-white text-black" : "bg-black text-white") + " rounded-none border-2 border-black"
             : "rounded-full"
-        )} style={{ backgroundColor: isBrutalism ? "#000" : `${palette.btnBg}20` }}>
+        )} style={{ backgroundColor: isBrutalism ? (palette.isDark ? "#fff" : "#000") : `${palette.btnBg}20` }}>
           {isMusicStyle ? (
             <Play className="w-5 h-5 text-white ml-0.5" />
           ) : (
-            <Link2 className="w-5 h-5" style={{ color: isBrutalism ? "#fff" : palette.btnBg }} />
+            <Link2 className="w-5 h-5" style={{ color: isBrutalism ? (palette.isDark ? "#000" : "#fff") : palette.btnBg }} />
           )}
         </div>
         <div className={cn("min-w-0 flex-1 w-full flex flex-col justify-center", (isBento || layoutType === "grid") ? "items-center" : "items-start")}>
@@ -75,8 +75,8 @@ export const ProfileLinkBlock = ({
             (isBento || layoutType === "grid") 
               ? (isFirst && layoutType !== "grid" ? "text-base text-left" : "text-[10px] sm:text-[11px] line-clamp-2 leading-tight text-center") 
               : "text-sm text-left",
-            isBrutalism ? "text-black" : ""
-          )} style={{ color: isBrutalism ? "#000" : palette.cardText }}>
+            isBrutalism ? "" : ""
+          )} style={{ color: palette.cardText }}>
             {link.title}
           </span>
           {isMusicStyle && !isBrutalism && (

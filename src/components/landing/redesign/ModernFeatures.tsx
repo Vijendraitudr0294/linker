@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { useRef, useState } from "react";
 import { Palette, ShoppingBag, BarChart3, Globe, Sparkles, Heart } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 const BentoCard = ({ children, className = "", delay = 0, title, description, icon: Icon, image }: { 
   children?: React.ReactNode, 
@@ -54,37 +53,7 @@ const BentoCard = ({ children, className = "", delay = 0, title, description, ic
   );
 };
 
-interface FeatureItem {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  image?: string;
-  cols?: number;
-}
-
-interface ModernFeaturesProps {
-  heading?: string;
-  items?: FeatureItem[];
-}
-
-const iconMap: Record<string, any> = {
-  Palette,
-  ShoppingBag,
-  BarChart3,
-  Globe,
-  Sparkles,
-  Heart
-};
-
-const ModernFeatures = ({ 
-  heading = "Host your Brand. Everyday.",
-  items = [
-    { id: '1', title: 'Design Workshop', description: 'Craft a visual identity that belongs anywhere.', icon: 'Palette', image: '/feature-design.png', cols: 8 },
-    { id: '2', title: 'Global Shop', description: 'Sell your vision with zero platform fees.', icon: 'ShoppingBag', image: '/feature-commerce.png', cols: 4 },
-    { id: '3', title: 'Insights that Matter', description: 'Listen to your audience.', icon: 'BarChart3', image: '/creator-lifestyle.png', cols: 12 },
-  ]
-}: ModernFeaturesProps) => {
+const ModernFeatures = () => {
   return (
     <section id="features" className="py-24 lg:py-40 bg-background relative selection:bg-primary selection:text-white">
       <style>{`
@@ -113,11 +82,8 @@ const ModernFeatures = ({
             viewport={{ once: true }}
             className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight text-foreground mb-8 features-title"
           >
-            {(heading || "").split('Brand.').map((p, i, a) => (
-               <span key={i}>
-                 {p}{i < a.length - 1 && <span>Brand.</span>}
-               </span>
-            ))}
+            Host your Brand. <br />
+            <span className="text-primary italic font-medium">Everywhere.</span>
           </motion.h2>
           
           <motion.p 
@@ -130,21 +96,34 @@ const ModernFeatures = ({
           </motion.p>
         </div>
 
+        {/* Feature Discovery Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-           {(items || []).map((item, idx) => (
-              <BentoCard 
-                 key={item.id}
-                 className={cn(
-                   item.cols === 4 ? "lg:col-span-4" : item.cols === 8 ? "lg:col-span-8" : "lg:col-span-12",
-                   "h-[520px]"
-                 )}
-                 title={item.title}
-                 description={item.description}
-                 icon={iconMap[item.icon] || Sparkles}
-                 image={item.image}
-                 delay={idx * 0.1}
-              />
-           ))}
+           
+           <BentoCard 
+              className="lg:col-span-8 h-[520px]"
+              title="Design Workshop"
+              description="Craft a visual identity that belongs anywhere. Responsive, elegant, and uniquely yours."
+              icon={Palette}
+              image="/feature-design.png"
+           />
+
+           <BentoCard 
+              className="lg:col-span-4 h-[520px]"
+              title="Global Shop"
+              description="Sell your vision with zero platform fees. Instantly. Simply. Sustainably."
+              icon={ShoppingBag}
+              image="/feature-commerce.png"
+              delay={0.1}
+           />
+
+           <BentoCard 
+              className="lg:col-span-12 h-[460px]"
+              title="Insights that Matter"
+              description="Listen to your audience. Understand your impact with premium, human-centric analytics."
+              icon={BarChart3}
+              image="/creator-lifestyle.png" // Reusing the high-end hero visual for consistency
+              delay={0.2}
+           />
         </div>
 
         {/* Brand Promise Band */}
