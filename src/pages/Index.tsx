@@ -1,35 +1,7 @@
-import BiotraCCNavbar from "@/components/landing/legacy/BiotraCCNavbar";
-import TickerTape from "@/components/landing/legacy/TickerTape";
-import CreatorsHero from "@/components/landing/legacy/CreatorsHero";
-import BrutalSections from "@/components/landing/legacy/BrutalSections";
-import BiotraCCTestimonials from "@/components/landing/legacy/BiotraCCTestimonials";
-import BiotraCCFeatures from "@/components/landing/legacy/BiotraCCFeatures";
-import PricingPlans from "@/components/landing/legacy/PricingPlans";
-import BiotraCCFAQ from "@/components/landing/legacy/BiotraCCFAQ";
-import BiotraCCCTA from "@/components/landing/legacy/BiotraCCCTA";
-import BiotraCCTeam from "@/components/landing/legacy/BiotraCCTeam";
-import BiotraCCFooter from "@/components/landing/legacy/BiotraCCFooter";
+import LutherLanding from "./LutherLanding";
 
 const Index = () => {
-    return (
-        <div className="min-h-screen bg-[#F3F4F6] font-sans selection:bg-[#22C55E] selection:text-black">
-            <BiotraCCNavbar />
-            
-            <main>
-                <CreatorsHero />
-                <TickerTape />
-                <BrutalSections />
-                <BiotraCCTeam />
-                <BiotraCCTestimonials />
-                <BiotraCCFeatures />
-                <PricingPlans />
-                <BiotraCCFAQ />
-                <BiotraCCCTA />
-            </main>
-
-            <BiotraCCFooter />
-        </div>
-    );
+    return <LutherLanding />;
 };
 
 export default Index;
