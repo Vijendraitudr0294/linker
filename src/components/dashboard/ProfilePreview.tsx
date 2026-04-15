@@ -175,30 +175,36 @@ const ProfilePreview = ({ user, settings, links = [], catalogItems = [], blocks,
             />
 
             {hasTabs && (
-              <div className="w-full flex items-center justify-center mb-6 mt-2 px-2">
+              <div className="w-full flex justify-center mb-6 mt-2">
                 <div className={cn(
-                  "p-1 flex items-center gap-1 w-full max-w-[320px]",
-                  isBrutalism ? "border-4 border-black bg-white" : "bg-black/30 backdrop-blur-2xl border border-white/5 shadow-inner rounded-full"
+                  "flex items-center w-full max-w-md",
+                  isBrutalism ? "border-b-4 border-black" : "border-b border-white/10"
                 )}>
                   {["shop", "links"].map(tab => (
                     <button 
                       key={tab}
                       onClick={() => setActiveTab(tab as any)}
                       className={cn(
-                        "flex-1 relative z-10 py-2.5 rounded-full font-black uppercase tracking-[0.2em] text-[9px] transition-all duration-500",
+                        "flex-1 relative z-10 py-3 flex justify-center items-center gap-2 transition-all duration-300",
                         activeTab === tab
-                          ? (isBrutalism ? "bg-black text-white rounded-none" : "text-black drop-shadow-sm")
-                          : (isBrutalism ? "text-black" : "text-white/40 hover:text-white/70")
+                          ? (isBrutalism ? "text-black" : "")
+                          : (isBrutalism ? "text-black/40 hover:text-black/70" : "text-white/40 hover:text-white/80")
                       )}
+                      style={(!isBrutalism && activeTab === tab) ? { color: palette.cardText } : {}}
                     >
-                      {activeTab === tab && !isBrutalism && (
+                      {tab === "shop" ? <Grid className="w-4 h-4" /> : <ListIcon className="w-4 h-4" />}
+                      <span className={cn("font-bold tracking-widest uppercase", compact ? "text-[9px]" : "text-[10px]")}>
+                        {tab === "shop" ? "Grid" : "Links"}
+                      </span>
+                      
+                      {activeTab === tab && (
                         <motion.div 
-                          layoutId="previewTabPill"
-                          className="absolute inset-0 bg-white rounded-full -z-10 shadow-[0_4px_15px_rgba(255,255,255,0.2)]"
-                          transition={{ type: "spring", bounce: 0.15, duration: 0.6 }}
+                          layoutId="previewTabUnderline"
+                          className={cn("absolute bottom-0 left-0 right-0 h-[2px]", isBrutalism ? "bg-black h-[4px] -mb-[4px]" : "")}
+                          style={!isBrutalism ? { backgroundColor: palette.cardText } : {}}
+                          transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
                         />
                       )}
-                      {tab === "shop" ? "Shop" : "Links"}
                     </button>
                   ))}
                 </div>

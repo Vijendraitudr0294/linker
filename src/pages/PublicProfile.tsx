@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { SocialIcon, isEmbedPlatform } from "@/components/SocialIcon";
 import type { SocialLinkConfig } from "@/stores/authStore";
-import { Zap, ExternalLink, User, ShoppingBag, Loader2, Share2, MessageCircle, Play, Newspaper, ArrowRight, Clapperboard, Link2, Star, Sparkles, Heart, Smile, Copy } from "lucide-react";
+import { Zap, ExternalLink, User, ShoppingBag, Loader2, Share2, MessageCircle, Play, Newspaper, ArrowRight, Clapperboard, Link2, Star, Sparkles, Heart, Smile, Copy, Grid, List as ListIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -374,47 +374,59 @@ const PublicProfile = () => {
         />
 
         {hasLinks && hasShop && (
-          <div className="w-full flex items-center justify-center mb-10 px-2">
+          <div className="w-full flex justify-center mb-6 mt-2">
             <div className={cn(
-              "p-2 flex items-center gap-1.5 w-full max-w-[360px]",
-              isBrutalism ? "border-4 border-black bg-white shadow-[6px_6px_0_0_rgba(0,0,0,1)]" : "bg-black/40 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-full"
+              "flex items-center w-full max-w-md",
+              isBrutalism ? "border-b-4 border-black" : "border-b border-white/10"
             )}>
               <button 
                 onClick={() => setActiveTab("shop")}
                 className={cn(
-                  "flex-1 relative z-10 py-3.5 rounded-full font-black uppercase tracking-[0.25em] text-[10px] sm:text-[11px] transition-all duration-500",
+                  "flex-1 relative z-10 py-3 flex justify-center items-center gap-2 transition-all duration-300",
                   activeTab === "shop"
-                    ? (isBrutalism ? "bg-black text-white rounded-none" : "text-black drop-shadow-sm")
-                    : (isBrutalism ? "text-black" : "text-white/40 hover:text-white/70")
+                    ? (isBrutalism ? "text-black" : "")
+                    : (isBrutalism ? "text-black/40 hover:text-black/70" : "text-white/40 hover:text-white/80")
                 )}
+                style={(!isBrutalism && activeTab === "shop") ? { color: palette.cardText } : {}}
               >
-                {activeTab === "shop" && !isBrutalism && (
+                <Grid className="w-4 h-4" />
+                <span className={cn("font-bold tracking-widest uppercase text-[10px] sm:text-[11px]")}>
+                  {profile.creator_metrics?.tab_labels?.shop || appearance.shop_tab_label || "Grid"}
+                </span>
+                
+                {activeTab === "shop" && (
                   <motion.div 
-                    layoutId="activeTabPill"
-                    className="absolute inset-0 bg-white rounded-full -z-10 shadow-[0_10px_25px_rgba(255,255,255,0.3)]"
-                    transition={{ type: "spring", bounce: 0.15, duration: 0.6 }}
+                    layoutId="activeTabUnderline"
+                    className={cn("absolute bottom-0 left-0 right-0 h-[2px]", isBrutalism ? "bg-black h-[4px] -mb-[4px]" : "")}
+                    style={!isBrutalism ? { backgroundColor: palette.cardText } : {}}
+                    transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
                   />
                 )}
-                {profile.creator_metrics?.tab_labels?.shop || appearance.shop_tab_label || "Shop"}
               </button>
 
               <button 
                 onClick={() => setActiveTab("links")}
                 className={cn(
-                  "flex-1 relative z-10 py-3.5 rounded-full font-black uppercase tracking-[0.25em] text-[10px] sm:text-[11px] transition-all duration-500",
+                  "flex-1 relative z-10 py-3 flex justify-center items-center gap-2 transition-all duration-300",
                   activeTab === "links"
-                    ? (isBrutalism ? "bg-black text-white rounded-none" : "text-black drop-shadow-sm")
-                    : (isBrutalism ? "text-black" : "text-white/40 hover:text-white/70")
+                    ? (isBrutalism ? "text-black" : "")
+                    : (isBrutalism ? "text-black/40 hover:text-black/70" : "text-white/40 hover:text-white/80")
                 )}
+                style={(!isBrutalism && activeTab === "links") ? { color: palette.cardText } : {}}
               >
-                {activeTab === "links" && !isBrutalism && (
+                <ListIcon className="w-4 h-4" />
+                <span className={cn("font-bold tracking-widest uppercase text-[10px] sm:text-[11px]")}>
+                  {profile.creator_metrics?.tab_labels?.links || appearance.links_tab_label || "Links"}
+                </span>
+                
+                {activeTab === "links" && (
                   <motion.div 
-                    layoutId="activeTabPill"
-                    className="absolute inset-0 bg-white rounded-full -z-10 shadow-[0_10px_25px_rgba(255,255,255,0.3)]"
-                    transition={{ type: "spring", bounce: 0.15, duration: 0.6 }}
+                    layoutId="activeTabUnderline"
+                    className={cn("absolute bottom-0 left-0 right-0 h-[2px]", isBrutalism ? "bg-black h-[4px] -mb-[4px]" : "")}
+                    style={!isBrutalism ? { backgroundColor: palette.cardText } : {}}
+                    transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
                   />
                 )}
-                {profile.creator_metrics?.tab_labels?.links || appearance.links_tab_label || "Links"}
               </button>
             </div>
           </div>
