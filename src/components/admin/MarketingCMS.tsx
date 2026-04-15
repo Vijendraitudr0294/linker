@@ -503,7 +503,6 @@ function getDefaultsForType(type: MarketingSection['type']) {
     case 'team': return { 
       heading: "THE LEGENDS", 
       members: [
-        { name: "Nano Banana", role: "FOUNDER & VIBE LEAD", bio: "The organic intelligence behind the Biotra algorithm. Small in scale, massive in impact.", image_url: "" },
         { name: "Mia", role: "CEO", bio: "Shih Tzu Dog. Lead visionary and strategic biscuits enthusiast.", image_url: "" },
         { name: "Billu", role: "CTO", bio: "White Indi Cat. Chief Technical Orchestrator. Master of system purr-formance.", image_url: "" },
         { name: "Myra", role: "CMO", bio: "Chow Chow Dog. Chief Marketing Officer. Expert in brand fluffiness.", image_url: "" },
