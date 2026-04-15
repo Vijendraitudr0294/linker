@@ -136,6 +136,36 @@ const AppearancePage = () => {
              </p>
           </header>
 
+          {/* Mobile Single View Mirror */}
+          <div className="lg:hidden w-full mb-4 animate-in fade-in slide-in-from-top-4 duration-700">
+             <Card className="bruddle-card-blue p-4 bg-[#E0F2FE] flex flex-col items-center justify-start relative overflow-hidden rounded-[24px] border-2 border-black shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+                <div className="flex items-center justify-between w-full mb-3 px-1">
+                   <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-md bg-white border-2 border-black flex items-center justify-center">
+                         <Smartphone className="w-3 h-3" />
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-widest">Live Mirror</span>
+                   </div>
+                   <Badge className={cn(
+                     "border-2 border-black rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest transition-colors",
+                     isSyncing ? "bg-[#FDE68A] text-black animate-pulse" : "bg-white/40 text-black"
+                   )}>
+                     {isSyncing ? "Syncing" : "Instant"}
+                   </Badge>
+                </div>
+                <div className="w-full h-[220px] rounded-[1.8rem] border-2 border-black overflow-hidden bg-white shadow-[2px_2px_0_0_rgba(0,0,0,1)] relative">
+                   <ProfilePreview 
+                      settings={settings} 
+                      user={user} 
+                      links={activeLinks.map(l => ({ id: l.id, title: l.title, platform: l.platform || 'website' }))}
+                      catalogItems={catalogItems.filter(i => i.enabled)}
+                      compact={true}
+                      noFrame={true}
+                   />
+                </div>
+             </Card>
+          </div>
+
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="bg-white p-2 rounded-[24px] mb-8 overflow-x-auto no-scrollbar scrollbar-hide flex w-full lg:w-fit border-2 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
               {[

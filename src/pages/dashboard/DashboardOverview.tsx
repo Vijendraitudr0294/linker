@@ -299,7 +299,7 @@ const DashboardOverview = () => {
       </div>
 
       {/* RIGHT SIDEBAR PREVIEW - SWAPPED TO TOP PER USER REQUEST */}
-      <div className="w-full xl:w-[420px] lg:w-[380px] flex flex-col gap-8 shrink-0 order-1 lg:order-2">
+      <div className="w-full xl:w-[420px] lg:w-[380px] flex flex-col gap-6 shrink-0 order-1">
           
           {/* PROFILE PREVIEW MINI - NOW ON TOP */}
           <div className="bruddle-card-blue p-5 sm:p-8 relative overflow-hidden group min-h-[500px] sm:min-h-[600px] flex flex-col">

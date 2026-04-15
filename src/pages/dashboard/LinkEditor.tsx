@@ -462,16 +462,31 @@ const LinkEditor = () => {
 
   return (
     <div className="space-y-6 animate-fade-in max-w-[1200px] mx-auto pb-10">
-      <div className="lg:hidden flex justify-end mb-4">
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2 h-10 px-4 rounded-xl border-border/50 bg-card/50 backdrop-blur-md"
-          onClick={() => setShowMobilePreview(!showMobilePreview)}
-        >
-          <Smartphone className="w-4 h-4 text-primary" />
-          <span className="font-bold">Preview</span>
-        </Button>
+      {/* Mobile Single View Mirror */}
+      <div className="lg:hidden w-full mb-4 animate-in fade-in slide-in-from-top-4 duration-700">
+         <Card className="bruddle-card-blue p-4 bg-[#E0F2FE] flex flex-col items-center justify-start relative overflow-hidden rounded-[24px] border-2 border-black shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+            <div className="flex items-center justify-between w-full mb-3 px-1">
+               <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-md bg-white border-2 border-black flex items-center justify-center">
+                     <Smartphone className="w-3 h-3" />
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-black">Live View</span>
+               </div>
+               <Badge className="bg-white/40 text-black border-2 border-black rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest">
+                 Live
+               </Badge>
+            </div>
+            <div className="w-full h-[220px] rounded-[1.8rem] border-2 border-black overflow-hidden bg-white shadow-[2px_2px_0_0_rgba(0,0,0,1)] relative">
+               <ProfilePreview 
+                  settings={settings} 
+                  user={user} 
+                  links={links.filter(l => l.enabled).map(l => ({ id: l.id, title: l.title, platform: l.platform || 'website' }))}
+                  catalogItems={catalogItems.filter(i => i.enabled)}
+                  compact={true}
+                  noFrame={true}
+               />
+            </div>
+         </Card>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8 items-start">

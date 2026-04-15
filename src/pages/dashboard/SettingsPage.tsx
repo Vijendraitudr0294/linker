@@ -275,6 +275,33 @@ const SettingsPage = () => {
         </div>
       </div>
 
+      {/* Mobile Single View Mirror */}
+      <div className="lg:hidden w-full mb-10 animate-in fade-in slide-in-from-top-4 duration-700 px-1">
+         <Card className="bruddle-card-blue p-4 bg-[#E0F2FE] flex flex-col items-center justify-start relative overflow-hidden rounded-[24px] border-2 border-black shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+            <div className="flex items-center justify-between w-full mb-3 px-1">
+               <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-md bg-white border-2 border-black flex items-center justify-center text-black">
+                     <Smartphone className="w-3 h-3" />
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-black">Live View</span>
+               </div>
+               <Badge className="bg-white/40 text-black border-2 border-black rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest">
+                 Live
+               </Badge>
+            </div>
+            <div className="w-full h-[220px] rounded-[1.8rem] border-2 border-black overflow-hidden bg-white shadow-[2px_2px_0_0_rgba(0,0,0,1)] relative">
+               <ProfilePreview 
+                  settings={settings} 
+                  user={previewUser} 
+                  links={previewLinks}
+                  catalogItems={catalogItems.filter(i => i.enabled)}
+                  compact={true}
+                  noFrame={true}
+               />
+            </div>
+         </Card>
+      </div>
+
       <Card className="sticky top-4 z-20 p-4 md:p-5 rounded-[24px] border-2 border-black bg-white/95 backdrop-blur shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
         <div className="flex flex-wrap items-center gap-2">
           {SETTINGS_SECTION_LINKS.map((item) => (
