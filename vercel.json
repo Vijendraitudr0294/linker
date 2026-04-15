@@ -1,4 +1,10 @@
 {
+  "experimentalServices": {
+    "backend": {
+      "entrypoint": "backend",
+      "routePrefix": "/api"
+    }
+  },
   "rewrites": [
     {
       "source": "/((?!api/|sitemap.xml|robots.txt|manifest.json|assets/|images/|redesign/|team/).*)",
