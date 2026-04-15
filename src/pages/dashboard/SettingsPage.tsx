@@ -294,10 +294,11 @@ const SettingsPage = () => {
         </div>
       </Card>
 
-      <ShareProfile />
-      <div id="mailing-list-integrations" className="scroll-mt-28">
+      <div id="mailing-list-integrations" className="scroll-mt-32">
         <MailingListIntegrations userId={user.user_id} />
       </div>
+
+      <ShareProfile />
 
       {/* Main Orchestration Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12">

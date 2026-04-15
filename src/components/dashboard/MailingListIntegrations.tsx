@@ -179,95 +179,129 @@ const MailingListIntegrations = ({ userId }: { userId?: string }) => {
   };
 
   return (
-    <Card className="p-6 md:p-8 rounded-[28px] border-2 border-black bg-white space-y-5">
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-2xl border-2 border-black bg-[#D1FAE5] flex items-center justify-center">
-          <Mail className="w-5 h-5 text-black" />
+    <Card className="p-8 md:p-12 rounded-[48px] border-2 border-black bg-white shadow-[12px_12px_0_0_rgba(0,0,0,1)] space-y-10 relative overflow-hidden group">
+      <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-400/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-1000" />
+      
+      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex items-center gap-5">
+          <div className="w-16 h-16 rounded-[24px] border-2 border-black bg-[#D1FAE5] flex items-center justify-center shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+            <Mail className="w-8 h-8 text-black" />
+          </div>
+          <div>
+            <h3 className="text-3xl font-black text-black tracking-tight uppercase">Mailing Matrix</h3>
+            <p className="text-[12px] font-black uppercase text-black/40 tracking-widest mt-1">
+              Connect your audience directly to your newsletter stack.
+            </p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-2xl font-black text-black">Mailing List Integrations</h3>
-          <p className="text-sm font-semibold text-black/60">
-            Connect free newsletter tools. This creates working links on your public page.
-          </p>
-        </div>
+
+        <Button
+          variant="outline"
+          onClick={() => setShowAllProviders((v) => !v)}
+          className="rounded-full border-2 border-black h-12 px-6 font-black text-[11px] uppercase tracking-[0.2em] hover:bg-black hover:text-white transition-all shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none"
+        >
+          {showAllProviders ? "Hide Inactive" : "Show All Providers"}
+        </Button>
       </div>
 
       {providers.length === 0 && (
-        <div className="rounded-2xl border-2 border-black bg-[#F8FAFC] p-4">
-          <p className="text-sm font-semibold text-black/70">No mailing providers found in your template settings yet.</p>
+        <div className="rounded-[32px] border-2 border-black border-dashed bg-black/5 p-12 text-center">
+          <p className="text-sm font-black uppercase tracking-widest text-black/40">No integration seeds found.</p>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 relative z-10">
         {visibleProviderState.map(({ provider, existing }) => {
           const isConnected = Boolean(existing?.enabled);
           const draftValue = urlDrafts[provider.key] ?? existing?.url ?? "";
           const loading = busyKey === provider.key;
+          
           return (
-            <div key={provider.key} className="rounded-2xl border-2 border-black p-4 bg-[#F8FAFC] space-y-3">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <Link2 className="w-4 h-4 text-black" />
-                  <p className="font-black text-black">{provider.label}</p>
+            <div 
+              key={provider.key} 
+              className={cn(
+                "rounded-[32px] border-2 border-black p-8 transition-all duration-300 relative group/item",
+                isConnected ? "bg-emerald-50/50 shadow-[6px_6px_0_0_rgba(16,185,129,0.3)]" : "bg-white hover:shadow-[8px_8px_0_0_rgba(0,0,0,1)]"
+              )}
+            >
+              <div className="flex items-center justify-between gap-4 mb-6">
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "w-10 h-10 rounded-xl border-2 border-black flex items-center justify-center",
+                    isConnected ? "bg-emerald-400" : "bg-black/5"
+                  )}>
+                    <Link2 className="w-5 h-5 text-black" />
+                  </div>
+                  <p className="text-lg font-black text-black tracking-tight">{provider.label}</p>
                 </div>
-                {isConnected ? (
-                  <Badge className="rounded-full border-2 border-black bg-[#D1FAE5] text-black text-[10px] uppercase tracking-wider font-black">
-                    Connected
-                  </Badge>
-                ) : (
-                  <Badge className="rounded-full border-2 border-black bg-[#F1F5F9] text-black/70 text-[10px] uppercase tracking-wider font-black">
-                    Not Connected
-                  </Badge>
-                )}
+                <Badge className={cn(
+                  "rounded-full border-2 border-black px-4 py-1.5 text-[10px] uppercase tracking-[0.2em] font-black",
+                  isConnected ? "bg-emerald-400 text-black" : "bg-white text-black/30"
+                )}>
+                  {isConnected ? "Active" : "Standby"}
+                </Badge>
               </div>
 
-              <Input
-                value={draftValue}
-                onChange={(e) => setUrlDrafts((prev) => ({ ...prev, [provider.key]: e.target.value }))}
-                placeholder={provider.placeholder}
-                className="h-11 rounded-xl border-2 border-black"
-              />
+              <div className="relative mb-6">
+                <Input
+                  value={draftValue}
+                  onChange={(e) => setUrlDrafts((prev) => ({ ...prev, [provider.key]: e.target.value }))}
+                  placeholder={provider.placeholder}
+                  className="h-16 rounded-2xl border-2 border-black bg-white text-black font-bold focus:shadow-[4px_4px_0_0_rgba(0,0,0,1)] transition-all px-6 text-[15px]"
+                />
+              </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-3">
                 <Button
                   onClick={() => handleConnect(provider, existing?.id)}
                   disabled={loading}
-                  className="rounded-full border-2 border-black bg-black text-white hover:bg-white hover:text-black font-black text-[11px] uppercase tracking-wider"
+                  className={cn(
+                    "flex-1 h-14 rounded-2xl border-2 border-black font-black text-[11px] uppercase tracking-[0.2em] shadow-[4px_4px_0_0_rgba(0,0,0,1)] transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none",
+                    isConnected ? "bg-black text-white" : "bg-emerald-400 text-black hover:bg-emerald-500"
+                  )}
                 >
-                  {isConnected ? <CheckCircle2 className="w-4 h-4 mr-2" /> : <PlugZap className="w-4 h-4 mr-2" />}
-                  {isConnected ? "Update" : "Connect"}
+                  {loading ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : isConnected ? <CheckCircle2 className="w-4 h-4 mr-2" /> : <PlugZap className="w-4 h-4 mr-2" />}
+                  {isConnected ? "Update Link" : "Sync Provider"}
                 </Button>
-                {existing?.id && (
+
+                <div className="flex items-center gap-3">
+                   {existing?.id && (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleDisconnect(provider.key, existing.id)}
+                      disabled={loading}
+                      title="Disconnect"
+                      className="w-14 h-14 rounded-2xl border-2 border-black bg-rose-100/50 text-rose-600 hover:bg-rose-500 hover:text-white transition-all shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+                    >
+                      <Unplug className="w-6 h-6" />
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
-                    onClick={() => handleDisconnect(provider.key, existing.id)}
-                    disabled={loading}
-                    className="rounded-full border-2 border-black font-black text-[11px] uppercase tracking-wider"
+                    size="icon"
+                    onClick={() => handleTest(provider, existing?.url)}
+                    title="Open Live Test"
+                    className="w-14 h-14 rounded-2xl border-2 border-black bg-white text-black hover:bg-black hover:text-white transition-all shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
                   >
-                    <Unplug className="w-4 h-4 mr-2" />
-                    Disconnect
+                    <ExternalLink className="w-6 h-6" />
                   </Button>
-                )}
-                <Button
-                  variant="outline"
-                  onClick={() => handleTest(provider, existing?.url)}
-                  className="rounded-full border-2 border-black font-black text-[11px] uppercase tracking-wider"
-                >
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Test
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => handleCopy(provider, existing?.url)}
-                  className="rounded-full border-2 border-black font-black text-[11px] uppercase tracking-wider"
-                >
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copy
-                </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => handleCopy(provider, existing?.url)}
+                    title="Copy URI"
+                    className="w-14 h-14 rounded-2xl border-2 border-black bg-white text-black hover:bg-black hover:text-white transition-all shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+                  >
+                    <Copy className="w-6 h-6" />
+                  </Button>
+                </div>
               </div>
+
               {lastTested[provider.key] && (
-                <p className="text-[11px] font-bold text-emerald-700">
-                  Last tested: {lastTested[provider.key]}
+                <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-emerald-600/60 flex items-center gap-2">
+                  <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                  Connection Verified: {lastTested[provider.key]}
                 </p>
               )}
             </div>
@@ -275,17 +309,10 @@ const MailingListIntegrations = ({ userId }: { userId?: string }) => {
         })}
       </div>
 
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm font-semibold text-black/60">
-          {connectedProviders.length} connected • {disconnectedProviders.length} not connected
+      <div className="pt-8 border-t-2 border-black/5 flex items-center justify-between">
+        <p className="text-[12px] font-black uppercase tracking-[0.25em] text-black/20">
+          Network Status: <span className="text-black">{connectedProviders.length} Active</span> • <span className="text-black/40">{disconnectedProviders.length} Dormant</span>
         </p>
-        <Button
-          variant="outline"
-          onClick={() => setShowAllProviders((v) => !v)}
-          className="rounded-full border-2 border-black font-black text-[11px] uppercase tracking-wider"
-        >
-          {showAllProviders ? "Show Connected Only" : "Show All Providers"}
-        </Button>
       </div>
     </Card>
   );
