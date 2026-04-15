@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Plus, Trash2, Edit3, Save, X, Search, FileText, Check,
@@ -104,48 +104,45 @@ export const ContentCMS = () => {
     p.category.toLowerCase().includes(search.toLowerCase())
   );
 
-  useEffect(() => {
-    if (activeTab === "blog") fetchPosts();
-    else if (activeTab === "faq") fetchFaqs();
-    else fetchPlans();
-  }, [activeTab]);
-
-  const fetchPlans = async () => {
+  const fetchPlans = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.from("pricing_plans" as any).select("*").order("sort_order", { ascending: true }) as { data: PricingPlan[] | null, error: any };
+      const { data, error } = await supabase.from("pricing_plans" as any).select("*").order("sort_order", { ascending: true });
       if (error) throw error;
-      setPlans(data || []);
-    } catch (err) { console.error(err); }
-    finally { setLoading(false); }
-  };
+      setPlans((data as any) || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const fetchFaqs = async () => {
+  const fetchFaqs = useCallback(async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from("faq_items" as any)
         .select("*")
-        .order("sort_order", { ascending: true }) as { data: FAQItem[] | null, error: any };
+        .order("sort_order", { ascending: true });
       if (error) throw error;
-      setFaqs(data || []);
+      setFaqs((data as any) || []);
     } catch (err) {
       console.error("Error fetching FAQs:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from("blog_posts" as any)
         .select("*")
-        .order("created_at", { ascending: false }) as { data: BlogPost[] | null, error: any };
+        .order("created_at", { ascending: false });
       
       if (error) throw error;
-      setPosts(data || []);
+      setPosts((data as any) || []);
     } catch (err) {
       console.error("Error fetching posts:", err);
       if (posts.length === 0) {
@@ -168,7 +165,13 @@ export const ContentCMS = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [posts.length]);
+
+  useEffect(() => {
+    if (activeTab === "blog") fetchPosts();
+    else if (activeTab === "faq") fetchFaqs();
+    else fetchPlans();
+  }, [activeTab, fetchPosts, fetchFaqs, fetchPlans]);
 
   const handleCreate = () => {
     setCurrentPost({
