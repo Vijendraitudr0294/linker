@@ -301,7 +301,6 @@ const DashboardOverview = () => {
                 </div>
             </div>
         </div>
-      </div>
 
       {/* RIGHT SIDEBAR PREVIEW - SWAPPED TO TOP PER USER REQUEST */}
       <div className="w-full xl:w-[420px] lg:w-[380px] flex flex-col gap-6 shrink-0 order-1">
