@@ -224,28 +224,35 @@ const PublicProfile = () => {
         const metrics = profileData?.creator_metrics as any || {};
         const overrides = metrics.design_overrides || {};
         
+        console.log("🎨 Apperance Data Source Match:", { 
+          hasTable: !!appearanceData, 
+          hasOverrides: !!overrides.background_color,
+          tableTheme: a.theme_id,
+          overrideTheme: overrides.theme_id 
+        });
+
         setAppearance({
           ...defaultAppearance,
-          background_color: overrides.background_color || a.background_color || defaultAppearance.background_color,
-          text_color: overrides.text_color || a.text_color || defaultAppearance.text_color,
-          card_color: overrides.card_color || a.card_color || defaultAppearance.card_color,
-          button_style: (overrides.button_style || a.button_style || defaultAppearance.button_style) as AppearanceData["button_style"],
-          button_bg: overrides.button_bg || a.button_bg || defaultAppearance.button_bg,
-          button_text: overrides.button_text || a.button_text || defaultAppearance.button_text,
-          font_family: overrides.font_family || a.font_family || defaultAppearance.font_family,
-          layout_type: (overrides.layout_type || a.layout_type || defaultAppearance.layout_type) as AppearanceData["layout_type"],
-          card_style: (overrides.card_style || a.card_style || defaultAppearance.card_style) as AppearanceData["card_style"],
-          profile_style_variant: (overrides.profile_style_variant || a.profile_style_variant || defaultAppearance.profile_style_variant) as AppearanceData["profile_style_variant"],
-          gradient_from: overrides.gradient_from || a.gradient_from, 
-          gradient_to: overrides.gradient_to || a.gradient_to,
-          show_avatar: overrides.show_avatar !== undefined ? overrides.show_avatar : (a.show_avatar !== undefined ? a.show_avatar : true),
-          background_image: overrides.background_image || a.background_image || undefined,
-          background_overlay: overrides.background_overlay || a.background_overlay || undefined,
-          animated_gradient: overrides.animated_gradient || a.animated_gradient || undefined,
-          animation_class: overrides.animation_class || a.animation_class || undefined,
-          shop_tab_label: overrides.shop_tab_label || a.shop_tab_label || defaultAppearance.shop_tab_label,
-          links_tab_label: overrides.links_tab_label || a.links_tab_label || defaultAppearance.links_tab_label,
-          theme_id: overrides.theme_id || a.theme_id || undefined,
+          background_color: a.background_color !== undefined ? a.background_color : (overrides.background_color || defaultAppearance.background_color),
+          text_color: a.text_color !== undefined ? a.text_color : (overrides.text_color || defaultAppearance.text_color),
+          card_color: a.card_color !== undefined ? a.card_color : (overrides.card_color || defaultAppearance.card_color),
+          button_style: (a.button_style !== undefined ? a.button_style : (overrides.button_style || defaultAppearance.button_style)) as AppearanceData["button_style"],
+          button_bg: a.button_bg !== undefined ? a.button_bg : (overrides.button_bg || defaultAppearance.button_bg),
+          button_text: a.button_text !== undefined ? a.button_text : (overrides.button_text || defaultAppearance.button_text),
+          font_family: a.font_family !== undefined ? a.font_family : (overrides.font_family || defaultAppearance.font_family),
+          layout_type: (a.layout_type !== undefined ? a.layout_type : (overrides.layout_type || defaultAppearance.layout_type)) as AppearanceData["layout_type"],
+          card_style: (a.card_style !== undefined ? a.card_style : (overrides.card_style || defaultAppearance.card_style)) as AppearanceData["card_style"],
+          profile_style_variant: (a.profile_style_variant !== undefined ? a.profile_style_variant : (overrides.profile_style_variant || defaultAppearance.profile_style_variant)) as AppearanceData["profile_style_variant"],
+          gradient_from: a.gradient_from !== undefined ? a.gradient_from : overrides.gradient_from, 
+          gradient_to: a.gradient_to !== undefined ? a.gradient_to : overrides.gradient_to,
+          show_avatar: a.show_avatar !== undefined ? a.show_avatar : (overrides.show_avatar !== undefined ? overrides.show_avatar : true),
+          background_image: a.background_image !== undefined ? a.background_image : overrides.background_image,
+          background_overlay: a.background_overlay !== undefined ? a.background_overlay : overrides.background_overlay,
+          animated_gradient: a.animated_gradient !== undefined ? a.animated_gradient : overrides.animated_gradient,
+          animation_class: a.animation_class !== undefined ? a.animation_class : overrides.animation_class,
+          shop_tab_label: a.shop_tab_label !== undefined ? a.shop_tab_label : overrides.shop_tab_label,
+          links_tab_label: a.links_tab_label !== undefined ? a.links_tab_label : overrides.links_tab_label,
+          theme_id: a.theme_id !== undefined ? a.theme_id : overrides.theme_id,
         });
       }
       setLoading(false);
@@ -259,23 +266,34 @@ const PublicProfile = () => {
       if (!username || !queryData?.profileData?.user_id) return;
       const userId = queryData.profileData.user_id;
       
+      console.log("📡 Subscribing to Realtime updates for user:", userId);
+
       // Monitor Profile Changes
       const profileChannel = supabase.channel(`public_profile_${userId}`)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `user_id=eq.${userId}` },
-          () => { void refetch(); }
-        ).subscribe();
+          (payload) => { 
+            console.log("🔄 Realtime: Profile changed", payload);
+            void refetch(); 
+          }
+        ).subscribe((status) => console.log(`📡 Profile subscription status: ${status}`));
       
       // Monitor Appearance Changes (Theme/Layout)
       const appearanceChannel = supabase.channel(`public_appearance_${userId}`)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'appearance_settings', filter: `user_id=eq.${userId}` },
-          () => { void refetch(); }
-        ).subscribe();
+          (payload) => { 
+            console.log("🔄 Realtime: Appearance changed", payload);
+            void refetch(); 
+          }
+        ).subscribe((status) => console.log(`📡 Appearance subscription status: ${status}`));
 
       // Monitor Link Changes
       const linksChannel = supabase.channel(`public_links_${userId}`)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'links', filter: `user_id=eq.${userId}` },
-          () => { void refetch(); }
-        ).subscribe();
+          (payload) => { 
+            console.log("🔄 Realtime: Links changed", payload);
+            void refetch(); 
+          }
+        ).subscribe((status) => console.log(`📡 Links subscription status: ${status}`));
         
       channels = [profileChannel, appearanceChannel, linksChannel];
     };

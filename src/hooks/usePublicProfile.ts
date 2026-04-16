@@ -55,11 +55,18 @@ export const usePublicProfileQuery = (username: string | undefined) => {
         window.localStorage.setItem("lv:lastProfileUsername", profileData.username);
       }
 
+      const cacheBuster = Date.now();
       const [linksRes, appearanceRes, catalogRes] = await Promise.all([
         supabase.from("links").select("id, title, url, platform").eq("user_id", profileData.user_id).eq("enabled", true).order("sort_order", { ascending: true }),
         supabase.from("appearance_settings").select("*").eq("user_id", profileData.user_id).maybeSingle(),
         supabase.from("catalog_items").select("*").eq("user_id", profileData.user_id).eq("enabled", true).order("sort_order", { ascending: true }),
       ]);
+
+      console.log("💎 DB Source Raw Check:", {
+        appearance: appearanceRes.data?.theme_id,
+        bgImage: appearanceRes.data?.background_image,
+        ts: cacheBuster
+      });
 
       // Designer Fix: Inject Elite Fitness demo content for vjsblr2 to show off components
       if (lowerUsername === "vjsblr2" && profileData.creator_metrics) {

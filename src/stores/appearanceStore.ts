@@ -370,6 +370,7 @@ const upsertAppearanceSettings = async (userId: string, data: Partial<Appearance
   });
 
   while (Object.keys(pendingData).length > 0) {
+    console.log("💾 DB UPSERT Payload:", { ...pendingData });
     const { error } = await supabase
       .from("appearance_settings")
       .upsert(pendingData as any, { onConflict: "user_id" });
@@ -522,15 +523,14 @@ export const useAppearanceStore = create<AppearanceState>()((set, get) => ({
       buttonStyle: theme.buttonStyle ?? get().settings.buttonStyle,
       buttonBg: theme.buttonBg,
       buttonText: theme.buttonText,
-      gradientFrom: theme.gradientFrom ?? undefined,
-      gradientTo: theme.gradientTo ?? undefined,
-      backgroundImage: theme.backgroundImage ?? undefined,
-      backgroundOverlay: theme.backgroundOverlay ?? undefined,
-      animatedGradient: theme.animatedGradient ?? undefined,
-      animationClass: theme.animationClass ?? undefined,
+      gradientFrom: theme.gradientFrom ?? null,
+      gradientTo: theme.gradientTo ?? null,
+      backgroundImage: theme.backgroundImage ?? null,
+      backgroundOverlay: theme.backgroundOverlay ?? null,
+      animatedGradient: theme.animatedGradient ?? null,
+      animationClass: theme.animationClass ?? null,
       fontFamily: theme.fontFamily ?? get().settings.fontFamily,
-      heroImage: theme.heroImage ?? undefined,
-      // Support both layoutType (extracted themes) and layoutMode (preset themes)
+      heroImage: theme.heroImage ?? null,
       layoutType: theme.layoutType ?? theme.layoutMode ?? get().settings.layoutType,
       cardStyle: theme.cardStyle ?? get().settings.cardStyle,
       profileStyleVariant: theme.profileStyleVariant ?? get().settings.profileStyleVariant,
@@ -548,9 +548,25 @@ export const useAppearanceStore = create<AppearanceState>()((set, get) => ({
 
     if (error) {
       console.warn("Retrying theme application due to error:", error);
-      // Wait a bit and try one more time as a simple retry
       await new Promise(r => setTimeout(r, 1000));
       await upsertAppearanceSettings(user.id, newSettings);
+    }
+
+    // Always clear old design overrides when a new theme is applied to ensure a clean slate
+    try {
+      const profileRead = await supabase.from("profiles").select("creator_metrics").eq("user_id", user.id).maybeSingle();
+      if (profileRead.data) {
+        const metrics = isRecord(profileRead.data.creator_metrics) ? { ...profileRead.data.creator_metrics } : {};
+        // Clear the overrides entirely
+        metrics.design_overrides = {};
+        
+        await supabase.from("profiles").update({
+          creator_metrics: metrics as Json,
+          updated_at: new Date().toISOString()
+        }).eq("user_id", user.id);
+      }
+    } catch (err) {
+      console.error("Failed to clear legacy overrides:", err);
     }
 
     if (skippedColumns.size > 0) {
