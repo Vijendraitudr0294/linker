@@ -301,10 +301,10 @@ const MailingListIntegrations = ({ userId }: { userId?: string }) => {
               </div>
 
               {lastTested[provider.key] && (
-                <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-emerald-600/60 flex items-center gap-2">
+                <div className="mt-4 text-[10px] font-black uppercase tracking-widest text-emerald-600/60 flex items-center gap-2">
                   <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
                   Connection Verified: {lastTested[provider.key]}
-                </p>
+                </div>
               )}
             </div>
           );

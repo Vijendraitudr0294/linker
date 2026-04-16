@@ -89,7 +89,7 @@ export const UnifiedProfileHeader = ({
                 whileHover={{ scale: 1.02 }}
                 onClick={onConnect}
                 className={cn(
-                   "font-bold uppercase tracking-[0.08em] transition-all flexitems-center justify-center flex-1 min-w-[120px]",
+                   "font-bold uppercase tracking-[0.08em] transition-all flex items-center justify-center flex-1 min-w-[120px]",
                    compact ? "py-2.5 px-4 text-[10px]" : "py-3 px-6 text-[11px]",
                    isBrutalism 
                       ? "bg-black text-white border-2 border-black shadow-[3px_3px_0_0_rgba(0,0,0,1)] rounded-none" 

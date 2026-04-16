@@ -236,6 +236,6 @@ const StudioContentGrid = ({
       </div>
     </div>
   );
-};;
+};
 
 export default StudioContentGrid;
