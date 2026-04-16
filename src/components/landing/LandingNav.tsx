@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
-export const LandingNav = () => {
+const LandingNav = () => {
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -131,3 +131,5 @@ export const LandingNav = () => {
         </>
     );
 };
+
+export default LandingNav;

@@ -30,8 +30,8 @@ const ExtremeLoader = () => (
   </motion.div>
 );
 
-import { LandingNav } from "@/components/landing/LandingNav";
-import { LandingFooter } from "@/components/landing/LandingFooter";
+import LandingNav from "@/components/landing/LandingNav";
+import LandingFooter from "@/components/landing/LandingFooter";
 import ChatWidget from "@/components/landing/ChatWidget";
 
 // HERO SECTION (STORY: TESSA)
@@ -547,97 +547,146 @@ const TeamSection = () => {
 const UniverseSection = () => {
     const categories = [
         {
-            title: "Creators & Influencers",
-            color: "bg-[#FEF08A]", // Yellow
-            items: ["Instagram Influencer", "YouTuber", "TikTok Creator", "Blogger", "Content Creator", "Affiliate Marketer"]
+            title: "🚀 Creators & Influencers",
+            color: "bg-[#FEF08A]", // Neon Yellow
+            shadow: "shadow-[12px_12px_0_0_rgba(16,185,129,1)]", // Emerald shadow
+            items: ["Instagram Influencer", "YouTuber", "TikTok Creator", "Blogger", "Content Creator", "Affiliate Marketer"],
+            detail: "Monetize your audience with shop links and digital nodes."
         },
         {
             title: "🛍️ E-commerce & Sellers",
-            color: "bg-[#D1FAE5]", // Emerald
-            items: ["Small Business Owner", "Online Store", "Dropshipper", "Instagram Seller", "Etsy Seller", "Reseller"]
+            color: "bg-[#D1FAE5]", // Neon Emerald
+            shadow: "shadow-[12px_12px_0_0_rgba(59,130,246,1)]", // Blue shadow
+            items: ["Small Business Owner", "Online Store", "Dropshipper", "Instagram Seller", "Etsy Seller", "Reseller"],
+            detail: "Turn your bio into a high-conversion storefront."
         },
         {
-            title: "💼 Professionals",
-            color: "bg-[#DBEAFE]", // Blue
-            items: ["Freelancer", "Consultant", "Coach / Mentor", "Job Seeker", "Personal Brand", "Speaker"]
+            title: "💼 Professionals & Brands",
+            color: "bg-[#DBEAFE]", // Neon Blue
+            shadow: "shadow-[12px_12px_0_0_rgba(236,72,153,1)]", // Pink shadow
+            items: ["Freelancer", "Consultant", "Coach / Mentor", "Job Seeker", "Personal Brand", "Speaker"],
+            detail: "A professional landing page for your expertise."
         },
         {
             title: "🎤 Artists & Musicians",
-            color: "bg-[#FBCFE8]", // Pink
-            items: ["Musician", "Singer", "DJ", "Band", "Performer", "Visual Artist"]
+            color: "bg-[#FBCFE8]", // Neon Pink
+            shadow: "shadow-[12px_12px_0_0_rgba(245,158,11,1)]", // Amber shadow
+            items: ["Musician", "Singer", "DJ", "Band", "Performer", "Visual Artist"],
+            detail: "Showcase your portfolio and book gigs instantly."
+        },
+        {
+            title: "🎓 Educators & Trainers",
+            color: "bg-[#EDE9FE]", // Neon Purple
+            shadow: "shadow-[12px_12px_0_0_rgba(16,185,129,1)]", // Emerald shadow
+            items: ["Teacher", "Course Creator", "Tutor", "Yoga Instructor", "Gym Owner", "Trainer"],
+            detail: "Share your knowledge and manage bookings effortlessly."
         },
         {
             title: "🏢 Businesses & Startups",
-            color: "bg-[#CFFAFE]", // Cyan
-            items: ["Startup", "Agency", "Company / Brand", "Restaurant / Cafe", "Real Estate Agent", "Service Provider"]
+            color: "bg-[#CFFAFE]", // Neon Cyan
+            shadow: "shadow-[12px_12px_0_0_rgba(0,0,0,1)]", // Black shadow
+            items: ["Startup", "Agency", "Restaurant / Cafe", "Real Estate Agent", "Builder", "Social Initiative"],
+            detail: "Unified digital hub for your company presence."
         },
         {
-            title: "💅 Beauty & Lifestyle",
-            color: "bg-[#FFEDD5]", // Orange
-            items: ["Makeup Artist", "Fashion Influencer", "Fitness Trainer", "Wellness Coach", "Salon / Spa", "Bakers"]
+            title: "📸 Creatives & Media",
+            color: "bg-[#FFEDD5]", // Neon Orange
+            shadow: "shadow-[12px_12px_0_0_rgba(59,130,246,1)]", // Blue shadow
+            items: ["Photographer", "Videographer", "Editor", "Designer", "Model", "Stylist"],
+            detail: "The ultimate visual portfolio and contact hub."
         },
         {
-            title: "🎮 Gaming",
-            color: "bg-[#EDE9FE]", // Purple
-            items: ["Gamer", "Streamer", "Esports Player", "Entertainment Creator"]
-        },
-        {
-            title: "🎓 Educators & Health",
-            color: "bg-[#F3F4F6]", // gray
-            items: ["Teacher", "Course Creator", "Tutor", "Doctor", "Yoga Instructor", "Gym Owner"]
+            title: "❤️ NGOs & Community",
+            color: "bg-[#F3F4F6]", // Neutral Gray
+            shadow: "shadow-[12px_12px_0_0_rgba(16,185,129,1)]", // Emerald shadow
+            items: ["NGO / Non-Profit", "Charity Organization", "Community Group", "Fundraising", "Webinar Host"],
+            detail: "Drive social impact and organize your movement."
         }
     ];
 
     return (
-        <section id="universe" className="py-32 bg-white border-b-8 border-black">
-            <div className="container max-w-[1400px] mx-auto px-10">
+        <section id="universe" className="py-32 bg-white border-b-8 border-black relative overflow-hidden">
+            {/* Background Texture */}
+            <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#000_2px,transparent_2px)] bg-[size:40px_40px]" />
+            </div>
+
+            <div className="container max-w-[1400px] mx-auto px-10 relative z-10">
                 <div className="mb-24 flex flex-col items-center text-center">
-                    <div className="inline-block px-4 py-2 bg-black text-white font-black text-[10px] uppercase tracking-widest mb-8 border-2 border-black rounded-lg shadow-[4px_4px_0_0_rgba(16,185,129,1)]">VERSATILITY NODE</div>
-                    <h2 className="text-[48px] md:text-[82px] font-[1000] leading-[0.85] tracking-tighter uppercase mb-8 italic">
-                      THE <span className="bg-yellow-400 px-6 border-8 border-black shadow-[12px_12px_0_0_rgba(0,0,0,1)]">UNIVERSAL</span> <br /> HUB.
+                    <motion.div 
+                        initial={{ rotate: -2 }}
+                        whileInView={{ rotate: 0 }}
+                        className="inline-block px-4 py-2 bg-black text-white font-black text-[10px] uppercase tracking-widest mb-8 border-2 border-black rounded-lg shadow-[4px_4px_0_0_rgba(16,185,129,1)]"
+                    >
+                        CROSS-INDUSTRY SYNC
+                    </motion.div>
+                    <h2 className="text-[48px] md:text-[92px] font-[1000] leading-[0.8] tracking-tighter uppercase mb-2 italic">
+                      THE <span className="bg-yellow-400 px-6 border-8 border-black shadow-[12px_12px_0_0_rgba(0,0,0,1)] relative inline-block -rotate-1">UNIVERSAL</span>
                     </h2>
-                    <p className="text-[14px] font-[1000] uppercase text-black/40 tracking-[0.4em]">CROSS-INDUSTRY SYNC // LIMITLESS IDENTITY</p>
+                    <h2 className="text-[48px] md:text-[92px] font-[1000] leading-[0.8] tracking-tighter uppercase mb-8 italic">
+                      CREATOR <span className="text-emerald-500 underline decoration-8 decoration-black underline-offset-8">HUB.</span>
+                    </h2>
+                    <p className="text-[14px] font-[1000] uppercase text-black/40 tracking-[0.5em] mt-4">UNLIMITED ARCHETYPES // ONE MODULAR ENGINE</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
                     {categories.map((cat, i) => (
                         <motion.div 
                             key={i}
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            whileHover={{ y: -10, rotate: i % 2 === 0 ? 1 : -1 }}
                             viewport={{ once: true }}
+                            transition={{ delay: i * 0.1 }}
                             className={cn(
-                                "p-8 border-4 border-black rounded-[32px] shadow-[8px_8px_0_0_rgba(0,0,0,1)] flex flex-col gap-6 hover:shadow-[12px_12px_0_0_rgba(0,0,0,1)] transition-all",
-                                cat.color
+                                "group p-8 border-4 border-black rounded-[40px] flex flex-col gap-6 transition-all relative overflow-hidden min-h-[420px]",
+                                cat.color,
+                                cat.shadow
                             )}
                         >
-                            <h3 className="text-xl font-[1000] uppercase tracking-tighter border-b-2 border-black/10 pb-4">{cat.title}</h3>
-                            <div className="flex flex-wrap gap-2">
-                                {cat.items.map((item, j) => (
-                                    <span key={j} className="px-3 py-1.5 bg-white/50 border-2 border-black rounded-lg text-[10px] font-black uppercase tracking-wider">
-                                        {item}
-                                    </span>
-                                ))}
+                            <div className="flex flex-col gap-4 flex-1">
+                                <h3 className="text-2xl font-[1000] uppercase tracking-tighter leading-none">{cat.title}</h3>
+                                <p className="text-[11px] font-black uppercase text-black/60 tracking-wider leading-relaxed">{cat.detail}</p>
+                                
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                    {cat.items.map((item, j) => (
+                                        <span key={j} className="px-3 py-2 bg-white border-2 border-black rounded-xl text-[10px] font-extrabold uppercase tracking-tight shadow-[2px_2px_0_0_rgba(0,0,0,1)] group-hover:shadow-none transition-all">
+                                            {item}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="pt-6 border-t-2 border-black/10 flex items-center justify-between">
+                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-black/40 italic">Available Now</span>
+                                <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center translate-x-4 group-hover:translate-x-0 transition-transform">
+                                    <ArrowRight className="w-5 h-5 text-white" />
+                                </div>
                             </div>
                         </motion.div>
                     ))}
                 </div>
 
-                <div className="mt-24 p-12 bg-black text-white rounded-[48px] border-4 border-black shadow-[16px_16px_0_0_rgba(16,185,129,1)] relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-400/20 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 group-hover:scale-125 transition-transform duration-1000" />
-                    <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12">
-                        <div className="max-w-2xl">
-                            <div className="inline-flex items-center gap-2 text-emerald-400 font-black text-[10px] uppercase tracking-[0.3em] mb-4">
-                                <Rocket className="w-4 h-4" /> Pro Tip
+                <div className="mt-32 p-12 bg-black text-white rounded-[64px] border-8 border-black shadow-[20px_20px_0_0_rgba(251,113,133,1)] relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-pink-400/20 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-1000" />
+                    <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-16">
+                        <div className="max-w-3xl">
+                            <div className="inline-flex items-center gap-2 text-pink-400 font-black text-[12px] uppercase tracking-[0.4em] mb-6">
+                                <Sparkles className="w-5 h-5" /> MODULAR SCALE
                             </div>
-                            <h3 className="text-3xl md:text-5xl font-[1000] uppercase mb-6 leading-none tracking-tighter">MIX & MATCH YOUR STACK.</h3>
-                            <p className="text-lg font-black text-white/60 uppercase">
-                                BIOTRA IS MODULAR. A DOCTOR CAN SELL COURSES, A MUSICIAN CAN BOOK GIGS, AND A STARTUP CAN BUILD A COMMUNITY. ONE ACCOUNT. ALL TOOLS.
+                            <h3 className="text-4xl md:text-6xl font-[1000] uppercase mb-8 leading-[0.9] tracking-tighter italic">
+                                ONE ID. <br /> <span className="text-pink-400">UNLIMITED</span> <br /> VERSATILITY.
+                            </h3>
+                            <p className="text-xl font-black text-white/50 uppercase leading-relaxed">
+                                FROM BAKERS TO DOCTORS, MUSICIANS TO NGOS — BIOTRA SCALES WITH YOUR AMBITION. DON'T JUST LIST LINKS. BUILD YOUR UNIVERSE.
                             </p>
                         </div>
-                        <Link to="/register" className="shrink-0 px-12 py-6 bg-emerald-400 text-black border-4 border-black rounded-2xl text-xl font-[1000] uppercase tracking-widest shadow-[8px_8px_0_0_rgba(255,255,255,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all">
-                            JOIN THE UNIVERSE
-                        </Link>
+                        <div className="flex flex-col gap-6 shrink-0 w-full lg:w-auto">
+                            <Link to="/register" className="text-center px-16 py-8 bg-pink-400 text-black border-4 border-black rounded-[32px] text-2xl font-[1000] uppercase tracking-widest shadow-[10px_10px_0_0_rgba(255,255,255,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all">
+                                CLAIM YOUR NAME
+                            </Link>
+                            <p className="text-center text-[10px] font-black uppercase text-white/30 tracking-widest">JOIN 10,000+ CREATORS SYNCED WORLDWIDE</p>
+                        </div>
                     </div>
                 </div>
             </div>

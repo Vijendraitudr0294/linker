@@ -1,5 +1,5 @@
-import { LandingNav } from "@/components/landing/LandingNav";
-import { LandingFooter } from "@/components/landing/LandingFooter";
+import LandingNav from "@/components/landing/LandingNav";
+import LandingFooter from "@/components/landing/LandingFooter";
 import { ShieldCheck, Lock, Database } from "lucide-react";
 
 export default function SecurityPage() {

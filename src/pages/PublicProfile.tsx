@@ -543,9 +543,9 @@ const PublicProfile = () => {
         </footer>
       </div>
         </div>
-      </div>
+      </motion.div>
 
-      <ShareModal isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} username={profile.username} profileName={profile.name} />
+      <ShareModal isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} url={window.location.href} name={profile.name} />
       {isCookieOpen && (
         <div className="fixed inset-0 z-[120] bg-black/55 backdrop-blur-sm flex items-end sm:items-center justify-center p-3 sm:p-5">
           <div className="w-full max-w-[740px] max-h-[88vh] overflow-auto border-4 border-black bg-white p-4 sm:p-6 shadow-[14px_14px_0_0_rgba(0,0,0,1)]">

@@ -3,7 +3,7 @@ import { Instagram, Twitter, Github, Linkedin, Rocket, Compass, Layers, ShieldCh
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
-export const LandingFooter = () => {
+const LandingFooter = () => {
    return (
       <footer className="bg-white py-40 border-t-8 border-black relative flex flex-col items-center overflow-hidden">
          {/* Background Typography Marquee */}
@@ -101,3 +101,5 @@ export const LandingFooter = () => {
       </footer>
    );
 };
+
+export default LandingFooter;
