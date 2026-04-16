@@ -275,14 +275,7 @@ const ProfilePreview = ({ user, settings, links = [], catalogItems = [], blocks,
     </div>
   );
 
-        {/* Watermark */}
-        <div className="pt-6 flex flex-col items-center mt-auto" style={{ opacity: 0.2, color: palette.cardText }}>
-          <Zap className="w-3 h-3 mb-1" />
-          <span className="text-[8px] font-black tracking-[0.2em] uppercase">Built with Biotra</span>
-        </div>
-      </div>
-    </div>
-  );
+
 
   if (noFrame) return <div className="w-full h-full overflow-hidden flex flex-col">{screenContent}</div>;
 
