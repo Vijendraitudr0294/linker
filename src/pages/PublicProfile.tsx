@@ -226,26 +226,26 @@ const PublicProfile = () => {
         
         setAppearance({
           ...defaultAppearance,
-          background_color: a.background_color || overrides.background_color || defaultAppearance.background_color,
-          text_color: a.text_color || overrides.text_color || defaultAppearance.text_color,
-          card_color: a.card_color || overrides.card_color || defaultAppearance.card_color,
-          button_style: (a.button_style || overrides.button_style || defaultAppearance.button_style) as AppearanceData["button_style"],
-          button_bg: a.button_bg || overrides.button_bg || defaultAppearance.button_bg,
-          button_text: a.button_text || overrides.button_text || defaultAppearance.button_text,
-          font_family: a.font_family || overrides.font_family || defaultAppearance.font_family,
-          layout_type: (a.layout_type || overrides.layout_type || defaultAppearance.layout_type) as AppearanceData["layout_type"],
-          card_style: (a.card_style || overrides.card_style || defaultAppearance.card_style) as AppearanceData["card_style"],
-          profile_style_variant: (a.profile_style_variant || overrides.profile_style_variant || defaultAppearance.profile_style_variant) as AppearanceData["profile_style_variant"],
-          gradient_from: a.gradient_from || overrides.gradient_from, 
-          gradient_to: a.gradient_to || overrides.gradient_to,
-          show_avatar: a.show_avatar !== undefined ? a.show_avatar : true,
-          background_image: a.background_image || overrides.background_image || undefined,
-          background_overlay: a.background_overlay || overrides.background_overlay || undefined,
-          animated_gradient: a.animated_gradient || overrides.animated_gradient || undefined,
-          animation_class: a.animation_class || overrides.animation_class || undefined,
-          shop_tab_label: a.shop_tab_label || defaultAppearance.shop_tab_label,
-          links_tab_label: a.links_tab_label || defaultAppearance.links_tab_label,
-          theme_id: a.theme_id || overrides.theme_id || undefined,
+          background_color: overrides.background_color || a.background_color || defaultAppearance.background_color,
+          text_color: overrides.text_color || a.text_color || defaultAppearance.text_color,
+          card_color: overrides.card_color || a.card_color || defaultAppearance.card_color,
+          button_style: (overrides.button_style || a.button_style || defaultAppearance.button_style) as AppearanceData["button_style"],
+          button_bg: overrides.button_bg || a.button_bg || defaultAppearance.button_bg,
+          button_text: overrides.button_text || a.button_text || defaultAppearance.button_text,
+          font_family: overrides.font_family || a.font_family || defaultAppearance.font_family,
+          layout_type: (overrides.layout_type || a.layout_type || defaultAppearance.layout_type) as AppearanceData["layout_type"],
+          card_style: (overrides.card_style || a.card_style || defaultAppearance.card_style) as AppearanceData["card_style"],
+          profile_style_variant: (overrides.profile_style_variant || a.profile_style_variant || defaultAppearance.profile_style_variant) as AppearanceData["profile_style_variant"],
+          gradient_from: overrides.gradient_from || a.gradient_from, 
+          gradient_to: overrides.gradient_to || a.gradient_to,
+          show_avatar: overrides.show_avatar !== undefined ? overrides.show_avatar : (a.show_avatar !== undefined ? a.show_avatar : true),
+          background_image: overrides.background_image || a.background_image || undefined,
+          background_overlay: overrides.background_overlay || a.background_overlay || undefined,
+          animated_gradient: overrides.animated_gradient || a.animated_gradient || undefined,
+          animation_class: overrides.animation_class || a.animation_class || undefined,
+          shop_tab_label: overrides.shop_tab_label || a.shop_tab_label || defaultAppearance.shop_tab_label,
+          links_tab_label: overrides.links_tab_label || a.links_tab_label || defaultAppearance.links_tab_label,
+          theme_id: overrides.theme_id || a.theme_id || undefined,
         });
       }
       setLoading(false);
@@ -294,8 +294,12 @@ const PublicProfile = () => {
 
   const palette = useMemo(() => computePalette(appearance), [appearance]);
   const bgStyle = useMemo(() => computeBgStyle(appearance), [appearance]);
-  const isBrutalism = appearance.layout_type === "brutalism";
-  const isRetroPop = appearance.theme_id?.startsWith("retro-pop-");
+  const themeId = (appearance.theme_id || "").toLowerCase();
+  const isBrutalism = appearance.layout_type === "brutalism" || 
+                     themeId.includes("brutal") || 
+                     themeId.includes("poster") || 
+                     themeId.includes("retro");
+  const isRetroPop = themeId.includes("retro-pop");
   const isMusicStyle = appearance.profile_style_variant === "music";
 
   // Derived: whether each tab has content to show
