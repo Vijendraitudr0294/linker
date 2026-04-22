@@ -1,4 +1,4 @@
-# LinkVertex — System Architecture
+# Biotra — System Architecture
 
 ## High-Level Architecture
 
@@ -84,3 +84,4 @@ React App (SPA)
 - Public read policies only for active profiles and enabled items
 - No anonymous signups
 - Input validation via Zod schemas
+

@@ -1,4 +1,4 @@
-# LinkVertex — Database Schema
+# Biotra — Database Schema
 
 ## Tables Overview
 
@@ -123,3 +123,4 @@ Analytics and communication tables with similar uuid/timestamptz patterns.
 - `profiles.user_id` — index for auth joins
 - `links.user_id` + `sort_order` — composite for ordered link queries
 - `catalog_items.user_id` + `enabled` — composite for public catalog
+

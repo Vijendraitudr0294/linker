@@ -6,3 +6,4 @@ ALTER TABLE public.platform_settings
   ADD COLUMN IF NOT EXISTS theme_presets jsonb,
   ADD COLUMN IF NOT EXISTS niche_templates jsonb,
   ADD COLUMN IF NOT EXISTS demo_catalog_packs jsonb;
+

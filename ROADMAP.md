@@ -1,4 +1,4 @@
-# Roadmap: LinkVertex Platform "No-Shit" Fixes
+# Roadmap: Biotra Platform "No-Shit" Fixes
 
 ## Phase 1: Typos, Placeholders & Content Polish
 - [ ] Fix all visible typos in the entire project (`MONHT`, `unlimed`, etc.).

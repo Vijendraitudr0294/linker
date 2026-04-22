@@ -1,4 +1,4 @@
-# LinkVertex — Credentials
+# Biotra — Credentials
 
 ## ⚠️ SECURITY NOTE
 This file is for development/staging reference only.
@@ -27,3 +27,4 @@ All API keys are managed through Lovable Cloud secrets:
 1. Register at /register with email + password
 2. Profile is auto-created by database trigger
 3. To make a user admin: use the admin panel or update `profiles.role` to 'admin'
+

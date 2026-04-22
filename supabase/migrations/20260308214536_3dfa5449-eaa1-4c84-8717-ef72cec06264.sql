@@ -39,3 +39,4 @@ CREATE POLICY "Authenticated users can insert activity logs"
 -- Index for fast lookups
 CREATE INDEX idx_activity_logs_user_id ON public.user_activity_logs(user_id);
 CREATE INDEX idx_activity_logs_created_at ON public.user_activity_logs(created_at DESC);
+

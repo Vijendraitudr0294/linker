@@ -141,3 +141,4 @@ BEGIN
   UPDATE public.links SET clicks = clicks + 1 WHERE id = link_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+

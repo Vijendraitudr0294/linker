@@ -80,7 +80,7 @@ export const inferPlatformLabel = (url: string) => {
   return "Web";
 };
 
-export const YOUTUBE_ID_REGEX = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+export const YOUTUBE_ID_REGEX = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/i;
 
 export const getYouTubeThumbnail = (url: string) => {
   const match = (url || "").match(YOUTUBE_ID_REGEX);

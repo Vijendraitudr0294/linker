@@ -1,4 +1,4 @@
-# LinkVertex — Environment Variables
+# Biotra — Environment Variables
 
 ## Frontend (Auto-configured)
 These are set automatically by Lovable Cloud and should NOT be edited manually:
@@ -31,3 +31,4 @@ These are set automatically by Lovable Cloud and should NOT be edited manually:
 - The `.env` file is auto-generated — do not edit manually
 - Publishable/anon keys are safe to expose in frontend code
 - Service role keys must ONLY be used in edge functions
+

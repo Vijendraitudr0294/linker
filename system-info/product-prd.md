@@ -1,7 +1,7 @@
-# LinkVertex — Product Requirements Document
+# Biotra — Product Requirements Document
 
 ## Product Vision
-LinkVertex is a premium Link-in-Bio SaaS platform that empowers creators, businesses, and professionals to build a beautiful micro-website — combining links, catalogs, contact forms, and payments into one shareable page.
+Biotra is a premium Link-in-Bio SaaS platform that empowers creators, businesses, and professionals to build a beautiful micro-website — combining links, catalogs, contact forms, and payments into one shareable page.
 
 ## Problem Statement
 Creators and small businesses need a single, professional URL to share across social platforms. Existing solutions (Linktree, etc.) lack built-in commerce, customization depth, and analytics granularity.
@@ -71,7 +71,7 @@ Creators and small businesses need a single, professional URL to share across so
 | Avg Links/Profile | 4 | 6 | 8 |
 
 ## Monetization Model
-- **Free Tier** — 5 links, basic themes, LinkVertex branding
+- **Free Tier** — 5 links, basic themes, Biotra branding
 - **Pro ($5/mo)** — Unlimited links, all themes, custom domain, no branding
 - **Business ($15/mo)** — Catalog, orders, analytics, priority support
 
@@ -98,3 +98,4 @@ Creators and small businesses need a single, professional URL to share across so
 - Webhooks
 - White-label solution
 - Advanced analytics with AI insights
+

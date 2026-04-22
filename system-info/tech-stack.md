@@ -1,4 +1,4 @@
-# LinkVertex — Tech Stack
+# Biotra — Tech Stack
 
 ## Frontend
 
@@ -52,3 +52,4 @@
 3. **Edge Functions over traditional API** — Auto-scaling, no server management
 4. **RLS over middleware auth** — Database-level security, impossible to bypass
 5. **Vite over Webpack** — 10x faster builds, native ESM support
+

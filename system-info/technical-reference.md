@@ -1,4 +1,4 @@
-# LinkVertex — Complete Technical Reference
+# Biotra — Complete Technical Reference
 
 > **Last Updated**: March 2026  
 > **Version**: 1.0  
@@ -24,7 +24,7 @@
 
 ## 1. Product Overview
 
-**LinkVertex** is a Link-in-Bio SaaS platform that lets creators, businesses, and professionals build a micro-website combining links, catalogs, contact forms, and payments — all accessible via a single URL (`/p/username`).
+**Biotra** is a Link-in-Bio SaaS platform that lets creators, businesses, and professionals build a micro-website combining links, catalogs, contact forms, and payments — all accessible via a single URL (`/p/username`).
 
 **Core Capabilities:**
 - Link management with platform detection
@@ -299,7 +299,7 @@ This section is for **development/staging reference only**. Never commit product
 
 | Account | Email | Password | Role |
 |---------|-------|----------|------|
-| Super Admin | superadmin@linkvertex.com | Admin@123 | superadmin |
+| Super Admin | superadmin@Biotra.com | Admin@123 | superadmin |
 | Regular User | user@123.com | User@123 | user |
 | Admin (default) | admin@test.com | (set at registration) | admin |
 
@@ -565,3 +565,4 @@ system-info/                   # Documentation
 ---
 
 *End of Technical Reference*
+

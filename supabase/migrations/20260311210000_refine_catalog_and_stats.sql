@@ -9,3 +9,4 @@ ADD COLUMN IF NOT EXISTS media jsonb DEFAULT '[]'::jsonb;
 -- Let's just update the profile to have more comprehensive creator fields.
 ALTER TABLE public.profiles
 ADD COLUMN IF NOT EXISTS creator_metrics jsonb DEFAULT '{"engagement_rate": "", "avg_views": "", "reach": ""}'::jsonb;
+

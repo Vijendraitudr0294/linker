@@ -32,3 +32,4 @@ create policy "Users can insert their own form uploads"
   on public.form_uploads
   for insert
   with check (auth.uid() = user_id);
+

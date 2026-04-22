@@ -86,12 +86,12 @@ serve(async (req) => {
             <tbody>${itemRows}</tbody>
           </table>
           ${manageInventory}
-          <p style="color:#94a3b8;font-size:12px;margin-top:20px">Manage your inventory at your LinkVertex dashboard.</p>
+          <p style="color:#94a3b8;font-size:12px;margin-top:20px">Manage your inventory at your Biotra dashboard.</p>
         </div>
       `;
 
       const { error: sendError } = await sendEmail({
-        from: "LinkVertex <onboarding@resend.dev>",
+        from: "Biotra <onboarding@resend.dev>",
         to: [profile.email],
         subject: `Low Stock Alert: ${items.length} item${items.length > 1 ? "s" : ""} need restocking`,
         html,
@@ -114,3 +114,4 @@ serve(async (req) => {
     });
   }
 });
+

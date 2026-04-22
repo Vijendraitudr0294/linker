@@ -1,3 +1,5 @@
+import { buildBackendUrl } from "@/lib/backendUrl";
+
 export interface AnalyticsEventPayload {
   event_type: string;
   entity_id: string;
@@ -16,7 +18,7 @@ export const sendAnalyticsEvents = async (
   if (batch.length === 0) return false;
 
   try {
-    const response = await fetch("/api/v1/events", {
+    const response = await fetch(buildBackendUrl("/api/v1/events"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(batch.length === 1 ? batch[0] : batch),

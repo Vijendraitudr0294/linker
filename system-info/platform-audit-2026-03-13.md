@@ -1,6 +1,6 @@
 # Platform Audit & Expansion Report
 Date: 2026-03-13
-Product: LinkVertex (Creator Commerce Platform)
+Product: Biotra (Creator Commerce Platform)
 Goal: Benchmark against Linktree core capabilities and simplify creator-side UX while centralizing advanced controls in Super Admin.
 
 ## 1) Linktree Baseline (Current Market Signals)
@@ -17,7 +17,7 @@ Key Linktree capability areas identified:
 - Social automation: social posting/scheduling and Instagram automation (auto-DMs) on higher plans.
 - Team/business tooling: onboarding/support tiers and add-on team workflows on premium plans.
 
-## 2) Feature Inventory (Linktree vs LinkVertex)
+## 2) Feature Inventory (Linktree vs Biotra)
 
 ### Core checklist
 - [x] Custom public profile URL + profile page rendering
@@ -54,7 +54,7 @@ Competitor capabilities observed:
 - Memberships/courses/appointments in one creator stack.
 - More automation/integration hooks (e.g., Zapier-style integrations).
 
-Recommended expansion priority for LinkVertex:
+Recommended expansion priority for Biotra:
 1. Payment gateways (Stripe/Razorpay/PayPal) with real checkout and webhook confirmations.
 2. Email audience capture + subscriber list + broadcast/automation basics.
 3. Redirect + scheduled links (go-live/go-offline).
@@ -199,3 +199,4 @@ Recommended scaling plan:
 - Complex features moved to super admin: creator catalog taxonomy editing removed; admin ownership reinforced.
 - Bug fixes applied: hook/effect/store fixes + onboarding data safety.
 - Performance optimizations: immediate code-level cleanup + concrete scaling roadmap.
+

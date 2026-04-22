@@ -12,3 +12,4 @@ AS $$
     WHERE user_id = _user_id AND role = 'superadmin'
   )
 $$;
+

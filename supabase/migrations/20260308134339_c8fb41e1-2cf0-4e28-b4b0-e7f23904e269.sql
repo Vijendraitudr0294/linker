@@ -23,3 +23,4 @@ CREATE POLICY "Users can view own catalog analytics"
 -- Index for fast queries
 CREATE INDEX idx_catalog_analytics_profile ON public.catalog_analytics(profile_user_id, created_at);
 CREATE INDEX idx_catalog_analytics_item ON public.catalog_analytics(item_id, event_type);
+

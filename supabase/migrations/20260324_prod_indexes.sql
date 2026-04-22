@@ -11,3 +11,4 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_analytics_entity_time
 
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_posts_scheduled
   ON social_posts(scheduled_at) WHERE status = 'scheduled';
+

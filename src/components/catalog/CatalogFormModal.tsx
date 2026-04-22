@@ -44,7 +44,7 @@ const getMediaThumbnail = (url: string) => {
   if (!cleanUrl) return null;
 
   // YouTube
-  const ytMatch = cleanUrl.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
+  const ytMatch = cleanUrl.match(/(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/i);
   if (ytMatch?.[1]) {
     return { 
       url: `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`,

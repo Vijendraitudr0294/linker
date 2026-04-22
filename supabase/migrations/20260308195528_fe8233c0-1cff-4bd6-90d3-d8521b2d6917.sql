@@ -2,7 +2,7 @@
 -- Platform settings table (single row for site-wide config)
 CREATE TABLE public.platform_settings (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  site_name text NOT NULL DEFAULT 'LinkVertex',
+  site_name text NOT NULL DEFAULT 'Biotra',
   site_logo_url text DEFAULT '',
   default_theme_id text NOT NULL DEFAULT 'clean-white',
   allow_registration boolean NOT NULL DEFAULT true,
@@ -50,3 +50,4 @@ CREATE TRIGGER update_platform_settings_updated_at
   BEFORE UPDATE ON public.platform_settings
   FOR EACH ROW
   EXECUTE FUNCTION public.update_updated_at_column();
+

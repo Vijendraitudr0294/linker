@@ -11,3 +11,4 @@ WHERE shop_tab_label IS NULL
    OR links_tab_label IS NULL
    OR shop_tab_label = ''
    OR links_tab_label = '';
+

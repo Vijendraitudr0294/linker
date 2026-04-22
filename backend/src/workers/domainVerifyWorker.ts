@@ -1,48 +1,43 @@
 import { Worker } from "bullmq";
-import { createClient } from "@supabase/supabase-js";
-import { redisConnection } from "../queues/socialQueue";
+import { redisConnection, supabase } from "../queues/socialQueue";
 
-const supabase = createClient(
-  process.env.SUPABASE_URL || "https://placeholder.supabase.co",
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || "placeholder"
-);
+export const domainVerifyWorker = redisConnection
+  ? new Worker(
+      "domain-verify",
+      async (job) => {
+        const { userId, domain, txtRecord } = job.data as { userId: string; domain: string; txtRecord: string };
 
-export const domainVerifyWorker = new Worker(
-  "domain-verify",
-  async (job) => {
-    const { userId, domain, txtRecord } = job.data;
+        const res = await fetch(
+          `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=TXT`
+        );
+        const data = (await res.json()) as {
+          Answer?: Array<{ type: number; data: string }>;
+        };
 
-    const res  = await fetch(
-      `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=TXT`
-    );
-    const data = await res.json();
+        const records: string[] = (data.Answer ?? [])
+          .filter((a) => a.type === 16)
+          .map((a) => a.data.replace(/^"|"$/g, "").trim());
 
-    const records: string[] = (data.Answer ?? [])
-      .filter((a: { type: number }) => a.type === 16)
-      .map((a: { data: string }) =>
-        a.data.replace(/^"|"$/g, "").trim()
-      );
+        if (records.includes(txtRecord)) {
+          await supabase
+            .from("custom_domains")
+            .update({ verified: true, verified_at: new Date().toISOString() })
+            .eq("user_id", userId)
+            .eq("domain", domain);
 
-    if (records.includes(txtRecord)) {
-      await supabase
-        .from("custom_domains")
-        .update({ verified: true, verified_at: new Date().toISOString() })
-        .eq("user_id", userId)
-        .eq("domain", domain);
+          console.log("[domain-verify] verified:", { userId, domain });
+          await job.remove();
+          return;
+        }
 
-      console.log("[domain-verify] ✅ Domain verified:", { userId, domain });
+        console.log("[domain-verify] pending:", {
+          userId,
+          domain,
+          attempt: job.attemptsMade,
+        });
+        throw new Error(`DNS record not found for ${domain} (attempt ${job.attemptsMade})`);
+      },
+      { connection: redisConnection, concurrency: 10 }
+    )
+  : null;
 
-      // Remove remaining attempts since verification succeeded
-      await job.remove();
-      return;
-    }
-
-    console.log("[domain-verify] ⏳ Domain not yet verified:", {
-      userId, domain, attempt: job.attemptsMade,
-    });
-
-    // Throw to trigger retry with backoff
-    throw new Error(`DNS record not found for ${domain} (attempt ${job.attemptsMade})`);
-  },
-  { connection: redisConnection, concurrency: 10 }
-);

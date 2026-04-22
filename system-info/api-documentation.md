@@ -1,4 +1,4 @@
-# LinkVertex — API Documentation
+# Biotra — API Documentation
 
 ## Authentication
 
@@ -101,3 +101,4 @@ supabase.storage.from("user-uploads").upload(`${userId}/${filename}`, file)
 // Get public URL
 supabase.storage.from("user-uploads").getPublicUrl(path)
 ```
+

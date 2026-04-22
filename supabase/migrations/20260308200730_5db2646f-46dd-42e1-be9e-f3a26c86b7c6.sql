@@ -31,3 +31,4 @@ ALTER TABLE public.platform_settings
   ADD COLUMN IF NOT EXISTS enable_order_notifications boolean NOT NULL DEFAULT true,
   ADD COLUMN IF NOT EXISTS enable_contact_notifications boolean NOT NULL DEFAULT true,
   ADD COLUMN IF NOT EXISTS enable_low_stock_notifications boolean NOT NULL DEFAULT true;
+

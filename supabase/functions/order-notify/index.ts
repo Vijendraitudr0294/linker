@@ -111,13 +111,13 @@ Deno.serve(async (req: Request) => {
             </table>
           </div>
           <div style="text-align: center;">
-            <p style="font-size: 12px; color: #999;">Thank you for using LinkVertex</p>
+            <p style="font-size: 12px; color: #999;">Thank you for using Biotra</p>
           </div>
         </div>
       `;
 
       const { data, error } = await sendEmail({
-        from: "LinkVertex <updates@resend.dev>",
+        from: "Biotra <updates@resend.dev>",
         to: [toEmail],
         subject,
         html,
@@ -153,7 +153,7 @@ Deno.serve(async (req: Request) => {
       `;
 
       const { error: ownerError } = await sendEmail({
-        from: "LinkVertex Orders <orders@resend.dev>",
+        from: "Biotra Orders <orders@resend.dev>",
         to: [profile.email],
         subject: ownerSubject,
         html: ownerHtml,
@@ -169,7 +169,7 @@ Deno.serve(async (req: Request) => {
 
       const customerSubject = `Confirmation: Your ${typeTerm} for ${itemTitle}`;
       const customerCta = siteUrl
-        ? `<p style="text-align:center;margin-top:18px;"><a href="${siteUrl}" style="display:inline-block;padding:10px 14px;background:#111;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Open LinkVertex</a></p>`
+        ? `<p style="text-align:center;margin-top:18px;"><a href="${siteUrl}" style="display:inline-block;padding:10px 14px;background:#111;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Open Biotra</a></p>`
         : "";
 
       const customerHtml = `
@@ -190,7 +190,7 @@ Deno.serve(async (req: Request) => {
       `;
 
       const { data, error } = await sendEmail({
-        from: "LinkVertex <onboarding@resend.dev>",
+        from: "Biotra <onboarding@resend.dev>",
         to: [order.customer_email],
         subject: customerSubject,
         html: customerHtml,
@@ -233,3 +233,4 @@ Deno.serve(async (req: Request) => {
     });
   }
 });
+

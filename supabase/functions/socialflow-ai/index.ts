@@ -67,3 +67,4 @@ Generate a caption for this idea: ${prompt}`;
     });
   }
 });
+

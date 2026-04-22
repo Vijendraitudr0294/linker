@@ -89,3 +89,4 @@ CREATE TRIGGER on_qr_codes_updated
     BEFORE UPDATE ON public.qr_codes
     FOR EACH ROW
     EXECUTE FUNCTION public.handle_updated_at();
+

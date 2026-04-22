@@ -1,10 +1,9 @@
-# Requirements: Fixing the LinkVertex Platform
+# Requirements: Fixing the Biotra Platform
 
 ## V1 Scope: The "No-Shit" Fixes
 - [ ] Correct all typos:
   - `MONHT` -> `MONTH`
   - `unlimed` -> `unlimited`
-  - `BIOTRA` -> `LinkVertex` (if possible, ask user) - Actually, I'll stick with BIOTRA if it's the brand, but I'll search for "BIOTRA" and see if I should rename it.
 - [ ] Remove all "SDFZDF", "SDFSDFSD", "TEST" placeholders.
 - [ ] Implement robust auth protection on all `/dashboard` and `/admin` routes. If a user is NOT logged in and tries to access these routes, they must be redirected to `/login`.
 - [ ] Populate the Footer with real-ish links (Social, Product, Company).

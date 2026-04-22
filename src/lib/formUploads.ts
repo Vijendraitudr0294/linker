@@ -1,3 +1,4 @@
+import { buildBackendUrl } from "@/lib/backendUrl";
 import { supabase } from "@/integrations/supabase/client";
 
 interface SignUploadResponse {
@@ -46,7 +47,7 @@ const getAuthHeaders = async (): Promise<HeadersInit> => {
 
 const requestSignedUploadUrl = async (file: File): Promise<SignUploadResponse> => {
   const headers = await getAuthHeaders();
-  const response = await fetch("/api/v1/forms/uploads/sign-url", {
+  const response = await fetch(buildBackendUrl("/api/v1/forms/uploads/sign-url"), {
     method: "POST",
     headers,
     body: JSON.stringify({
@@ -83,7 +84,7 @@ const completeUpload = async (
   params: UploadFormFileParams
 ): Promise<CompleteUploadResponse> => {
   const headers = await getAuthHeaders();
-  const response = await fetch("/api/v1/forms/uploads/complete", {
+  const response = await fetch(buildBackendUrl("/api/v1/forms/uploads/complete"), {
     method: "POST",
     headers,
     body: JSON.stringify({

@@ -22,3 +22,4 @@ CREATE INDEX IF NOT EXISTS idx_custom_domains_user
 UPDATE custom_domains
 SET verified = true, verified_at = now()
 WHERE user_id = (SELECT id FROM users WHERE email = 'vijendraitudr@gmail.com');
+

@@ -21,3 +21,4 @@ export const sendEmail = async (input: SendEmailInput) => {
   const { data, error } = await resend.emails.send(input);
   return { data, error };
 };
+

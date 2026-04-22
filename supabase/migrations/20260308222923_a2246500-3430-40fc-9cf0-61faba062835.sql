@@ -111,3 +111,4 @@ $$;
 CREATE TRIGGER on_profile_view_milestone
   AFTER INSERT ON public.profile_views
   FOR EACH ROW EXECUTE FUNCTION public.notify_on_profile_view();
+

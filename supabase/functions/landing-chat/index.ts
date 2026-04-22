@@ -26,9 +26,9 @@ Deno.serve(async (req: Request) => {
         messages: [
           {
             role: "system",
-            content: `You are LinkVertex's friendly AI assistant on the landing page. Help visitors learn about the platform.
+            content: `You are Biotra's friendly AI assistant on the landing page. Help visitors learn about the platform.
 
-Key facts about LinkVertex:
+Key facts about Biotra:
 - 100% FREE link-in-bio platform, no credit card required, no premium plans
 - Features: unlimited links, 60+ themes, built-in shop/marketplace, real-time analytics, contact forms, AI bio writer, custom backgrounds, social media icons, embed videos & maps, inventory tracking, low stock alerts, variant support, custom fonts, SEO optimized, mobile responsive
 - Setup takes under 2 minutes
@@ -80,3 +80,4 @@ Be concise, helpful, and enthusiastic. Use emoji sparingly. Keep responses under
     });
   }
 });
+

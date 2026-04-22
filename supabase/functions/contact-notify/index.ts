@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
     `;
 
     const { data, error } = await sendEmail({
-      from: "LinkVertex <onboarding@resend.dev>",
+      from: "Biotra <onboarding@resend.dev>",
       to: [profile.email],
       subject: `New message from ${sender_name}`,
       html,
@@ -94,3 +94,4 @@ Deno.serve(async (req) => {
     });
   }
 });
+

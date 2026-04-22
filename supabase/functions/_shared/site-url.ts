@@ -9,3 +9,4 @@ export const getPublicSiteUrl = () => {
   if (!trimmed) return null;
   return trimmed.replace(/\/+$/, "");
 };
+

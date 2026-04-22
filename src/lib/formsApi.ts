@@ -1,3 +1,4 @@
+import { buildBackendUrl } from "@/lib/backendUrl";
 import { supabase } from "@/integrations/supabase/client";
 
 export type BuilderField = {
@@ -75,7 +76,7 @@ const withBackendFallback = async <T>(
 
 async function authedRequest<T>(url: string, init: RequestInit): Promise<T> {
   const headers = await getAuthHeaders();
-  const response = await fetch(url, { ...init, headers: { ...headers, ...(init.headers || {}) } });
+  const response = await fetch(buildBackendUrl(url), { ...init, headers: { ...headers, ...(init.headers || {}) } });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     throw new Error(body?.error || "Request failed");
@@ -317,7 +318,7 @@ export const listFormSubmissions = async (formId: string) => {
 export const getPublicForm = async (slug: string) => {
   return withBackendFallback(
     async () => {
-      const response = await fetch(`/api/v1/forms/public/${slug}`);
+      const response = await fetch(buildBackendUrl(`/api/v1/forms/public/${slug}`));
       if (!response.ok) throw new Error("Form not found");
       return (await response.json()) as { form: FormRecord };
     },
@@ -359,7 +360,7 @@ export const getPublicForm = async (slug: string) => {
 export const submitPublicForm = async (slug: string, payload: Record<string, unknown>) => {
   return withBackendFallback(
     async () => {
-      const response = await fetch(`/api/v1/forms/public/${slug}/submit`, {
+      const response = await fetch(buildBackendUrl(`/api/v1/forms/public/${slug}/submit`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -403,7 +404,7 @@ export const signPublicFormUpload = async (slug: string, payload: {
   fileSize: number;
   fieldId: string;
 }) => {
-  const response = await fetch(`/api/v1/forms/public/${slug}/upload/sign-url`, {
+  const response = await fetch(buildBackendUrl(`/api/v1/forms/public/${slug}/upload/sign-url`), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -426,7 +427,7 @@ export const completePublicFormUpload = async (
     fieldId: string;
   }
 ) => {
-  const response = await fetch(`/api/v1/forms/public/${slug}/upload/complete`, {
+  const response = await fetch(buildBackendUrl(`/api/v1/forms/public/${slug}/upload/complete`), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),

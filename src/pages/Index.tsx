@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence, useScroll, useTransform, useSpring, useInView } from "framer-motion";
-import { Zap, ShoppingBag, BarChart3, Globe, ArrowRight, Sparkles, User, MessageCircle, Play, CheckCircle2, Layout, ShieldCheck, Cpu, Smartphone, Database, Terminal, Layers, ArrowUpRight, Share2, MousePointer2, Instagram, Twitter, Youtube, Music, ShoppingCart, QrCode, Monitor, ChevronRight, Github, Linkedin, Mail, Heart, Rocket, Compass, Send, Star, Radio } from "lucide-react";
+import { motion, AnimatePresence, useScroll, useTransform, useSpring, useInView, type MotionValue } from "framer-motion";
+import { Zap, ShoppingBag, BarChart3, Globe, ArrowRight, Sparkles, User, MessageCircle, Play, CheckCircle2, Layout, ShieldCheck, Cpu, Smartphone, Database, Terminal, Layers, ArrowUpRight, Share2, MousePointer2, Instagram, Twitter, Youtube, Music, ShoppingCart, QrCode, Monitor, ChevronRight, Github, Linkedin, Mail, Heart, Rocket, Compass, Send, Star, Radio, type LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +34,53 @@ import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import ChatWidget from "@/components/landing/ChatWidget";
 
+const heroFloatingIcons = [
+    { Icon: Instagram, bg: "bg-pink-300", text: "text-black", top: "12%", left: "8%" },
+    { Icon: Twitter, bg: "bg-sky-400", text: "text-black", top: "75%", left: "5%" },
+    { Icon: Youtube, bg: "bg-red-400", text: "text-white", top: "45%", left: "12%" },
+    { Icon: Music, bg: "bg-emerald-400", text: "text-black", top: "18%", left: "85%" },
+    { Icon: ShoppingCart, bg: "bg-yellow-400", text: "text-black", top: "82%", left: "88%" },
+    { Icon: QrCode, bg: "bg-fuchsia-400", text: "text-black", top: "50%", left: "90%" },
+] as const;
+
+type HeroFloatingIconProps = {
+    Icon: LucideIcon;
+    bg: string;
+    text: string;
+    top: string;
+    left: string;
+    index: number;
+    scrollY: MotionValue<number>;
+};
+
+const HeroFloatingIcon = ({ Icon, bg, text, top, left, index, scrollY }: HeroFloatingIconProps) => {
+    const parallaxY = useTransform(scrollY, [0, 1000], [0, (index % 2 === 0 ? 1 : -1) * 200]);
+
+    return (
+        <motion.div
+            animate={{
+                y: [0, index % 2 === 0 ? 20 : -20, 0],
+                x: [0, index % 3 === 0 ? 15 : -15, 0],
+                rotate: [0, index % 2 === 0 ? 10 : -10, 0]
+            }}
+            transition={{
+                duration: 5 + index,
+                repeat: Infinity,
+                delay: index * 0.2,
+                ease: "easeInOut"
+            }}
+            style={{
+                left,
+                top,
+                y: parallaxY,
+            }}
+            className={cn("absolute w-12 h-12 sm:w-16 sm:h-16 border-[3px] border-black rounded-xl md:rounded-[20px] shadow-[6px_6px_0_0_rgba(0,0,0,1)] flex items-center justify-center z-0", bg, text)}
+        >
+            <Icon size={24} strokeWidth={3} />
+        </motion.div>
+    );
+};
+
 // HERO SECTION (STORY: TESSA)
 const Hero = () => {
     const { scrollY } = useScroll();
@@ -47,36 +94,17 @@ const Hero = () => {
 
             {/* Parallax Floating Icons - Emotional Trigger: Joyful Liberation */}
             <div className="absolute inset-0 pointer-events-none">
-                {[
-                    { Icon: Instagram, bg: "bg-pink-300", text: "text-black", top: "12%", left: "8%" },
-                    { Icon: Twitter, bg: "bg-sky-400", text: "text-black", top: "75%", left: "5%" },
-                    { Icon: Youtube, bg: "bg-red-400", text: "text-white", top: "45%", left: "12%" },
-                    { Icon: Music, bg: "bg-emerald-400", text: "text-black", top: "18%", left: "85%" },
-                    { Icon: ShoppingCart, bg: "bg-yellow-400", text: "text-black", top: "82%", left: "88%" },
-                    { Icon: QrCode, bg: "bg-fuchsia-400", text: "text-black", top: "50%", left: "90%" }
-                ].map(({ Icon, bg, text, top, left }, i) => (
-                    <motion.div
+                {heroFloatingIcons.map(({ Icon, bg, text, top, left }, i) => (
+                    <HeroFloatingIcon
                         key={i}
-                        animate={{ 
-                            y: [0, i % 2 === 0 ? 20 : -20, 0],
-                            x: [0, i % 3 === 0 ? 15 : -15, 0],
-                            rotate: [0, i % 2 === 0 ? 10 : -10, 0]
-                        }}
-                        transition={{ 
-                            duration: 5 + i, 
-                            repeat: Infinity, 
-                            delay: i * 0.2, 
-                            ease: "easeInOut" 
-                        }}
-                        style={{ 
-                            left, 
-                            top,
-                            y: useTransform(scrollY, [0, 1000], [0, ((i % 2 === 0 ? 1 : -1) * 200)])
-                        }}
-                        className={cn("absolute w-12 h-12 sm:w-16 sm:h-16 border-[3px] border-black rounded-xl md:rounded-[20px] shadow-[6px_6px_0_0_rgba(0,0,0,1)] flex items-center justify-center z-0", bg, text)}
-                    >
-                        <Icon size={24} strokeWidth={3} />
-                    </motion.div>
+                        Icon={Icon}
+                        bg={bg}
+                        text={text}
+                        top={top}
+                        left={left}
+                        index={i}
+                        scrollY={scrollY}
+                    />
                 ))}
             </div>
 

@@ -1,7 +1,7 @@
-# LinkVertex: Complete Project Documentation
+# Biotra: Complete Project Documentation
 
 ## 1. Project Overview
-**LinkVertex** is a premium "Link-in-Bio" platform designed for high-end creators, influencers, and businesses. It enables users to create aesthetic, mobile-optimized personal landing pages that aggregate social links, product catalogs, and custom content with a focus on world-class design and AI-driven customization.
+**Biotra** is a premium "Link-in-Bio" platform designed for high-end creators, influencers, and businesses. It enables users to create aesthetic, mobile-optimized personal landing pages that aggregate social links, product catalogs, and custom content with a focus on world-class design and AI-driven customization.
 
 ---
 
@@ -72,7 +72,7 @@ Reserved for platform operators.
 ### I. Onboarding Flow
 1. **Landing Page** → **Register** → **User Creation**.
 2. **Setup Wizard** (Optional) → **Profile Creation**.
-3. **Claim Username** → Unique URL allocation (`linkvertex.com/p/user`).
+3. **Claim Username** → Unique URL allocation (`biotra.cc/p/user`).
 
 ### II. Content Management Flow
 1. **Link Editor** → **Add New Link** → **Define Title/URL** → **Select Icon**.

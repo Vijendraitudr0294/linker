@@ -66,8 +66,9 @@ const qrTypes: { value: QRType; label: string; icon: any; placeholder: string }[
 
 const QRForgePage = () => {
   const user = useAuthStore((s) => s.user);
-  const { data: qrs = [], isLoading: loading } = useQRCodes(user?.id);
-  const { addQRCode, deleteQRCode, clearAllQRCodes } = useQRForgeMutations(user?.id);
+  const qrUserId = user?.user_id;
+  const { data: qrs = [], isLoading: loading } = useQRCodes(qrUserId);
+  const { addQRCode, deleteQRCode, clearAllQRCodes } = useQRForgeMutations(qrUserId);
 
   const [activeTab, setActiveTab] = useState("dashboard");
   const [selectedType, setSelectedType] = useState<QRType>("url");

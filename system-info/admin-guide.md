@@ -1,4 +1,4 @@
-# LinkVertex — Admin Guide
+# Biotra — Admin Guide
 
 ## Accessing the Admin Panel
 1. Log in with an admin account
@@ -51,3 +51,4 @@ SEO is automatic per profile:
 - OpenGraph tags for social sharing
 - Twitter Card meta tags
 - Semantic HTML structure
+

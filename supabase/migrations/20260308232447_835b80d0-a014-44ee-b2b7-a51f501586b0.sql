@@ -25,3 +25,4 @@ CREATE POLICY "Admins can update any appearance"
 ON public.appearance_settings
 FOR UPDATE
 USING (public.is_admin(auth.uid()));
+

@@ -85,3 +85,4 @@ GRANT EXECUTE ON FUNCTION delete_links(uuid, uuid[]) TO authenticated;
 
 -- 4. Indexes
 CREATE INDEX IF NOT EXISTS idx_links_user_order ON links(user_id, sort_order);
+

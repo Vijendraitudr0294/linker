@@ -3,7 +3,7 @@
 Generated: 2026-03-12T12:18:46.106Z
 
 ## System Overview
-- **Purpose**: LinkVertex is a creator-focused link-in-bio platform that combines profile links, storefront/catalog listing, order capture, contact messaging, analytics, and visual theming in one SPA.
+- **Purpose**: Biotra is a creator-focused link-in-bio platform that combines profile links, storefront/catalog listing, order capture, contact messaging, analytics, and visual theming in one SPA.
 - **Core functionality**:
   - Public creator profile rendering with dynamic links, contact form, social stats, and themed visuals.
   - Embedded catalog/shop with item categories, item types, analytics tracking, cart, and multi-step checkout.

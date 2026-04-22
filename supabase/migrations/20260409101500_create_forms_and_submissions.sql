@@ -62,3 +62,4 @@ create policy "Users can read submissions for own forms"
       where f.id = form_id and f.user_id = auth.uid()
     )
   );
+

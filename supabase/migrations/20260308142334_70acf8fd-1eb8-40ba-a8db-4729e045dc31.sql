@@ -19,3 +19,4 @@ CREATE TRIGGER trg_decrement_stock_on_order
 AFTER INSERT ON public.catalog_orders
 FOR EACH ROW
 EXECUTE FUNCTION public.decrement_stock_on_order();
+

@@ -19,3 +19,4 @@ CREATE POLICY "Anyone can insert profile views"
 CREATE POLICY "Users can view own profile views"
   ON public.profile_views FOR SELECT
   USING (auth.uid() = profile_user_id);
+

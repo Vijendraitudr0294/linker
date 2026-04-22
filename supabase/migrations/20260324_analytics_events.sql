@@ -45,3 +45,4 @@ $$;
 -- Drop legacy hardcoded locked sequences
 ALTER TABLE links DROP COLUMN IF EXISTS clicks;
 ALTER TABLE qr_codes DROP COLUMN IF EXISTS scans;
+

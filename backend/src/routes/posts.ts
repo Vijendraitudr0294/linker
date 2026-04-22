@@ -1,12 +1,24 @@
-import { Router } from 'express';
-import { socialQueue, socialDlqQueue, supabase } from '../queues/socialQueue';
+import { Response, Router } from 'express';
+import { queueUnavailableMessage, socialDlqQueue, socialQueue, supabase } from '../queues/socialQueue';
 import { parseScheduledAt, sanitizePostPayload } from '../lib/postScheduling';
 import { requireSupabaseAuth } from '../lib/auth';
 
 export const postRouter = Router();
 postRouter.use(requireSupabaseAuth);
 
+const ensureQueues = (res: Response): boolean => {
+  if (!socialQueue || !socialDlqQueue) {
+    res.status(503).json({ error: queueUnavailableMessage });
+    return false;
+  }
+  return true;
+};
+
 postRouter.post('/', async (req, res) => {
+  if (!ensureQueues(res)) return;
+  const queue = socialQueue;
+  if (!queue) return;
+
   const payload = sanitizePostPayload(req.body);
   if (!payload || !payload.scheduledAt) {
     return res.status(422).json({ error: 'content, platforms, and a valid scheduledAt are required' });
@@ -19,7 +31,7 @@ postRouter.post('/', async (req, res) => {
   }).select().single();
 
   const delay = Math.max(0, scheduledAt.scheduledAtMs - Date.now());
-  const job = await socialQueue.add('publish', { postId: post.id, userId, platforms, scheduledAt: scheduledAt.scheduledAtMs }, { delay, jobId: `post-${post.id}` });
+  const job = await queue.add('publish', { postId: post.id, userId, platforms, scheduledAt: scheduledAt.scheduledAtMs }, { delay, jobId: `post-${post.id}` });
   res.json({ post, jobId: job.id });
 });
 
@@ -42,11 +54,15 @@ postRouter.patch('/:id', async (req, res) => {
   }
 
   if (status === 'scheduled' && parsedScheduledAt) {
-    const oldJob = await socialQueue.getJob(`post-${id}`);
+    if (!ensureQueues(res)) return;
+    const queue = socialQueue;
+    if (!queue) return;
+
+    const oldJob = await queue.getJob(`post-${id}`);
     if (oldJob && await oldJob.isActive() === false) await oldJob.remove();
 
     const delay = Math.max(0, parsedScheduledAt.scheduledAtMs - Date.now());
-    await socialQueue.add('publish', { postId: post.id, userId: post.user_id, platforms: post.platforms, scheduledAt: parsedScheduledAt.scheduledAtMs }, { delay, jobId: `post-${id}` });
+    await queue.add('publish', { postId: post.id, userId: post.user_id, platforms: post.platforms, scheduledAt: parsedScheduledAt.scheduledAtMs }, { delay, jobId: `post-${id}` });
   }
 
   const updatePayload: Record<string, unknown> = {};
@@ -61,6 +77,10 @@ postRouter.patch('/:id', async (req, res) => {
 });
 
 postRouter.delete('/:id', async (req, res) => {
+  if (!ensureQueues(res)) return;
+  const queue = socialQueue;
+  if (!queue) return;
+
   const { id } = req.params;
   const { data: post } = await supabase.from('posts').select('user_id').eq('id', id).single();
   if (!post) {
@@ -70,7 +90,7 @@ postRouter.delete('/:id', async (req, res) => {
     return res.status(403).json({ error: 'You do not have access to this post' });
   }
 
-  const job = await socialQueue.getJob(`post-${id}`);
+  const job = await queue.getJob(`post-${id}`);
   if (job) {
     const state = await job.getState();
     if (state !== 'active') await job.remove();
@@ -80,7 +100,11 @@ postRouter.delete('/:id', async (req, res) => {
 });
 
 postRouter.get('/health', async (req, res) => {
-  const counts = await socialQueue.getJobCounts();
-  const dlqCounts = await socialDlqQueue.getJobCounts();
+  if (!ensureQueues(res)) return;
+  const queue = socialQueue;
+  const dlq = socialDlqQueue;
+  if (!queue || !dlq) return;
+  const counts = await queue.getJobCounts();
+  const dlqCounts = await dlq.getJobCounts();
   res.json({ waiting: counts.waiting, active: counts.active, failed: counts.failed, dlq: dlqCounts.waiting + dlqCounts.completed });
 });

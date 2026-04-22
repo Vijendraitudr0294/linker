@@ -20,7 +20,7 @@ export const stepHeadings: Record<StepKey, { title: string; subtitle: string }> 
   success: { title: "Confirmed", subtitle: "Your request has been submitted" },
 };
 
-export const YOUTUBE_ID_REGEX = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+export const YOUTUBE_ID_REGEX = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/i;
 export const VIMEO_ID_REGEX = /vimeo\.com\/(?:video\/)?(\d+)/i;
 
 export const toEmbedVideoUrl = (value: string): string | null => {

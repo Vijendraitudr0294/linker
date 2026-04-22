@@ -68,16 +68,16 @@ const BlogPostPage = () => {
       document.title = `${post.seo_title || post.title} | Biotra Blog`;
       
       // Update meta description
-      let metaDesc = document.querySelector('meta[name="description"]');
+      const metaDesc = document.querySelector('meta[name="description"]');
       if (metaDesc) metaDesc.setAttribute("content", post.seo_description || post.excerpt);
       
       // Update OG tags
-      let ogTitle = document.querySelector('meta[property="og:title"]');
+      const ogTitle = document.querySelector('meta[property="og:title"]');
       if (ogTitle) ogTitle.setAttribute("content", post.seo_title || post.title);
-      let ogDesc = document.querySelector('meta[property="og:description"]');
+      const ogDesc = document.querySelector('meta[property="og:description"]');
       if (ogDesc) ogDesc.setAttribute("content", post.seo_description || post.excerpt);
       if (post.image_url) {
-        let ogImage = document.querySelector('meta[property="og:image"]');
+        const ogImage = document.querySelector('meta[property="og:image"]');
         if (ogImage) ogImage.setAttribute("content", post.image_url);
       }
     }

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, ArrowRight, ArrowLeft, BadgeCheck, Wand2, Globe2, Store, Mic2, Briefcase, Link2 } from "lucide-react";
+import { Sparkles, ArrowRight, ArrowLeft, BadgeCheck, Wand2, Globe2, Store, Mic2, Briefcase, Link2, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "@/stores/authStore";
 import { useAppearanceStore } from "@/stores/appearanceStore";
@@ -229,173 +229,255 @@ const Onboarding = () => {
   }
 
   return (
-    <div className="min-h-screen lg:h-[100dvh] overflow-y-auto lg:overflow-hidden bg-[#F3F4F6] text-black">
-      <div className="mx-auto min-h-screen lg:h-full max-w-[960px] px-3 py-2 md:px-4 md:py-3">
-        <div className="space-y-3 lg:min-h-0 flex flex-col">
-          <div className="bruddle-card bg-white p-4 md:p-5">
-            <div className="grid gap-4 lg:grid-cols-[60%_30%] lg:justify-between lg:items-center">
-              <div className="min-w-0">
-                <div className="inline-flex items-center gap-2 rounded-full border-2 border-black bg-[#D1FAE5] px-4 py-1 text-[10px] font-black uppercase tracking-[0.18em]">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  Setup Flow
-                </div>
-                <h1 className="mt-1.5 text-2xl md:text-3xl font-black tracking-tight uppercase">Identity Setup</h1>
-                <p className="mt-0.5 text-[13px] font-bold text-black/60">Build your public page in 4 simple steps.</p>
-              </div>
-              <div className="rounded-2xl border-4 border-black bg-[#F3F4F6] p-4">
-                <div className="flex items-end justify-between">
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-black/40">Step</p>
-                  <p className="text-2xl md:text-3xl font-black">{step + 1}<span className="text-black/30">/4</span></p>
-                </div>
-                <div className="mt-3 grid grid-cols-4 gap-1.5 rounded-xl border-2 border-black bg-white p-1.5">
-                  {[0, 1, 2, 3].map((index) => (
-                    <div key={index} className="h-2.5 rounded-full border border-black bg-black/10">
-                      <div className="h-full rounded-full bg-[#34D399] transition-all duration-500" style={{ width: index <= step ? "100%" : "0%" }} />
-                    </div>
-                  ))}
-                </div>
-              </div>
+    <div className="min-h-screen lg:h-screen overflow-hidden bg-[#0A0A0B] text-white flex flex-col font-sans relative">
+      {/* Dynamic Background Effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-fuchsia-500/20 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[20%] right-[-5%] w-[30%] h-[30%] bg-emerald-500/20 rounded-full blur-[100px]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#ffffff05_1px,transparent_1px)] bg-[size:32px_32px]" />
+      </div>
+
+      {/* Top Navigation / Progress */}
+      <div className="relative z-10 w-full max-w-[1200px] mx-auto px-6 pt-8 pb-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <div className="h-14 w-14 bg-emerald-400 border-4 border-black rounded-2xl flex items-center justify-center shadow-[6px_6px_0_0_rgba(255,255,255,0.1)] rotate-[-3deg]">
+              <Zap className="h-8 w-8 text-black fill-black" />
+            </div>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-[1000] uppercase tracking-tighter leading-none">Identity <span className="text-emerald-400 italic">Forge</span></h1>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mt-1">Biotra Protocol v1.4.0</p>
             </div>
           </div>
 
-          <Card className="bruddle-card bg-white p-4 md:p-5 lg:flex-1 lg:min-h-0 flex flex-col">
-            <div className="min-h-0 flex-1 lg:overflow-y-auto pr-1 space-y-6">
-            {step === 0 && (
-              <div className="space-y-6 lg:space-y-0 lg:grid lg:grid-cols-[30%_60%] lg:justify-between lg:gap-4 lg:items-start">
-                <div className="lg:pt-0">
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">Step 1</p>
-                  <h2 className="text-xl md:text-2xl font-black tracking-tight">What do you want to build?</h2>
-                  <p className="text-[13px] font-bold text-black/60">Choose one goal to start.</p>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pb-1">
-                  {goalCards.map((card) => (
-                    <button
-                      key={card.id}
-                      type="button"
-                      onClick={() => setGoal(card.id)}
-                      className={cn(
-                        "rounded-2xl border-[3px] border-black bg-white p-4 text-left shadow-[4px_4px_0_0_rgba(0,0,0,1)] transition-all",
-                        goal === card.id ? "bg-[#D1FAE5]" : "hover:-translate-y-0.5"
-                      )}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className={cn("inline-flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br border-2 border-black", card.accent)}>
-                          <card.icon className="h-4 w-4 text-white" />
-                        </div>
-                        {goal === card.id && (
-                          <div className="h-6 w-6 rounded-full border-2 border-black bg-black text-white flex items-center justify-center">
-                            <BadgeCheck className="h-3 w-3" />
+          <div className="flex-1 max-w-md hidden md:block">
+             <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-white/30">Synchronization Phase</span>
+                <span className="text-xs font-black text-emerald-400">{step + 1} / 4</span>
+             </div>
+             <div className="h-3 w-full bg-white/5 border-2 border-white/10 rounded-full overflow-hidden p-0.5">
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: `${((step + 1) / 4) * 100}%` }}
+                  className="h-full bg-emerald-400 rounded-full shadow-[0_0_20px_rgba(52,211,153,0.5)]"
+                />
+             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-4 overflow-y-auto lg:overflow-hidden">
+        <div className="w-full max-w-[1000px] h-full flex flex-col">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, y: 20, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 1.02 }}
+              transition={{ type: "spring", bounce: 0.3 }}
+              className="flex-1 flex flex-col"
+            >
+              {step === 0 && (
+                <div className="flex-1 flex flex-col gap-8">
+                  <div className="text-center md:text-left">
+                    <div className="inline-block px-3 py-1 bg-emerald-400/10 border border-emerald-400/30 rounded-lg text-emerald-400 text-[10px] font-black uppercase tracking-widest mb-4">Tactical Selection</div>
+                    <h2 className="text-4xl md:text-6xl font-[1000] uppercase tracking-tighter leading-[0.85] mb-4 italic">Choose Your <br /> Origin Story.</h2>
+                    <p className="text-lg font-bold text-white/40 uppercase max-w-xl">Every legend starts with a core purpose. Select the path that defines your digital presence.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 flex-1 items-stretch max-h-[500px]">
+                    {goalCards.map((card) => (
+                      <button
+                        key={card.id}
+                        type="button"
+                        onClick={() => setGoal(card.id)}
+                        className={cn(
+                          "group relative flex flex-col h-full rounded-[32px] border-4 transition-all overflow-hidden p-6 text-left",
+                          goal === card.id 
+                            ? "bg-white border-white shadow-[0_0_40px_rgba(255,255,255,0.1)]" 
+                            : "bg-white/5 border-white/10 hover:border-white/20"
+                        )}
+                      >
+                        <div className="flex items-start justify-between relative z-10 w-full mb-auto">
+                          <div className={cn(
+                            "inline-flex h-12 w-12 items-center justify-center rounded-2xl border-2 shadow-xl transition-transform group-hover:scale-110", 
+                            goal === card.id ? "bg-black border-black/10" : "bg-white border-white/10",
+                            card.accent.replace('from-', '').replace('via-', '').replace('to-', '')
+                          )}>
+                            <card.icon className={cn("h-6 w-6", goal === card.id ? "text-white" : "text-black")} />
                           </div>
+                          {goal === card.id && (
+                            <motion.div layoutId="check" className="h-8 w-8 rounded-full bg-emerald-400 flex items-center justify-center">
+                              <BadgeCheck className="h-5 w-5 text-black" />
+                            </motion.div>
+                          )}
+                        </div>
+                        
+                        <div className="relative z-10 mt-8">
+                          <h3 className={cn(
+                            "text-xl font-[1000] uppercase tracking-tighter leading-tight",
+                            goal === card.id ? "text-black" : "text-white"
+                          )}>{card.title}</h3>
+                          <p className={cn(
+                            "mt-3 text-xs font-bold leading-relaxed",
+                            goal === card.id ? "text-black/60" : "text-white/40"
+                          )}>{card.description}</p>
+                        </div>
+
+                        {/* Visual accent for unselected cards */}
+                        {goal !== card.id && (
+                          <div className={cn("absolute inset-0 opacity-0 group-hover:opacity-10 bg-gradient-to-br transition-opacity", card.accent)} />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {step === 1 && (
+                <div className="flex-1 flex flex-col gap-8 max-w-4xl mx-auto w-full">
+                  <div className="text-center">
+                    <h2 className="text-4xl md:text-5xl font-[1000] uppercase tracking-tighter leading-none mb-4 italic text-emerald-400">The Essentials.</h2>
+                    <p className="text-lg font-bold text-white/40 uppercase">Define your identity. This is the soul of your Biotra page.</p>
+                  </div>
+                  
+                  <div className="grid gap-6 md:grid-cols-2 mt-4">
+                    <div className="space-y-6">
+                      <div className="space-y-3">
+                        <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 ml-2">Digital Pseudonym</Label>
+                        <Input 
+                          value={displayName} 
+                          onChange={(e) => setDisplayName(e.target.value)} 
+                          placeholder="Your Name (e.g., Alex Rivers)" 
+                          className="h-16 rounded-2xl border-4 border-white/10 bg-white/5 text-xl font-bold focus:border-emerald-400 transition-all placeholder:text-white/10" 
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 ml-2">Bio-Manifesto</Label>
+                        <Textarea 
+                          value={bio} 
+                          onChange={(e) => setBio(e.target.value.slice(0, 160))} 
+                          placeholder="What is your mission?" 
+                          rows={4} 
+                          className="rounded-2xl border-4 border-white/10 bg-white/5 text-lg font-bold focus:border-emerald-400 transition-all placeholder:text-white/10" 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="bg-white/5 border-4 border-white/10 rounded-[32px] p-8 flex flex-col gap-6">
+                      <div>
+                        <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-emerald-400 mb-2">
+                           <Globe2 className="h-4 w-4" /> Primary Sync Node
+                        </h4>
+                        <p className="text-xs font-bold text-white/30 uppercase">Choose your most active social vessel.</p>
+                      </div>
+                      
+                      <Select value={socialPlatform} onValueChange={(v) => setSocialPlatform(v as SocialPlatform)}>
+                        <SelectTrigger className="h-14 rounded-xl border-2 border-white/10 bg-black/40 text-lg font-bold">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-neutral-900 border-white/10 text-white">
+                          {platformOptions
+                            .filter((p) => ["instagram", "youtube", "tiktok", "facebook", "twitter", "linkedin", "website"].includes(p.value))
+                            .map((p) => (
+                              <SelectItem key={p.value} value={p.value} className="focus:bg-emerald-400 focus:text-black font-bold uppercase">
+                                {p.label}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                      <Input 
+                        value={socialUrl} 
+                        onChange={(e) => setSocialUrl(e.target.value)} 
+                        placeholder="Paste your URL here..." 
+                        className="h-14 rounded-xl border-2 border-white/10 bg-black/40 font-bold focus:border-emerald-400 transition-all placeholder:text-white/10" 
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {step === 2 && (
+                <div className="flex-1 flex flex-col gap-8">
+                  <div className="text-center">
+                    <h2 className="text-4xl md:text-5xl font-[1000] uppercase tracking-tighter leading-none mb-4 italic text-fuchsia-400">Visual Aura.</h2>
+                    <p className="text-lg font-bold text-white/40 uppercase">Select the aesthetic that resonates with your brand.</p>
+                  </div>
+                  <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6 mt-4">
+                    {featuredThemes.map((theme) => (
+                      <div key={theme.id} className="group relative">
+                        <ThemePreviewCard 
+                          theme={theme} 
+                          selected={selectedThemeId === theme.id} 
+                          onSelect={(p) => setSelectedThemeId(p.id)} 
+                          compact={true} 
+                        />
+                        {selectedThemeId === theme.id && (
+                          <div className="absolute -inset-1 border-4 border-fuchsia-500 rounded-[28px] pointer-events-none animate-pulse" />
                         )}
                       </div>
-                      <h3 className="mt-3 text-sm font-black">{card.title}</h3>
-                      <p className="mt-1 text-[11px] leading-tight font-bold text-black/60">{card.description}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {step === 1 && (
-              <div className="space-y-6">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">Step 2</p>
-                  <h2 className="text-xl md:text-2xl font-black tracking-tight">Add your basic details</h2>
-                  <p className="text-[13px] font-bold text-black/60">This is what visitors will see first.</p>
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-3">
-                    <div className="space-y-1">
-                      <Label className="text-[10px] font-black uppercase tracking-[0.18em] text-black/50">Display Name</Label>
-                      <Input value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="Your name" className="h-11 rounded-xl border-[3px] border-black bg-white font-bold" />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-[10px] font-black uppercase tracking-[0.18em] text-black/50">Short Bio</Label>
-                      <Textarea value={bio} onChange={(event) => setBio(event.target.value.slice(0, 160))} placeholder="What do you do?" rows={3} className="rounded-xl border-[3px] border-black bg-white font-bold text-sm" />
-                    </div>
-                  </div>
-                  <div className="rounded-2xl border-[3px] border-black bg-[#F3F4F6] p-4 space-y-3">
-                    <div className="flex items-center gap-2">
-                      <p className="text-[10px] font-black uppercase tracking-[0.18em]">Social Link</p>
-                    </div>
-                    <Select value={socialPlatform} onValueChange={(value) => setSocialPlatform(value as SocialPlatform)}>
-                      <SelectTrigger className="h-10 rounded-xl border-[3px] border-black bg-white font-bold">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {platformOptions
-                          .filter((platform) => ["instagram", "youtube", "tiktok", "facebook", "twitter", "linkedin", "website"].includes(platform.value))
-                          .map((platform) => (
-                            <SelectItem key={platform.value} value={platform.value}>
-                              {platform.label}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                    <Input value={socialUrl} onChange={(event) => setSocialUrl(event.target.value)} placeholder="https://..." className="h-10 rounded-xl border-[3px] border-black bg-white font-bold" />
+                    ))}
                   </div>
                 </div>
-              </div>
-            )}
-
-            {step === 2 && (
-              <div className="space-y-6">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">Step 3</p>
-                  <h2 className="text-xl md:text-2xl font-black tracking-tight">Pick your starting theme</h2>
-                  <p className="text-[13px] font-bold text-black/60">You can change this later.</p>
-                </div>
-                <div className="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
-                  {featuredThemes.map((theme) => (
-                    <ThemePreviewCard key={theme.id} theme={theme} selected={selectedThemeId === theme.id} onSelect={(picked) => setSelectedThemeId(picked.id)} compact={true} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {step === 3 && (
-              <div className="space-y-6">
-                <div>
-                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-emerald-700">Step 4</p>
-                  <h2 className="text-2xl md:text-3xl font-black tracking-tight">Ready to launch</h2>
-                  <p className="text-sm font-bold text-black/60">Here is a quick summary.</p>
-                </div>
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <div className="rounded-2xl border-4 border-black bg-[#F3F4F6] p-5">
-                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-black/40">Goal</p>
-                    <p className="mt-2 text-lg font-black">{goalCards.find((card) => card.id === goal)?.title}</p>
-                  </div>
-                  <div className="rounded-2xl border-4 border-black bg-[#F3F4F6] p-5">
-                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-black/40">Theme</p>
-                    <p className="mt-2 text-lg font-black">{selectedTheme?.name || "Default"}</p>
-                  </div>
-                  <div className="rounded-2xl border-4 border-black bg-[#F3F4F6] p-5">
-                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-black/40">First Link</p>
-                    <p className="mt-2 text-lg font-black">{socialUrl ? starterTitles[goal] : "Set later"}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-            </div>
-
-            <div className="mt-8 border-t-4 border-black pt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <Button type="button" variant="ghost" className="h-12 rounded-xl border-2 border-black bg-white font-black uppercase tracking-widest hover:bg-[#F3F4F6]" onClick={step === 0 ? () => navigate("/dashboard") : previousStep}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                {step === 0 ? "Skip" : "Back"}
-              </Button>
-              {step < 3 ? (
-                <Button type="button" className="h-12 px-8 rounded-xl border-4 border-black bg-black text-white font-black uppercase tracking-widest hover:bg-black/90" onClick={nextStep}>
-                  Continue
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              ) : (
-                <Button type="button" className="h-12 px-8 rounded-xl border-4 border-black bg-[#34D399] text-black font-black uppercase tracking-widest hover:bg-[#10B981]" onClick={finishOnboarding} disabled={saving}>
-                  {saving ? "Saving..." : "Go to Dashboard"}
-                  {!saving && <Wand2 className="ml-2 h-4 w-4" />}
-                </Button>
               )}
-            </div>
-          </Card>
+
+              {step === 3 && (
+                <div className="flex-1 flex flex-col items-center justify-center gap-12 text-center max-w-2xl mx-auto">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-emerald-400 blur-[80px] opacity-20 animate-pulse" />
+                    <div className="relative h-32 w-32 bg-emerald-400 border-8 border-black rounded-[40px] flex items-center justify-center shadow-[16px_16px_0_0_rgba(255,255,255,0.1)] rotate-[-6deg]">
+                      <Sparkles className="h-16 w-16 text-black fill-black" />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h2 className="text-5xl md:text-7xl font-[1000] uppercase tracking-tighter leading-[0.8] mb-6 italic">Ready to <br /> <span className="text-emerald-400 underline decoration-black underline-offset-8">Manifest.</span></h2>
+                    <p className="text-xl font-bold text-white/40 uppercase">Your digital vessel is armed and ready.</p>
+                  </div>
+
+                  <div className="w-full grid grid-cols-3 border-4 border-white/10 rounded-[32px] overflow-hidden bg-white/5">
+                    <div className="p-6 border-r-4 border-white/10">
+                       <p className="text-[10px] font-black uppercase text-white/30 mb-1">Archetype</p>
+                       <p className="font-bold text-emerald-400 uppercase">{goalCards.find(c => c.id === goal)?.title}</p>
+                    </div>
+                    <div className="p-6 border-r-4 border-white/10">
+                       <p className="text-[10px] font-black uppercase text-white/30 mb-1">Aura</p>
+                       <p className="font-bold text-fuchsia-400 uppercase">{selectedTheme?.name}</p>
+                    </div>
+                    <div className="p-6">
+                       <p className="text-[10px] font-black uppercase text-white/30 mb-1">Sync Ready</p>
+                       <p className="font-bold text-white uppercase">{socialUrl ? "Enabled" : "Manual"}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Footer Navigation */}
+          <div className="relative z-10 pt-12 pb-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+             <Button 
+               variant="ghost" 
+               className="h-16 px-10 rounded-2xl border-4 border-white/10 bg-transparent text-white font-black uppercase tracking-widest hover:bg-white/5 transition-all w-full sm:w-auto"
+               onClick={step === 0 ? () => navigate("/dashboard") : previousStep}
+             >
+               <ArrowLeft className="mr-3 h-6 w-6" />
+               {step === 0 ? "Bypass" : "Recalibrate"}
+             </Button>
+
+             <Button 
+               className={cn(
+                 "h-16 px-16 rounded-2xl border-4 border-black text-black font-[1000] uppercase tracking-[0.2em] shadow-[8px_8px_0_0_rgba(255,255,255,0.1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all w-full sm:w-auto",
+                 step === 3 ? "bg-emerald-400" : "bg-white"
+               )}
+               onClick={step < 3 ? nextStep : finishOnboarding}
+               disabled={saving}
+             >
+               {saving ? "Launching..." : step === 3 ? "Initialize Dashboard" : "Sync Forward"}
+               {!saving && (step === 3 ? <Wand2 className="ml-3 h-6 w-6" /> : <ArrowRight className="ml-3 h-6 w-6" />)}
+             </Button>
+          </div>
         </div>
       </div>
     </div>

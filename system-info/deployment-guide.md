@@ -1,7 +1,7 @@
-# LinkVertex — Deployment Guide
+# Biotra — Deployment Guide
 
 ## Platform
-LinkVertex runs on **Lovable Cloud**, which provides:
+Biotra runs on **Lovable Cloud**, which provides:
 - Automatic frontend deployment (React/Vite)
 - Supabase backend (PostgreSQL + Auth + Storage + Edge Functions)
 - CDN-backed preview and production URLs
@@ -35,7 +35,7 @@ Configured via Lovable Cloud secrets manager:
 
 ## Custom Domain
 1. Go to Project → Settings → Domains
-2. Add your domain (e.g., linkvertex.com)
+2. Add your domain (e.g., Biotra.com)
 3. Configure DNS records as shown
 4. SSL auto-provisioned
 
@@ -49,3 +49,4 @@ Configured via Lovable Cloud secrets manager:
 - Database: Automatic daily backups via Supabase
 - Code: Git-based versioning via Lovable
 - Storage: Managed by Supabase infrastructure
+
