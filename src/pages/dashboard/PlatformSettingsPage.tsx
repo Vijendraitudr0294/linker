@@ -264,27 +264,18 @@ const PlatformSettingsPage = () => {
       </div>
 
       {/* Normalized Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-10 p-10 rounded-[40px] bg-white border border-black/5 shadow-2xl shadow-black/[0.02]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-black/5 bg-black/5 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600 mb-4">
-            <Settings2 className="w-3.5 h-3.5" />
-            Config Core
-          </div>
-          <h1 className="text-4xl md:text-5xl font-black tracking-tight flex items-baseline gap-3 text-black">
-            System configuration <span className="font-script text-primary text-2xl lowercase opacity-80">node</span>
-          </h1>
-          <p className="mt-2 max-w-2xl text-[14px] font-medium text-black/50">
-            Global orchestration parameters • <span className="text-black font-black uppercase tracking-widest text-[11px] ml-1">Live Environment</span>
-          </p>
+          <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">System Settings</h1>
+          <p className="text-sm text-gray-500 mt-1">Configure global platform preferences and keys.</p>
         </div>
         <div className="flex items-center gap-3">
           <Button 
-            className="rounded-full bg-black text-white hover:bg-black/90 px-8 py-6 h-12 text-[11px] font-black uppercase tracking-widest shadow-xl transition-all hover:scale-[1.05] active:scale-95"
             onClick={() => fetchSettings(true)} 
             disabled={loading}
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Activity className="w-4 h-4 mr-2" />}
-            Refresh Node
+            Refresh
           </Button>
         </div>
       </div>
@@ -305,7 +296,7 @@ const PlatformSettingsPage = () => {
                   <Globe className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-black tracking-tight leading-none">Identity</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 tracking-tight leading-none">Identity</h2>
                   <p className="text-[12px] font-medium text-black/40 mt-1">Platform branding nodes</p>
                 </div>
               </div>
@@ -350,7 +341,7 @@ const PlatformSettingsPage = () => {
                   <ShoppingBag className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-black tracking-tight">Financial Core</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 tracking-tight">Financial Core</h2>
                   <p className="text-[12px] font-medium text-black/40 mt-1">Payment gateway orchestration</p>
                 </div>
               </div>
@@ -381,13 +372,13 @@ const PlatformSettingsPage = () => {
                     <p className="text-[11px] text-black/40 font-medium italic">Toggle Sandbox vs Production</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${settings.is_test_mode ? "text-amber-600" : "text-black/20"}`}>Test</span>
+                    <span className={`text-[10px] font-medium text-sm ${settings.is_test_mode ? "text-amber-600" : "text-black/20"}`}>Test</span>
                     <Switch 
                       checked={!settings.is_test_mode} 
                       onCheckedChange={(val) => handleToggle("is_test_mode", !val)}
                       className="data-[state=checked]:bg-emerald-500"
                     />
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${!settings.is_test_mode ? "text-emerald-600" : "text-black/20"}`}>Live</span>
+                    <span className={`text-[10px] font-medium text-sm ${!settings.is_test_mode ? "text-emerald-600" : "text-black/20"}`}>Live</span>
                   </div>
                 </div>
               </div>
@@ -420,7 +411,7 @@ const PlatformSettingsPage = () => {
                   <Key className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-black tracking-tight">Intelligence</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 tracking-tight">Intelligence</h2>
                   <p className="text-[12px] font-medium text-black/40 mt-1">LLM core orchestration credentials</p>
                 </div>
               </div>
@@ -442,7 +433,7 @@ const PlatformSettingsPage = () => {
                   <Mail className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-black tracking-tight">Global Alerts</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 tracking-tight">Global Alerts</h2>
                   <p className="text-[12px] font-medium text-black/40 mt-1">Communication channel management</p>
                 </div>
               </div>
@@ -488,7 +479,7 @@ const PlatformSettingsPage = () => {
                   <ToggleRight className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-black tracking-tight">Feature Switches</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 tracking-tight">Feature Switches</h2>
                   <p className="text-[12px] font-medium text-black/40 mt-1">Platform-wide module orchestration</p>
                 </div>
               </div>
@@ -520,7 +511,7 @@ const PlatformSettingsPage = () => {
                   <ShoppingBag className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-black tracking-tight">Commerce Experience</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 tracking-tight">Commerce Experience</h2>
                   <p className="text-[12px] font-medium text-black/40 mt-1">Global transaction and CTA labels</p>
                 </div>
               </div>
@@ -542,7 +533,7 @@ const PlatformSettingsPage = () => {
                    </div>
                    <Button 
                     onClick={() => handleSaveField({ checkout_step_labels: checkoutStepLabels })}
-                    className="w-full h-12 rounded-xl bg-black text-white hover:bg-black/90 font-black uppercase tracking-widest text-[11px]"
+                    className="w-full h-12 rounded-xl bg-primary text-primary-foreground hover:bg-black/90 font-medium text-sm text-[11px]"
                    >
                      Update Workflow Labels
                    </Button>
@@ -564,7 +555,7 @@ const PlatformSettingsPage = () => {
                      ))}
                    </div>
                    <Button 
-                    className="mt-8 w-full h-12 rounded-xl bg-black text-white hover:bg-black/90 font-black uppercase tracking-widest text-[11px]" 
+                    className="mt-8 w-full h-12 rounded-xl bg-primary text-primary-foreground hover:bg-black/90 font-medium text-sm text-[11px]" 
                     onClick={() => handleSaveField({ cta_label_overrides: sanitizeOverrideRecord(ctaOverrides) })}
                    >
                      Deploy CTA Overrides
@@ -580,7 +571,7 @@ const PlatformSettingsPage = () => {
                   <Activity className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-black tracking-tight">Commerce Taxonomy</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 tracking-tight">Commerce Taxonomy</h2>
                   <p className="text-[12px] font-medium text-black/40 mt-1">Hierarchical catalog classification</p>
                 </div>
               </div>
@@ -593,7 +584,7 @@ const PlatformSettingsPage = () => {
                     className="h-14 rounded-2xl border-black/5 bg-black/[0.02] text-[13px] font-bold px-6 focus:bg-white transition-all shadow-inner"
                     onKeyDown={e => e.key === "Enter" && upsertTaxonomyCategory()} 
                   />
-                  <Button onClick={upsertTaxonomyCategory} className="shrink-0 w-14 h-14 rounded-2xl bg-black text-white hover:bg-black/90 shadow-lg"><Plus className="w-6 h-6" /></Button>
+                  <Button onClick={upsertTaxonomyCategory} className="shrink-0 w-14 h-14 rounded-2xl bg-primary text-primary-foreground hover:bg-black/90 shadow-lg"><Plus className="w-6 h-6" /></Button>
                 </div>
 
                 <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 scrollbar-hide">
@@ -621,7 +612,7 @@ const PlatformSettingsPage = () => {
                           className="h-11 rounded-xl border-black/5 bg-white text-[12px] font-bold px-4" 
                           onKeyDown={e => e.key === "Enter" && addTaxonomySubcategory(entry.name)} 
                         />
-                        <Button variant="outline" size="sm" onClick={() => addTaxonomySubcategory(entry.name)} className="h-11 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest border-black/10 hover:bg-black/5">Add</Button>
+                        <Button variant="outline" size="sm" onClick={() => addTaxonomySubcategory(entry.name)} className="h-11 px-6 rounded-xl text-[10px] font-medium text-sm border-black/10 hover:bg-black/5">Add</Button>
                       </div>
                     </div>
                   ))}
@@ -640,7 +631,7 @@ const PlatformSettingsPage = () => {
                   <Sparkles className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-black tracking-tight">Intelligence Bank</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 tracking-tight">Intelligence Bank</h2>
                   <p className="text-[12px] font-medium text-black/40 mt-1">Managed AI-generated visual presets</p>
                 </div>
               </div>
@@ -681,3 +672,5 @@ const PlatformSettingsPage = () => {
 };
 
 export default PlatformSettingsPage;
+
+

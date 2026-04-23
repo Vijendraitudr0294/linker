@@ -40,7 +40,7 @@ export const beginOAuthSignIn = async ({
   provider: OAuthProvider;
   redirectTo: string;
 }) => {
-  const signInWithOAuth = authClient.signInWithOAuth;
+  const signInWithOAuth = authClient.signInWithOAuth?.bind(authClient);
 
   if (typeof signInWithOAuth !== "function") {
     throw new Error(`${providerLabels[provider]} login isn't available in offline mode.`);

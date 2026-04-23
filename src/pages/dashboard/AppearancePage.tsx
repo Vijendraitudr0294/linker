@@ -128,7 +128,7 @@ const AppearancePage = () => {
         {/* The Creative Canvas */}
         <div className="flex-1 min-w-0 space-y-8">
           <header className="px-1 space-y-2.5">
-             <h1 className="text-3xl font-black text-black tracking-tight mb-1">
+             <h1 className="text-3xl font-semibold text-gray-900 tracking-tight mb-1">
                Design Your Page
              </h1>
              <p className="text-sm font-medium text-black/40">
@@ -138,22 +138,22 @@ const AppearancePage = () => {
 
           {/* Mobile Single View Mirror */}
           <div className="lg:hidden w-full mb-4 animate-in fade-in slide-in-from-top-4 duration-700">
-             <Card className="bruddle-card-blue p-4 bg-[#E0F2FE] flex flex-col items-center justify-start relative overflow-hidden rounded-[24px] border-2 border-black shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+             <Card className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 bg-[#E0F2FE] flex flex-col items-center justify-start relative overflow-hidden rounded-[24px] border border-gray-200 shadow-sm">
                 <div className="flex items-center justify-between w-full mb-3 px-1">
                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded-md bg-white border-2 border-black flex items-center justify-center">
+                      <div className="w-5 h-5 rounded-md bg-white border border-gray-200 flex items-center justify-center">
                          <Smartphone className="w-3 h-3" />
                       </div>
-                      <span className="text-[10px] font-black uppercase tracking-widest">Live Mirror</span>
+                      <span className="text-[10px] font-medium text-sm">Live Mirror</span>
                    </div>
                    <Badge className={cn(
-                     "border-2 border-black rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest transition-colors",
+                     "border border-gray-200 rounded-full px-2 py-0.5 text-[8px] font-medium text-sm transition-colors",
                      isSyncing ? "bg-[#FDE68A] text-black animate-pulse" : "bg-white/40 text-black"
                    )}>
                      {isSyncing ? "Syncing" : "Instant"}
                    </Badge>
                 </div>
-                <div className="w-full h-[220px] rounded-[1.8rem] border-2 border-black overflow-hidden bg-white shadow-[2px_2px_0_0_rgba(0,0,0,1)] relative">
+                <div className="w-full h-[220px] rounded-[1.8rem] border border-gray-200 overflow-hidden bg-white shadow-sm relative">
                    <ProfilePreview 
                       settings={settings} 
                       user={user} 
@@ -167,7 +167,7 @@ const AppearancePage = () => {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-white p-2 rounded-[24px] mb-8 overflow-x-auto no-scrollbar scrollbar-hide flex w-full lg:w-fit border-2 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+            <TabsList className="bg-white p-2 rounded-[24px] mb-8 overflow-x-auto no-scrollbar scrollbar-hide flex w-full lg:w-fit border border-gray-200 shadow-sm">
               {[
                 { id: "industry-niche", label: "Niche" },
                 { id: "themes", label: "Presets" },
@@ -178,7 +178,7 @@ const AppearancePage = () => {
                 <TabsTrigger
                   key={tab.id}
                   value={tab.id}
-                  className="rounded-xl px-5 py-2 text-[11px] font-black uppercase tracking-widest text-black/60 data-[state=active]:bg-black data-[state=active]:text-white transition-all whitespace-nowrap"
+                  className="rounded-xl px-5 py-2 text-[11px] font-medium text-sm text-black/60 data-[state=active]:bg-black data-[state=active]:text-white transition-all whitespace-nowrap"
                 >
                   {tab.label}
                 </TabsTrigger>
@@ -194,7 +194,7 @@ const AppearancePage = () => {
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40" />
                   <Input 
                     placeholder="Search styles..." 
-                    className="pl-10 h-12 rounded-xl bg-white border-2 border-black/10 focus:border-black transition-all text-xs font-bold text-black"
+                    className="pl-10 h-12 rounded-xl bg-white border border-gray-200/10 focus:border-black transition-all text-xs font-bold text-black"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -237,14 +237,14 @@ const AppearancePage = () => {
             </TabsContent>
 
             <TabsContent value="custom" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
-               <Card className="bruddle-card p-6 md:p-8 space-y-10 bg-white">
+               <Card className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 md:p-8 space-y-10 bg-white">
                   <section className="space-y-4">
                     <div className="flex items-center gap-3">
-                       <div className="w-8 h-8 rounded-lg bg-[#E0E7FF] border-2 border-black flex items-center justify-center text-black">
+                       <div className="w-8 h-8 rounded-lg bg-[#E0E7FF] border border-gray-200 flex items-center justify-center text-black">
                           <Layout className="w-4 h-4" />
                        </div>
                        <div>
-                          <h3 className="text-lg font-black text-black tracking-tight uppercase">Structure</h3>
+                          <h3 className="text-lg font-semibold text-gray-900 tracking-tight uppercase">Structure</h3>
                           <p className="text-[10px] font-black uppercase text-black/40 tracking-widest mt-1">Choose how your links are arranged.</p>
                        </div>
                     </div>
@@ -260,11 +260,11 @@ const AppearancePage = () => {
                             onClick={() => updateSettings({ layoutType: l.id as any })}
                             className={cn(
                               "flex flex-col items-center gap-2 p-6 rounded-2xl border-2 transition-all group",
-                              settings.layoutType === l.id ? `border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] ${l.activeBg}` : "border-black/10 bg-gray-50 hover:border-black/30 text-black/60"
+                              settings.layoutType === l.id ? `border-black shadow-sm ${l.activeBg}` : "border-black/10 bg-gray-50 hover:border-black/30 text-black/60"
                             )}
                           >
                             <span className="text-2xl transition-transform group-hover:scale-110 duration-300 text-black">{l.icon}</span>
-                            <span className="text-[10px] font-black uppercase tracking-widest text-black mt-2">{l.label}</span>
+                            <span className="text-[10px] font-medium text-sm text-black mt-2">{l.label}</span>
                           </button>
                        ))}
                     </div>
@@ -272,11 +272,11 @@ const AppearancePage = () => {
 
                   <section className="space-y-4">
                     <div className="flex items-center gap-3 pt-6 border-t-2 border-black/5">
-                       <div className="w-8 h-8 rounded-lg bg-[#FDE68A] border-2 border-black flex items-center justify-center text-black">
+                       <div className="w-8 h-8 rounded-lg bg-[#FDE68A] border border-gray-200 flex items-center justify-center text-black">
                           <Palette className="w-4 h-4" />
                        </div>
                        <div>
-                          <h3 className="text-lg font-black text-black tracking-tight uppercase">Colors</h3>
+                          <h3 className="text-lg font-semibold text-gray-900 tracking-tight uppercase">Colors</h3>
                           <p className="text-[10px] font-black uppercase text-black/40 tracking-widest mt-1">Define your colors and atmosphere.</p>
                        </div>
                     </div>
@@ -285,11 +285,11 @@ const AppearancePage = () => {
 
                   <section className="space-y-4">
                     <div className="flex items-center gap-3 pt-6 border-t-2 border-black/5">
-                       <div className="w-8 h-8 rounded-lg bg-[#FBCFE8] border-2 border-black flex items-center justify-center text-black">
+                       <div className="w-8 h-8 rounded-lg bg-[#FBCFE8] border border-gray-200 flex items-center justify-center text-black">
                           <Zap className="w-4 h-4" />
                        </div>
                        <div>
-                          <h3 className="text-lg font-black text-black tracking-tight uppercase">Buttons</h3>
+                          <h3 className="text-lg font-semibold text-gray-900 tracking-tight uppercase">Buttons</h3>
                           <p className="text-[10px] font-black uppercase text-black/40 tracking-widest mt-1">Pick button look and feel.</p>
                        </div>
                     </div>
@@ -304,13 +304,13 @@ const AppearancePage = () => {
             </TabsContent>
 
             <TabsContent value="animations" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
-               <Card className="bruddle-card p-6 md:p-8 bg-white">
+               <Card className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 md:p-8 bg-white">
                   <div className="flex items-center gap-3 mb-8">
-                     <div className="w-8 h-8 rounded-lg bg-[#E0E7FF] border-2 border-black flex items-center justify-center text-black">
+                     <div className="w-8 h-8 rounded-lg bg-[#E0E7FF] border border-gray-200 flex items-center justify-center text-black">
                         <Sparkles className="w-4 h-4" />
                      </div>
                      <div>
-                        <h3 className="text-lg font-black text-black tracking-tight uppercase">Motion</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 tracking-tight uppercase">Motion</h3>
                         <p className="text-[10px] font-black uppercase text-black/40 tracking-widest mt-1">Subtle animations for a premium feel.</p>
                      </div>
                   </div>
@@ -330,7 +330,7 @@ const AppearancePage = () => {
         {/* The Live Preview: Elite Mirror */}
         <div className="hidden lg:block w-[380px] shrink-0">
           <div className="fixed top-24 right-10 w-[380px] z-30 h-[calc(100vh-8rem)]">
-            <Card className="bruddle-card-blue h-full p-6 bg-[#E0F2FE] flex flex-col items-center justify-start relative overflow-hidden shadow-[12px_12px_0_0_rgba(0,0,0,1)]">
+            <Card className="bg-white border border-gray-200 shadow-sm rounded-xl h-full p-6 bg-[#E0F2FE] flex flex-col items-center justify-start relative overflow-hidden shadow-sm">
                <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12 pointer-events-none">
                   <Smartphone size={160} strokeWidth={1} />
                </div>
@@ -338,7 +338,7 @@ const AppearancePage = () => {
                   <div className="flex items-center gap-2 mb-4 w-full justify-between">
                     <span className="text-xl font-black text-black uppercase tracking-tight">Live Mirror</span>
                     <Badge className={cn(
-                      "border-2 border-black rounded-full px-4 py-1 text-[9px] font-black uppercase tracking-widest transition-colors",
+                      "border border-gray-200 rounded-full px-4 py-1 text-[9px] font-medium text-sm transition-colors",
                       isSyncing ? "bg-[#FDE68A] text-black animate-pulse" : "bg-white/40 text-black"
                     )}>
                       {isSyncing ? "Syncing..." : "Live"}
@@ -348,7 +348,7 @@ const AppearancePage = () => {
                      <Button 
                         size="sm" 
                         disabled={isSyncing}
-                        className="h-10 rounded-xl bg-white border-2 border-black text-black text-[11px] uppercase tracking-widest font-black hover:bg-black hover:text-white transition-all shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:-translate-y-0.5 hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] disabled:opacity-50 disabled:cursor-wait" 
+                        className="h-10 rounded-xl bg-white border border-gray-200 text-black text-[11px] uppercase tracking-widest font-black hover:bg-black hover:text-white transition-all shadow-sm hover:-translate-y-0.5 hover:shadow-sm disabled:opacity-50 disabled:cursor-wait" 
                         asChild
                      >
                         <a href={isSyncing ? undefined : profileUrl} target="_blank" rel="noopener noreferrer">
@@ -358,7 +358,7 @@ const AppearancePage = () => {
                      </Button>
                      <Button 
                         size="sm" 
-                        className="h-10 rounded-xl bg-white border-2 border-black text-black text-[11px] uppercase tracking-widest font-black hover:bg-black hover:text-white transition-all shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:-translate-y-0.5 hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)]" 
+                        className="h-10 rounded-xl bg-white border border-gray-200 text-black text-[11px] uppercase tracking-widest font-black hover:bg-black hover:text-white transition-all shadow-sm hover:-translate-y-0.5 hover:shadow-sm" 
                         onClick={copyProfileLink}
                      >
                         <Copy className="w-4 h-4 mr-2" />
@@ -371,7 +371,7 @@ const AppearancePage = () => {
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
-                    className="flex-1 w-full rounded-[2.4rem] border-2 border-black overflow-hidden bg-white shadow-[4px_4px_0_0_rgba(0,0,0,1)] relative"
+                    className="flex-1 w-full rounded-[2.4rem] border border-gray-200 overflow-hidden bg-white shadow-sm relative"
                   >
                     <ProfilePreview 
                       settings={settings} 
@@ -397,7 +397,7 @@ const AppearancePage = () => {
             className="fixed bottom-6 left-6 right-6 z-[100] lg:hidden"
           >
              <Button 
-               className="w-full h-14 rounded-2xl bg-primary text-white font-bold shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-between px-6 border border-white/20 backdrop-blur-md"
+               className="w-full h-14 rounded-2xl bg-primary text-white font-bold shadow-sm flex items-center justify-between px-6 border border-white/20 backdrop-blur-md"
                onClick={() => setShowMobilePreview(true)}
              >
                 <div className="flex items-center gap-3">
@@ -461,3 +461,5 @@ const AppearancePage = () => {
 };
 
 export default AppearancePage;
+
+

@@ -56,10 +56,11 @@ export const usePublicProfileQuery = (username: string | undefined) => {
       }
 
       const cacheBuster = Date.now();
-      const [linksRes, appearanceRes, catalogRes] = await Promise.all([
+      const [linksRes, appearanceRes, catalogRes, coursesRes] = await Promise.all([
         supabase.from("links").select("id, title, url, platform").eq("user_id", profileData.user_id).eq("enabled", true).order("sort_order", { ascending: true }),
         supabase.from("appearance_settings").select("*").eq("user_id", profileData.user_id).maybeSingle(),
         supabase.from("catalog_items").select("*").eq("user_id", profileData.user_id).eq("enabled", true).order("sort_order", { ascending: true }),
+        supabase.from("courses").select("*").eq("user_id", profileData.user_id).eq("published", true).order("created_at", { ascending: false }),
       ]);
 
       console.log("💎 DB Source Raw Check:", {
@@ -105,6 +106,7 @@ export const usePublicProfileQuery = (username: string | undefined) => {
         linksData: linksRes.data || [],
         appearanceData: appearanceRes.data || null,
         catalogData: (catalogRes.data || []).map(row => toCatalogItem(row as any)),
+        coursesData: (coursesRes.data || []) as any[],
       };
     },
     enabled: !!username,

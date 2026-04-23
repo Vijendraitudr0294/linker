@@ -42,6 +42,7 @@ import QRForgePage from "./pages/dashboard/QRForgePage";
 import FormsPage from "./pages/dashboard/FormsPage";
 import TemplatesPage from "./pages/dashboard/TemplatesPage";
 import AppearancePage from "./pages/dashboard/AppearancePage";
+import CoursesPage from "./pages/dashboard/CoursesPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import PublicRoute from "./components/auth/PublicRoute";
 import PublicRouteErrorBoundary from "./components/PublicRouteErrorBoundary";
@@ -69,7 +70,7 @@ const AppInit = ({ children }: { children: React.ReactNode }) => {
   const initialize = useAuthStore((s) => s.initialize);
   const user = useAuthStore((s) => s.user);
   const fetchAppearance = useAppearanceStore((s) => s.fetchSettings);
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [isOffline, setIsOffline] = useState(false);
 
   useEffect(() => { 
     initialize(); 
@@ -151,6 +152,7 @@ const App = () => (
                 <Route path="catalog" element={<CatalogPage />} />
                 <Route path="orders" element={<OrdersPage />} />
                 <Route path="socialflow" element={<SocialflowPage />} />
+                <Route path="courses" element={<CoursesPage />} />
                 <Route path="qrforge" element={<QRForgePage />} />
                 <Route path="admin" element={<ProtectedRoute adminOnly><AdminPage /></ProtectedRoute>} />
                 <Route path="admin/settings" element={<ProtectedRoute adminOnly><PlatformSettingsPage /></ProtectedRoute>} />
@@ -178,4 +180,5 @@ const App = () => (
 );
 
 export default App;
+
 

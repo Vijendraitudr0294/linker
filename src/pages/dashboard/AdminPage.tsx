@@ -247,7 +247,7 @@ const AdminPage = () => {
   };
 
   const handleBulkDelete = async () => {
-    if (!confirm(`PURGE ${selectedUsers.size} IDENTITY NODES? THIS CANNOT BE UNDONE.`)) return;
+    if (!confirm(`PURGE ${selectedUsers.size} My Links? THIS CANNOT BE UNDONE.`)) return;
     setBulkLoading(true);
     const ids = Array.from(selectedUsers);
     const { error } = await supabase.from("profiles").delete().in("user_id", ids);
@@ -346,21 +346,21 @@ const AdminPage = () => {
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
         <div>
           <div className="flex items-center gap-2 mb-3">
-             <div className="px-3 py-1 bg-black text-white text-[9px] font-black uppercase tracking-widest rounded-lg">Operational</div>
+             <div className="px-3 py-1 bg-primary text-primary-foreground text-[9px] font-medium text-sm rounded-lg">Operational</div>
              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-black tracking-tight leading-none uppercase">
+          <h1 className="text-4xl md:text-5xl font-semibold text-gray-900 tracking-tight leading-none uppercase">
             Concierge <span className="text-black/20">Portal</span>
           </h1>
           <p className="mt-3 text-[11px] font-black uppercase tracking-[0.3em] text-black/40">Global Orchestration & Intelligence Matrix</p>
         </div>
         <div className="flex items-center gap-3">
            <div className="hidden md:block text-right">
-              <p className="text-[10px] font-black uppercase tracking-widest text-black/40">Synchronized Node</p>
+              <p className="text-[10px] font-medium text-sm text-black/40">Synchronized Node</p>
               <p className="text-xs font-black text-black">NODE-{user?.user_id?.slice(0, 8).toUpperCase() || "LOADING"}</p>
            </div>
            <Button 
-            className="h-12 px-8 bg-white border-2 border-black text-black font-black uppercase tracking-widest transition-all hover:bg-black hover:text-white shadow-[6px_6px_0_0_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
+            className="h-12 px-8 bg-white border border-gray-200 text-black font-medium text-sm transition-all hover:bg-black hover:text-white shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
             onClick={fetchAll} 
             disabled={loading}
           >
@@ -371,20 +371,20 @@ const AdminPage = () => {
       </header>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-        <TabsList className="bg-white border-2 border-black p-1 h-auto gap-1 shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
-          <TabsTrigger value="orchestration" className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-black data-[state=active]:text-white transition-all">
+        <TabsList className="bg-white border border-gray-200 p-1 h-auto gap-1 shadow-sm">
+          <TabsTrigger value="orchestration" className="px-6 py-2.5 text-[10px] font-medium text-sm data-[state=active]:bg-black data-[state=active]:text-white transition-all">
              <Activity className="w-3.5 h-3.5 mr-2" /> Orchestration
           </TabsTrigger>
-          <TabsTrigger value="matrix" className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-black data-[state=active]:text-white transition-all">
+          <TabsTrigger value="matrix" className="px-6 py-2.5 text-[10px] font-medium text-sm data-[state=active]:bg-black data-[state=active]:text-white transition-all">
              <Globe className="w-3.5 h-3.5 mr-2" /> Global Matrix
           </TabsTrigger>
-          <TabsTrigger value="marketing" className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-black data-[state=active]:text-white transition-all">
+          <TabsTrigger value="marketing" className="px-6 py-2.5 text-[10px] font-medium text-sm data-[state=active]:bg-black data-[state=active]:text-white transition-all">
              <Monitor className="w-3.5 h-3.5 mr-2" /> Marketing Site
           </TabsTrigger>
-          <TabsTrigger value="content" className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-black data-[state=active]:text-white transition-all">
+          <TabsTrigger value="content" className="px-6 py-2.5 text-[10px] font-medium text-sm data-[state=active]:bg-black data-[state=active]:text-white transition-all">
              <Newspaper className="w-3.5 h-3.5 mr-2" /> Content CMS
           </TabsTrigger>
-          <TabsTrigger value="deployments" className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-black data-[state=active]:text-white transition-all">
+          <TabsTrigger value="deployments" className="px-6 py-2.5 text-[10px] font-medium text-sm data-[state=active]:bg-black data-[state=active]:text-white transition-all">
              <Zap className="w-3.5 h-3.5 mr-2" /> Deployments
           </TabsTrigger>
         </TabsList>
@@ -401,7 +401,7 @@ const AdminPage = () => {
               >
                 <Card className="glass-card p-6 group hover:-translate-y-1 transition-all duration-300">
                   <div className="flex items-start justify-between mb-4">
-                    <div className={cn("p-2.5 rounded-xl border-2 border-black flex items-center justify-center bg-white shadow-[4px_4px_0_0_rgba(0,0,0,1)] group-hover:bg-black group-hover:text-white transition-colors", kpi.color)}>
+                    <div className={cn("p-2.5 rounded-xl border border-gray-200 flex items-center justify-center bg-white shadow-sm group-hover:bg-black group-hover:text-white transition-colors", kpi.color)}>
                       <kpi.icon className="w-4 h-4" />
                     </div>
                     <div className="text-[9px] font-black text-emerald-600 bg-emerald-100/50 px-2 py-1 rounded-md">{kpi.trend}</div>
@@ -455,7 +455,7 @@ const AdminPage = () => {
               <div className="space-y-5">
                 {templateUsage.slice(0, 5).map((theme) => (
                   <div key={theme.id} className="space-y-2">
-                    <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest">
+                    <div className="flex items-center justify-between text-[9px] font-medium text-sm">
                       <span>{theme.id.replace(/-/g, ' ')}</span>
                       <span className="text-black/40">{theme.count} IDs</span>
                     </div>
@@ -472,13 +472,13 @@ const AdminPage = () => {
             <Card className="lg:col-span-2 glass-card overflow-hidden">
               <div className="p-8 border-b-2 border-black flex items-center justify-between bg-white/50">
                 <h2 className="text-xl font-black text-black leading-none uppercase">Identity Registry</h2>
-                <Input placeholder="Find node..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-64 border-2 border-black/10 focus:border-black text-[11px] font-bold uppercase tracking-widest" />
+                <Input placeholder="Find node..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-64 border border-gray-200/10 focus:border-black text-[11px] font-bold uppercase tracking-widest" />
               </div>
               <div className="overflow-x-auto h-[500px] scrollbar-hide">
                 <table className="w-full">
                   <thead>
-                    <tr className="bg-black/5 text-[9px] font-black uppercase tracking-widest text-black border-b-2 border-black sticky top-0 z-10">
-                      <th className="px-6 py-4 text-left"><Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} className="border-2 border-black" /></th>
+                    <tr className="bg-black/5 text-[9px] font-medium text-sm text-black border-b-2 border-black sticky top-0 z-10">
+                      <th className="px-6 py-4 text-left"><Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} className="border border-gray-200" /></th>
                       <th className="px-2 py-4 text-left">Cognito Node</th>
                       <th className="px-4 py-4 text-left">Insight</th>
                       <th className="px-4 py-4 text-left">Status</th>
@@ -489,13 +489,13 @@ const AdminPage = () => {
                   <tbody className="divide-y-2 divide-black/5">
                     {filteredUsers.map((u) => (
                       <tr key={u.id} className="hover:bg-black/[0.02] transition-colors group">
-                        <td className="px-6 py-5"><Checkbox checked={selectedUsers.has(u.user_id)} onCheckedChange={() => toggleSelect(u.user_id)} className="border-2 border-black" /></td>
+                        <td className="px-6 py-5"><Checkbox checked={selectedUsers.has(u.user_id)} onCheckedChange={() => toggleSelect(u.user_id)} className="border border-gray-200" /></td>
                         <td className="px-2 py-5 flex items-center gap-3">
-                          <div className="w-9 h-9 border-2 border-black bg-white flex items-center justify-center font-black text-[10px] shadow-[2px_2px_0_0_rgba(0,0,0,1)]">{u.username ? u.username[0].toUpperCase() : "?"}</div>
+                          <div className="w-9 h-9 border border-gray-200 bg-white flex items-center justify-center font-black text-[10px] shadow-sm">{u.username ? u.username[0].toUpperCase() : "?"}</div>
                           <div className="min-w-0">
                             <p className="text-[12px] font-black text-black leading-tight">
                               {u.name || "Anon"} 
-                              {u.user_id === user?.user_id && <span className="ml-1 text-[7px] bg-black text-white px-1 py-0.5 rounded">YOU</span>}
+                              {u.user_id === user?.user_id && <span className="ml-1 text-[7px] bg-primary text-primary-foreground px-1 py-0.5 rounded">YOU</span>}
                             </p>
                             <p className="text-[9px] font-black text-black/30 uppercase tracking-widest">@{u.username || "unset"}</p>
                           </div>
@@ -516,8 +516,8 @@ const AdminPage = () => {
                         <td className="px-4 py-5 text-[9px] font-black uppercase text-black/40">{u.role}</td>
                         <td className="px-6 py-5 text-right">
                           <DropdownMenu>
-                            <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 border-2 border-black/5 rounded-xl hover:border-black"><MoreVertical className="w-4 h-4" /></Button></DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48 glass-card bg-white mt-1 border-2 border-black p-1">
+                            <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 border border-gray-200/5 rounded-xl hover:border-black"><MoreVertical className="w-4 h-4" /></Button></DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48 glass-card bg-white mt-1 border border-gray-200 p-1">
                               <DropdownMenuItem onClick={() => navigate(`/dashboard/admin/user/${u.user_id}`)} className="flex items-center gap-2 px-3 py-2 text-[10px] font-black uppercase cursor-pointer hover:bg-black hover:text-white rounded-lg transition-colors"><Pencil className="w-3.5 h-3.5" /> Edit Profile</DropdownMenuItem>
                               <DropdownMenuSeparator className="bg-black/5" />
                               <DropdownMenuItem onClick={() => handleStatusChange(u.user_id, u.status === 'active' ? 'blocked' : 'active')} className="flex items-center gap-2 px-3 py-2 text-[10px] font-black uppercase cursor-pointer hover:bg-black hover:text-white rounded-lg transition-colors"><Snowflake className="w-3.5 h-3.5" /> {u.status === 'active' ? 'Freeze Node' : 'Thaw Node'}</DropdownMenuItem>
@@ -550,12 +550,12 @@ const AdminPage = () => {
           </div>
           
           {selectedUsers.size > 0 && (
-             <motion.div initial={{ y: 100 }} animate={{ y: 0 }} className="p-4 bg-black text-white flex items-center justify-between sticky bottom-0 z-20 border-t-4 border-emerald-500 shadow-2xl">
-               <div className="flex items-center gap-4"><div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center font-black text-black">{selectedUsers.size}</div><p className="text-[10px] font-black uppercase tracking-widest">Selected Nodes</p></div>
+             <motion.div initial={{ y: 100 }} animate={{ y: 0 }} className="p-4 bg-primary text-primary-foreground flex items-center justify-between sticky bottom-0 z-20 border-t-4 border-emerald-500 shadow-2xl">
+               <div className="flex items-center gap-4"><div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center font-black text-black">{selectedUsers.size}</div><p className="text-[10px] font-medium text-sm">Selected Nodes</p></div>
                <div className="flex gap-2">
                  <Button size="sm" variant="outline" onClick={() => handleBulkStatus('active')} className="h-8 bg-transparent text-white border-white text-[9px] font-black p-2 hover:bg-white hover:text-black transition-all">Thaw ALL</Button>
                  <Button size="sm" variant="outline" onClick={() => handleBulkStatus('blocked')} className="h-8 bg-transparent text-white border-white text-[9px] font-black p-2 hover:bg-white hover:text-black transition-all">Freeze ALL</Button>
-                 <Button size="sm" variant="destructive" onClick={handleBulkDelete} className="h-8 bg-red-600 text-white text-[9px] font-black p-2 shadow-[2px_2px_0_0_rgba(0,0,0,1)]">PURGE ALL</Button>
+                 <Button size="sm" variant="destructive" onClick={handleBulkDelete} className="h-8 bg-red-600 text-white text-[9px] font-black p-2 shadow-sm">PURGE ALL</Button>
                  <Button variant="ghost" size="sm" onClick={() => setSelectedUsers(new Set())} className="text-white/40 hover:text-white h-8 text-[9px] font-black">Cancel</Button>
                </div>
              </motion.div>
@@ -566,7 +566,7 @@ const AdminPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <Card className="glass-card p-8">
                <div className="flex items-center gap-3 mb-8">
-                  <div className="p-2.5 rounded-xl border-2 border-black bg-blue-50"><Monitor className="w-5 h-5 text-blue-600" /></div>
+                  <div className="p-2.5 rounded-xl border border-gray-200 bg-blue-50"><Monitor className="w-5 h-5 text-blue-600" /></div>
                   <h3 className="text-xl font-black uppercase">Core Identity Modules</h3>
                </div>
                <div className="space-y-6">
@@ -576,18 +576,18 @@ const AdminPage = () => {
                     { id: 'feature_analytics', label: 'Insight Engine', desc: 'Global performance intelligence', icon: BarChart3 },
                     { id: 'feature_catalog', label: 'Commerce Node', desc: 'Transaction & inventory engine', icon: ShoppingBag }
                   ].map((feature) => (
-                    <div key={feature.id} className="flex items-center justify-between p-4 border-2 border-black/5 rounded-2xl hover:border-black transition-all group">
+                    <div key={feature.id} className="flex items-center justify-between p-4 border border-gray-200/5 rounded-2xl hover:border-black transition-all group">
                        <div className="flex items-center gap-4">
                           <feature.icon className="w-5 h-5 opacity-40 group-hover:opacity-100 transition-opacity" />
                           <div>
-                             <p className="text-[11px] font-black uppercase tracking-widest">{feature.label}</p>
+                             <p className="text-[11px] font-medium text-sm">{feature.label}</p>
                              <p className="text-[9px] text-black/40 font-black uppercase">{feature.desc}</p>
                           </div>
                        </div>
                        <Switch 
                         checked={platformSettings ? Boolean((platformSettings as any)[feature.id]) : true} 
                         onCheckedChange={(val) => handleFeatureToggle(feature.id, val)}
-                        className="data-[state=checked]:bg-emerald-500 border-2 border-black"
+                        className="data-[state=checked]:bg-emerald-500 border border-gray-200"
                        />
                     </div>
                   ))}
@@ -596,23 +596,23 @@ const AdminPage = () => {
 
             <Card className="glass-card p-8">
                <div className="flex items-center gap-3 mb-8">
-                  <div className="p-2.5 rounded-xl border-2 border-black bg-emerald-50"><ShoppingBag className="w-5 h-5 text-emerald-600" /></div>
+                  <div className="p-2.5 rounded-xl border border-gray-200 bg-emerald-50"><ShoppingBag className="w-5 h-5 text-emerald-600" /></div>
                   <h3 className="text-xl font-black uppercase">Financial Core</h3>
                </div>
                <div className="space-y-4">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-black/40">Razorpay Key ID</label>
+                    <label className="text-[10px] font-medium text-sm text-black/40">Razorpay Key ID</label>
                     <Input 
-                      className="h-10 border-2 border-black/10 focus:border-black rounded-xl text-xs font-bold" 
+                      className="h-10 border border-gray-200/10 focus:border-black rounded-xl text-xs font-bold" 
                       placeholder="rzp_live_..." 
                       defaultValue={platformSettings?.razorpay_key_id}
                       onBlur={(e) => updateSettings({ razorpay_key_id: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-black/40">Stripe Publishable Key</label>
+                    <label className="text-[10px] font-medium text-sm text-black/40">Stripe Publishable Key</label>
                     <Input 
-                      className="h-10 border-2 border-black/10 focus:border-black rounded-xl text-xs font-bold" 
+                      className="h-10 border border-gray-200/10 focus:border-black rounded-xl text-xs font-bold" 
                       placeholder="pk_live_..." 
                       defaultValue={platformSettings?.stripe_publishable_key}
                       onBlur={(e) => updateSettings({ stripe_publishable_key: e.target.value })}
@@ -638,20 +638,20 @@ const AdminPage = () => {
 
             <Card className="glass-card p-8 col-span-1 md:col-span-2 lg:col-span-1">
                <div className="flex items-center gap-3 mb-8">
-                  <div className="p-2.5 rounded-xl border-2 border-black bg-emerald-50"><Database className="w-5 h-5 text-emerald-600" /></div>
+                  <div className="p-2.5 rounded-xl border border-gray-200 bg-emerald-50"><Database className="w-5 h-5 text-emerald-600" /></div>
                   <h3 className="text-xl font-black uppercase">Platform Security & Ops</h3>
                </div>
                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="p-6 border-2 border-black/5 rounded-2xl space-y-4">
-                     <p className="text-[10px] font-black uppercase tracking-widest text-black/40">Registration Protocol</p>
+                  <div className="p-6 border border-gray-200/5 rounded-2xl space-y-4">
+                     <p className="text-[10px] font-medium text-sm text-black/40">Registration Protocol</p>
                      <div className="flex items-center justify-between">
                         <span className="text-[12px] font-black uppercase">Open Registration</span>
                         <Switch checked={platformSettings?.allow_registration} onCheckedChange={(val) => handleFeatureToggle('allow_registration', val)} />
                      </div>
                      <p className="text-[9px] text-black/30 font-medium leading-relaxed italic">Controls if new users can self-onboard to the platform.</p>
                   </div>
-                  <div className="p-6 border-2 border-black/5 rounded-2xl space-y-4">
-                     <p className="text-[10px] font-black uppercase tracking-widest text-black/40">Default Deployment</p>
+                  <div className="p-6 border border-gray-200/5 rounded-2xl space-y-4">
+                     <p className="text-[10px] font-medium text-sm text-black/40">Default Deployment</p>
                      <div className="flex items-center gap-3">
                         <Palette className="w-4 h-4 text-black/20" />
                         <span className="text-[12px] font-black uppercase">Standard {platformSettings?.default_theme_id}</span>
@@ -667,29 +667,29 @@ const AdminPage = () => {
           <Card className="glass-card p-8">
              <div className="flex items-center justify-between mb-12">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl border-2 border-black bg-amber-50"><Zap className="w-5 h-5 text-amber-600" /></div>
+                  <div className="p-2.5 rounded-xl border border-gray-200 bg-amber-50"><Zap className="w-5 h-5 text-amber-600" /></div>
                   <h3 className="text-xl font-black uppercase">Template Deployment Matrix</h3>
                 </div>
-                <Button className="bg-black text-white text-[10px] font-black uppercase rounded-xl h-10 px-6 hover:bg-emerald-600 transition-all shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1"><Upload className="w-4 h-4 mr-2" /> Global Deploy</Button>
+                <Button className="bg-primary text-primary-foreground text-[10px] font-black uppercase rounded-xl h-10 px-6 hover:bg-emerald-600 transition-all shadow-sm hover:shadow-none hover:translate-x-1 hover:translate-y-1"><Upload className="w-4 h-4 mr-2" /> Global Deploy</Button>
              </div>
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div className="space-y-4 p-6 border-2 border-black rounded-2xl flex flex-col items-center text-center justify-center hover:bg-black hover:text-white transition-all group cursor-pointer">
+                <div className="space-y-4 p-6 border border-gray-200 rounded-2xl flex flex-col items-center text-center justify-center hover:bg-black hover:text-white transition-all group cursor-pointer">
                    <Palette className="w-12 h-12 mb-4 text-black group-hover:text-white" />
-                   <h4 className="font-black uppercase tracking-widest text-[14px]">Theme Presets</h4>
+                   <h4 className="font-medium text-sm text-[14px]">Theme Presets</h4>
                    <p className="text-[10px] uppercase font-black opacity-40">24 active designs</p>
-                   <Button variant="ghost" className="mt-4 border-2 border-black/10 group-hover:border-white/40 text-[9px] font-black uppercase">Manage Catalog</Button>
+                   <Button variant="ghost" className="mt-4 border border-gray-200/10 group-hover:border-white/40 text-[9px] font-black uppercase">Manage Catalog</Button>
                 </div>
-                <div className="space-y-4 p-6 border-2 border-black rounded-2xl flex flex-col items-center text-center justify-center hover:bg-black hover:text-white transition-all group cursor-pointer">
+                <div className="space-y-4 p-6 border border-gray-200 rounded-2xl flex flex-col items-center text-center justify-center hover:bg-black hover:text-white transition-all group cursor-pointer">
                    <Layers className="w-12 h-12 mb-4 text-black group-hover:text-white" />
-                   <h4 className="font-black uppercase tracking-widest text-[14px]">Niche Templates</h4>
+                   <h4 className="font-medium text-sm text-[14px]">Niche Templates</h4>
                    <p className="text-[10px] uppercase font-black opacity-40">12 operational sectors</p>
-                   <Button variant="ghost" className="mt-4 border-2 border-black/10 group-hover:border-white/40 text-[9px] font-black uppercase">Configure Sectors</Button>
+                   <Button variant="ghost" className="mt-4 border border-gray-200/10 group-hover:border-white/40 text-[9px] font-black uppercase">Configure Sectors</Button>
                 </div>
-                <div className="space-y-4 p-6 border-2 border-black rounded-2xl flex flex-col items-center text-center justify-center hover:bg-black hover:text-white transition-all group cursor-pointer">
+                <div className="space-y-4 p-6 border border-gray-200 rounded-2xl flex flex-col items-center text-center justify-center hover:bg-black hover:text-white transition-all group cursor-pointer">
                    <Package className="w-12 h-12 mb-4 text-black group-hover:text-white" />
-                   <h4 className="font-black uppercase tracking-widest text-[14px]">Catalog Packs</h4>
+                   <h4 className="font-medium text-sm text-[14px]">Catalog Packs</h4>
                    <p className="text-[10px] uppercase font-black opacity-40">Demo asset libraries</p>
-                   <Button variant="ghost" className="mt-4 border-2 border-black/10 group-hover:border-white/40 text-[9px] font-black uppercase">Sync Packs</Button>
+                   <Button variant="ghost" className="mt-4 border border-gray-200/10 group-hover:border-white/40 text-[9px] font-black uppercase">Sync Packs</Button>
                 </div>
              </div>
           </Card>
@@ -710,15 +710,15 @@ const AdminPage = () => {
         <Card className="glass-card p-8 group">
           <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl border-2 border-black bg-emerald-100 flex items-center justify-center text-emerald-600"><ShoppingBag className="w-5 h-5" /></div>
+                <div className="p-2.5 rounded-xl border border-gray-200 bg-emerald-100 flex items-center justify-center text-emerald-600"><ShoppingBag className="w-5 h-5" /></div>
                 <h3 className="text-xl font-black text-black leading-none uppercase">Financial Stream</h3>
               </div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-black/40">Latest 10 transactions</p>
+              <p className="text-[10px] font-medium text-sm text-black/40">Latest 10 transactions</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {recentOrders.map((order) => (
-              <div key={order.id} className="p-5 rounded-2xl border-2 border-black/5 bg-white/50 hover:border-black hover:bg-white hover:translate-y-[-2px] hover:shadow-[6px_6px_0_0_rgba(0,0,0,1)] transition-all duration-300 relative overflow-hidden group/order">
-                <div className="flex items-center justify-between mb-3"><span className="text-[8px] font-black uppercase tracking-widest text-black/30">ID_{order.id.slice(0,4)}</span><div className="w-2 h-2 rounded-full bg-emerald-500 opacity-50 group-hover/order:animate-ping" /></div>
+              <div key={order.id} className="p-5 rounded-2xl border border-gray-200/5 bg-white/50 hover:border-black hover:bg-white hover:translate-y-[-2px] hover:shadow-sm transition-all duration-300 relative overflow-hidden group/order">
+                <div className="flex items-center justify-between mb-3"><span className="text-[8px] font-medium text-sm text-black/30">ID_{order.id.slice(0,4)}</span><div className="w-2 h-2 rounded-full bg-emerald-500 opacity-50 group-hover/order:animate-ping" /></div>
                 <p className="text-[12px] font-black text-black truncate leading-tight uppercase tracking-tight">{order.catalog_items?.title || "Product_Node"}</p>
                 <div className="mt-4 pt-4 border-t-2 border-black/5 flex items-end justify-between"><span className="text-[8px] font-black text-black/20 uppercase tracking-[0.2em]">{order.customer_name?.split(' ')[0]}</span><span className="text-lg font-black text-black tabular-nums leading-none">${resolveOrderAmount(order)}</span></div>
               </div>
@@ -732,3 +732,5 @@ const AdminPage = () => {
 };
 
 export default AdminPage;
+
+

@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Pencil, Trash2, ExternalLink, FileText, ShoppingBag, UtensilsCrossed, Dumbbell, Download, Ship, Car, Users, FileText as FileTextIcon, Video, Newspaper, Music, MessageSquare, Clapperboard, QrCode, MapPin } from "lucide-react";
+import { Pencil, Trash2, ExternalLink, ShoppingBag, UtensilsCrossed, Dumbbell, Download, Ship, Car, Users, FileText as FileTextIcon, Video, Newspaper, Music, MessageSquare, Clapperboard, QrCode, MapPin } from "lucide-react";
 
 export const TYPE_ICONS: Record<ItemType, typeof ShoppingBag> = {
   physical: ShoppingBag,

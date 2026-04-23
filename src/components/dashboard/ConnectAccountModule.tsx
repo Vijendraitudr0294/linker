@@ -19,10 +19,10 @@ export function ConnectAccountModule() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-xl font-black text-white tracking-tight">Identity Nodes</h3>
+          <h3 className="text-xl font-black text-white tracking-tight">My Links</h3>
           <p className="text-sm text-white/40 font-medium">Sync your external digital influence.</p>
         </div>
-        <Button variant="outline" size="sm" className="bg-white/5 border-white/10 text-[10px] font-black uppercase tracking-widest px-4 hover:bg-white/10">
+        <Button variant="outline" size="sm" className="bg-white/5 border-white/10 text-[10px] font-medium text-sm px-4 hover:bg-white/10">
           Sync All
         </Button>
       </div>
@@ -45,7 +45,7 @@ export function ConnectAccountModule() {
                      <account.icon className="w-6 h-6" />
                   </div>
                   {account.connected ? (
-                     <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest">
+                     <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-medium text-sm">
                         <CheckCircle2 className="w-3 h-3" /> Syncing
                      </div>
                   ) : (
@@ -79,3 +79,5 @@ export function ConnectAccountModule() {
     </div>
   );
 }
+
+

@@ -392,9 +392,16 @@ const upsertAppearanceSettings = async (userId: string, data: Partial<Appearance
 
     // 2. Handle button_style constraint violation
     if (error.message?.includes("appearance_settings_button_style_check") && pendingData.button_style) {
-      console.warn("Retrying with fallback button style due to DB constraint");
-      pendingData.button_style = "rounded"; // Safest fallback
-      continue;
+      if (pendingData.button_style !== "rounded") {
+        console.warn("Retrying with fallback button style due to DB constraint");
+        pendingData.button_style = "rounded"; // Safest fallback
+        continue;
+      } else {
+        console.warn("Fallback button style 'rounded' also failed DB check. Skipping column.");
+        delete pendingData.button_style;
+        skippedColumns.add("button_style");
+        continue;
+      }
     }
 
     lastError = error.message || "Failed to save appearance settings";

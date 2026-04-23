@@ -278,63 +278,30 @@ const CatalogPage = () => {
   return (
     <div className="space-y-10">
       
-      <div className="relative overflow-hidden bruddle-card bg-[#FBCFE8] p-10 md:p-14 lg:p-16 shadow-[4px_4px_0_0_rgba(0,0,0,1)] mb-12">
-        <div className="absolute top-0 right-0 p-12 opacity-10 rotate-12 pointer-events-none">
-           <ShoppingBag size={200} strokeWidth={1} className="text-black" />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+        <div>
+          <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">Your Store</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage your products, services, and digital items.</p>
         </div>
-        
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-end justify-between gap-10">
-          <div className="space-y-8">
-            <div className="flex items-center gap-2.5">
-               <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-               <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">Studio Storefront • Live Sync</span>
-            </div>
-            
-            <div className="space-y-3 relative z-10 w-full flex flex-col items-start gap-4">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-black leading-tight uppercase">
-                Your <br />
-                <span className="text-black">Collections.</span>
-              </h1>
-              <p className="text-base md:text-lg text-black/60 font-black tracking-widest uppercase max-w-[500px]">
-                Manage your vision with professional simplicity. Every item is optimized for global commerce.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-4 flex-wrap">
-               {["Premium Hosting", "Secure Checkout", "Global Reach"].map((tag, i) => (
-                 <Badge key={tag} className="bg-white text-black border-2 border-black font-black uppercase text-[9px] tracking-widest shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
-                   {tag}
-                 </Badge>
-               ))}
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            <CatalogQRCodeModal username={user?.username || ""} servicesUrl={servicesUrl} />
-            <CatalogDemoDataModal
-              open={showDemoDialog}
-              onOpenChange={setShowDemoDialog}
-              demoCategories={demoCategories}
-              demoCatalogPacks={demoCatalogPacks}
-              importingDemo={importingDemo}
-              onBulkAdd={handleBulkAdd}
-            />
-            <Button 
-              onClick={() => {
-                setEditItem(undefined);
-                setShowAdd(true);
-              }}
-              className="h-14 px-8 rounded-xl bg-white border-2 border-black text-black font-black uppercase tracking-widest text-[12px] shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:translate-y-1 hover:translate-x-1 hover:shadow-none hover:bg-black hover:text-white transition-all whitespace-nowrap"
-            >
-              <Plus className="w-5 h-5 mr-2" /> Host Item
-            </Button>
-          </div>
+        <div className="flex items-center gap-4">
+          <CatalogQRCodeModal username={user?.username || ""} servicesUrl={servicesUrl} />
+          <CatalogDemoDataModal
+            open={showDemoDialog}
+            onOpenChange={setShowDemoDialog}
+            demoCategories={demoCategories}
+            demoCatalogPacks={demoCatalogPacks}
+            importingDemo={importingDemo}
+            onBulkAdd={handleBulkAdd}
+          />
+          <Button onClick={() => { setEditItem(undefined); setShowAdd(true); }}>
+            <Plus className="w-4 h-4 mr-2" /> Add Item
+          </Button>
         </div>
       </div>
 
       <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
         <div className="flex items-center gap-4 w-full md:w-auto overflow-x-auto no-scrollbar scrollbar-hide">
-          <div className="flex bg-white p-2 rounded-[24px] border-2 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] shrink-0 h-14">
+          <div className="flex bg-white p-2 rounded-[24px] border border-gray-200 shadow-sm shrink-0 h-14">
             {[
               { id: "all", label: "All Items", count: items.length },
               { id: "shop", label: "Store", count: sellableCount },
@@ -344,16 +311,16 @@ const CatalogPage = () => {
                 key={tab.id}
                 onClick={() => setManagerView(tab.id as any)}
                 className={cn(
-                  "px-5 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-2 whitespace-nowrap",
+                  "px-5 py-2 rounded-xl text-[11px] font-medium text-sm transition-all duration-300 flex items-center gap-2 whitespace-nowrap",
                   managerView === tab.id 
-                    ? "bg-black text-white" 
+                    ? "bg-primary text-primary-foreground" 
                     : "text-black/60 hover:text-black"
                 )}
               >
                 {tab.label}
                 <span className={cn(
-                  "text-[9px] px-2 py-0.5 rounded-md font-black shadow-[2px_2px_0_0_rgba(0,0,0,1)]",
-                  managerView === tab.id ? "bg-[#FBCFE8] text-black border-2 border-black" : "bg-gray-100 text-black border-2 border-black/10 shadow-none"
+                  "text-[9px] px-2 py-0.5 rounded-md font-black shadow-sm",
+                  managerView === tab.id ? "bg-[#FBCFE8] text-black border border-gray-200" : "bg-gray-100 text-black border border-gray-200/10 shadow-none"
                 )}>
                   {tab.count}
                 </span>
@@ -361,13 +328,13 @@ const CatalogPage = () => {
             ))}
           </div>
 
-          <div className="flex bg-white/50 p-1 rounded-2xl border-2 border-black/10 shrink-0 h-14 items-center gap-1 px-2">
+          <div className="flex bg-white/50 p-1 rounded-2xl border border-gray-200/10 shrink-0 h-14 items-center gap-1 px-2">
              <Button
                 variant={viewMode === "list" ? "secondary" : "ghost"}
                 size="sm"
                 className={cn(
-                  "h-10 px-4 rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest",
-                  viewMode === "list" ? "bg-black text-white shadow-[4px_4px_0_0_rgba(0,0,0,1)]" : "text-black/40 hover:text-black"
+                  "h-10 px-4 rounded-xl gap-2 text-[10px] font-medium text-sm",
+                  viewMode === "list" ? "bg-primary text-primary-foreground shadow-sm" : "text-black/40 hover:text-black"
                 )}
                 onClick={() => setViewMode("list")}
               >
@@ -377,8 +344,8 @@ const CatalogPage = () => {
                 variant={viewMode === "card" ? "secondary" : "ghost"}
                 size="sm"
                 className={cn(
-                  "h-10 px-4 rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest",
-                  viewMode === "card" ? "bg-black text-white shadow-[4px_4px_0_0_rgba(0,0,0,1)]" : "text-black/40 hover:text-black"
+                  "h-10 px-4 rounded-xl gap-2 text-[10px] font-medium text-sm",
+                  viewMode === "card" ? "bg-primary text-primary-foreground shadow-sm" : "text-black/40 hover:text-black"
                 )}
                 onClick={() => setViewMode("card")}
               >
@@ -411,17 +378,17 @@ const CatalogPage = () => {
       </AnimatePresence>
 
       {items.length === 0 && !showAdd && (
-        <Card className="bruddle-card bg-gray-50 border-2 border-black border-dashed p-12 text-center space-y-6">
-          <div className="w-20 h-20 bg-white border-2 border-black rounded-2xl flex items-center justify-center mx-auto shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+        <Card className="bg-white border border-gray-200 shadow-sm rounded-xl bg-gray-50 border border-gray-200 border-dashed p-12 text-center space-y-6">
+          <div className="w-20 h-20 bg-white border border-gray-200 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
             <ShoppingBag className="w-10 h-10 text-black/40" />
           </div>
           <div className="space-y-2">
-            <h3 className="text-xl font-black uppercase tracking-tight text-black">Your Catalog is Empty</h3>
+            <h3 className="text-xl font-semibold text-lg text-black">Your Catalog is Empty</h3>
             <p className="text-xs font-bold text-black/40 max-w-sm mx-auto">
               Add products, food menus, or digital items. They'll appear on your public profile for visitors to browse.
             </p>
           </div>
-          <Button onClick={() => { setEditItem(undefined); setShowAdd(true); }} className="bg-white border-2 border-black text-black font-black uppercase tracking-widest text-[11px] h-12 px-8 shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:translate-y-1 hover:translate-x-1 hover:shadow-none hover:bg-black hover:text-white transition-all">
+          <Button onClick={() => { setEditItem(undefined); setShowAdd(true); }} className="bg-white border border-gray-200 text-black font-medium text-sm text-[11px] h-12 px-8 shadow-sm hover:translate-y-1 hover:translate-x-1 hover:shadow-none hover:bg-black hover:text-white transition-all">
             <Plus className="w-5 h-5 mr-2" /> 
             Add Your First Item
           </Button>
@@ -429,7 +396,7 @@ const CatalogPage = () => {
       )}
 
       {items.length > 0 && managedItems.length === 0 && !showAdd && (
-        <Card className="bruddle-card bg-gray-50 border-2 border-dashed border-black/20 p-6 text-center space-y-2">
+        <Card className="bg-white border border-gray-200 shadow-sm rounded-xl bg-gray-50 border-2 border-dashed border-black/20 p-6 text-center space-y-2">
           <h3 className="text-sm font-black uppercase text-black">No items in this view</h3>
           <p className="text-[10px] font-bold text-black/40 uppercase tracking-wide">
             Switch to another manage view or add a new item.
@@ -451,3 +418,5 @@ const CatalogPage = () => {
 };
 
 export default CatalogPage;
+
+

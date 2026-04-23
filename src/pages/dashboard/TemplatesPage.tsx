@@ -466,7 +466,7 @@ const TemplatesPage = () => {
     <div className="space-y-8 pb-20">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap');
-        .bruddle-card { border: 2px solid #000; border-radius: 28px; box-shadow: 8px 8px 0 0 rgba(0,0,0,1); }
+        .bg-white border border-gray-200 shadow-sm rounded-xl { border: 2px solid #000; border-radius: 28px; box-shadow: 8px 8px 0 0 rgba(0,0,0,1); }
       `}</style>
 
       <div className="flex flex-col lg:flex-row items-start gap-8">
@@ -474,11 +474,11 @@ const TemplatesPage = () => {
         <div className="flex-1 min-w-0 space-y-8">
           <header className="px-1 space-y-2.5">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#E0E7FF] border-2 border-black flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-[#E0E7FF] border border-gray-200 flex items-center justify-center">
                 <LayoutTemplate className="w-5 h-5" />
               </div>
               <div>
-                <h1 className="text-3xl font-black text-black tracking-tight">Templates</h1>
+                <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">Templates</h1>
                 <p className="text-sm font-medium text-black/40">
                   Pick a prebuilt design or build your own with drag & drop.
                 </p>
@@ -488,22 +488,22 @@ const TemplatesPage = () => {
 
           {/* Mobile Single View Mirror */}
           <div className="lg:hidden w-full mb-4 animate-in fade-in slide-in-from-top-4 duration-700">
-             <Card className="bruddle-card-blue p-4 bg-[#E0F2FE] flex flex-col items-center justify-start relative overflow-hidden rounded-[24px] border-2 border-black shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+             <Card className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 bg-[#E0F2FE] flex flex-col items-center justify-start relative overflow-hidden rounded-[24px] border border-gray-200 shadow-sm">
                 <div className="flex items-center justify-between w-full mb-3 px-1">
                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded-md bg-white border-2 border-black flex items-center justify-center">
+                      <div className="w-5 h-5 rounded-md bg-white border border-gray-200 flex items-center justify-center">
                          <Smartphone className="w-3 h-3" />
                       </div>
-                      <span className="text-[10px] font-black uppercase tracking-widest">Live Mirror</span>
+                      <span className="text-[10px] font-medium text-sm">Live Mirror</span>
                    </div>
                    <Badge className={cn(
-                     "border-2 border-black rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest transition-colors",
+                     "border border-gray-200 rounded-full px-2 py-0.5 text-[8px] font-medium text-sm transition-colors",
                      isSyncing ? "bg-[#FDE68A] text-black animate-pulse" : "bg-white/40 text-black"
                    )}>
                      {isSyncing ? "Syncing" : "Instant"}
                    </Badge>
                 </div>
-                <div className="w-full h-[220px] rounded-[1.8rem] border-2 border-black overflow-hidden bg-white shadow-[2px_2px_0_0_rgba(0,0,0,1)] relative">
+                <div className="w-full h-[220px] rounded-[1.8rem] border border-gray-200 overflow-hidden bg-white shadow-sm relative">
                    <ProfilePreview 
                       settings={settings} 
                       user={user} 
@@ -518,7 +518,7 @@ const TemplatesPage = () => {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-white p-2 rounded-[24px] mb-8 overflow-x-auto no-scrollbar scrollbar-hide flex w-full lg:w-fit border-2 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+            <TabsList className="bg-white p-2 rounded-[24px] mb-8 overflow-x-auto no-scrollbar scrollbar-hide flex w-full lg:w-fit border border-gray-200 shadow-sm">
               {[
                 { id: "templates", label: "Prebuilt" },
                 { id: "builder", label: "Page Builder" },
@@ -527,7 +527,7 @@ const TemplatesPage = () => {
                 <TabsTrigger
                   key={tab.id}
                   value={tab.id}
-                  className="rounded-xl px-5 py-2 text-[11px] font-black uppercase tracking-widest text-black/60 data-[state=active]:bg-black data-[state=active]:text-white transition-all whitespace-nowrap"
+                  className="rounded-xl px-5 py-2 text-[11px] font-medium text-sm text-black/60 data-[state=active]:bg-black data-[state=active]:text-white transition-all whitespace-nowrap"
                 >
                   {tab.label}
                 </TabsTrigger>
@@ -541,7 +541,7 @@ const TemplatesPage = () => {
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40" />
                   <Input
                     placeholder="Search templates..."
-                    className="pl-10 h-12 rounded-xl bg-white border-2 border-black/10 focus:border-black transition-all text-xs font-bold text-black"
+                    className="pl-10 h-12 rounded-xl bg-white border border-gray-200/10 focus:border-black transition-all text-xs font-bold text-black"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -566,7 +566,7 @@ const TemplatesPage = () => {
                   <motion.div
                     key={template.id}
                     whileHover={{ y: -4 }}
-                    className="group relative overflow-hidden rounded-[28px] border-2 border-black shadow-[6px_6px_0_0_rgba(0,0,0,1)] bg-white transition-all hover:shadow-[8px_8px_0_0_rgba(0,0,0,1)]"
+                    className="group relative overflow-hidden rounded-[28px] border border-gray-200 shadow-sm bg-white transition-all hover:shadow-sm"
                   >
                     {/* Preview Gradient */}
                     <div
@@ -577,7 +577,7 @@ const TemplatesPage = () => {
                         <Button
                           onClick={() => applyTemplate(template)}
                           disabled={isSyncing}
-                          className="bg-white text-black border-2 border-black rounded-xl font-black text-xs uppercase tracking-wider shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
+                          className="bg-white text-black border border-gray-200 rounded-xl font-black text-xs uppercase tracking-wider shadow-sm hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
                         >
                           {isSyncing ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Sparkles className="w-4 h-4 mr-2" />}
                           Apply Template
@@ -615,9 +615,9 @@ const TemplatesPage = () => {
                       <p className="text-xs text-black/50 font-medium mb-4">{template.description}</p>
                       <div className="flex items-center gap-2">
                         <div className="flex gap-1.5">
-                          <div className="w-5 h-5 rounded-full border-2 border-black" style={{ backgroundColor: template.themeOverrides.backgroundColor }} />
-                          <div className="w-5 h-5 rounded-full border-2 border-black" style={{ backgroundColor: template.themeOverrides.buttonBg }} />
-                          <div className="w-5 h-5 rounded-full border-2 border-black" style={{ backgroundColor: template.themeOverrides.textColor }} />
+                          <div className="w-5 h-5 rounded-full border border-gray-200" style={{ backgroundColor: template.themeOverrides.backgroundColor }} />
+                          <div className="w-5 h-5 rounded-full border border-gray-200" style={{ backgroundColor: template.themeOverrides.buttonBg }} />
+                          <div className="w-5 h-5 rounded-full border border-gray-200" style={{ backgroundColor: template.themeOverrides.textColor }} />
                         </div>
                         <span className="text-[10px] font-bold text-black/30 ml-auto">{template.components.length} blocks</span>
                       </div>
@@ -629,21 +629,21 @@ const TemplatesPage = () => {
 
             {/* ═══ PAGE BUILDER (Drag & Drop) ═══ */}
             <TabsContent value="builder" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <Card className="bruddle-card p-6 md:p-8 bg-white">
+              <Card className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 md:p-8 bg-white">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-[#D1FAE5] border-2 border-black flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-lg bg-[#D1FAE5] border border-gray-200 flex items-center justify-center">
                       <LayoutTemplate className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-black text-black tracking-tight uppercase">Page Layout</h3>
+                      <h3 className="text-lg font-semibold text-gray-900 tracking-tight uppercase">Page Layout</h3>
                       <p className="text-[10px] font-black uppercase text-black/40 tracking-widest">Drag blocks to reorder. Toggle visibility.</p>
                     </div>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="rounded-xl border-2 border-black text-xs font-bold"
+                    className="rounded-xl border border-gray-200 text-xs font-bold"
                     onClick={() => setActiveTab("components")}
                   >
                     <Plus className="w-4 h-4 mr-1" /> Add Block
@@ -670,7 +670,7 @@ const TemplatesPage = () => {
                           className={cn(
                             "flex items-center gap-4 p-4 rounded-2xl border-2 transition-all cursor-grab active:cursor-grabbing group",
                             block.enabled
-                              ? "border-black bg-white hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)]"
+                              ? "border-black bg-white hover:shadow-sm"
                               : "border-black/20 bg-black/5 opacity-60",
                             dragOverIndex === index && "border-dashed border-emerald-500 bg-emerald-50"
                           )}
@@ -679,7 +679,7 @@ const TemplatesPage = () => {
                             <GripVertical className="w-5 h-5" />
                           </div>
                           <div className={cn(
-                            "w-10 h-10 rounded-xl border-2 border-black flex items-center justify-center shrink-0",
+                            "w-10 h-10 rounded-xl border border-gray-200 flex items-center justify-center shrink-0",
                             block.enabled ? "bg-[#E0E7FF]" : "bg-black/10"
                           )}>
                             <Icon className="w-4 h-4" />
@@ -750,7 +750,7 @@ const TemplatesPage = () => {
                         "relative p-5 rounded-2xl border-2 transition-all group",
                         alreadyAdded
                           ? "border-emerald-400 bg-emerald-50/50"
-                          : "border-black/10 bg-white hover:border-black hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)]"
+                          : "border-black/10 bg-white hover:border-black hover:shadow-sm"
                       )}
                     >
                       <div className="flex items-start gap-4">
@@ -776,7 +776,7 @@ const TemplatesPage = () => {
                           "mt-4 w-full rounded-xl text-xs font-bold transition-all",
                           alreadyAdded
                             ? "bg-emerald-100 text-emerald-600 border-emerald-300 cursor-default"
-                            : "bg-black text-white hover:bg-black/80 border-2 border-black shadow-[3px_3px_0_0_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none"
+                            : "bg-primary text-primary-foreground hover:bg-black/80 border border-gray-200 shadow-sm hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none"
                         )}
                       >
                         {alreadyAdded ? (
@@ -796,7 +796,7 @@ const TemplatesPage = () => {
         {/* Live Preview Sidebar */}
         <div className="hidden lg:block w-[380px] shrink-0">
           <div className="fixed top-24 right-10 w-[380px] z-30 h-[calc(100vh-8rem)]">
-            <Card className="h-full p-6 bg-[#E0F2FE] flex flex-col items-center justify-start relative overflow-hidden rounded-[28px] border-2 border-black shadow-[12px_12px_0_0_rgba(0,0,0,1)]">
+            <Card className="h-full p-6 bg-[#E0F2FE] flex flex-col items-center justify-start relative overflow-hidden rounded-[28px] border border-gray-200 shadow-sm">
               <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12 pointer-events-none">
                 <Smartphone size={160} strokeWidth={1} />
               </div>
@@ -804,7 +804,7 @@ const TemplatesPage = () => {
                 <div className="flex items-center gap-2 mb-4 w-full justify-between">
                   <span className="text-xl font-black text-black uppercase tracking-tight">Preview</span>
                   <Badge className={cn(
-                    "border-2 border-black rounded-full px-4 py-1 text-[9px] font-black uppercase tracking-widest transition-colors",
+                    "border border-gray-200 rounded-full px-4 py-1 text-[9px] font-medium text-sm transition-colors",
                     isSyncing ? "bg-[#FDE68A] text-black animate-pulse" : "bg-white/40 text-black"
                   )}>
                     {isSyncing ? "Syncing..." : "Live"}
@@ -813,7 +813,7 @@ const TemplatesPage = () => {
                 <div className="grid grid-cols-2 gap-3 mb-4 w-full px-1">
                   <Button
                     size="sm"
-                    className="h-10 rounded-xl bg-white border-2 border-black text-black text-[11px] uppercase tracking-widest font-black hover:bg-black hover:text-white transition-all shadow-[2px_2px_0_0_rgba(0,0,0,1)]"
+                    className="h-10 rounded-xl bg-white border border-gray-200 text-black text-[11px] uppercase tracking-widest font-black hover:bg-black hover:text-white transition-all shadow-sm"
                     asChild
                   >
                     <a href={profileUrl} target="_blank" rel="noopener noreferrer">
@@ -822,7 +822,7 @@ const TemplatesPage = () => {
                   </Button>
                   <Button
                     size="sm"
-                    className="h-10 rounded-xl bg-white border-2 border-black text-black text-[11px] uppercase tracking-widest font-black hover:bg-black hover:text-white transition-all shadow-[2px_2px_0_0_rgba(0,0,0,1)]"
+                    className="h-10 rounded-xl bg-white border border-gray-200 text-black text-[11px] uppercase tracking-widest font-black hover:bg-black hover:text-white transition-all shadow-sm"
                     onClick={() => {
                       navigator.clipboard.writeText(profileUrl);
                       toast.success("Copied!");
@@ -837,7 +837,7 @@ const TemplatesPage = () => {
                   initial={{ opacity: 0, scale: 0.98 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.4, ease: "easeOut" }}
-                  className="flex-1 w-full rounded-[2.4rem] border-2 border-black overflow-hidden bg-white shadow-[4px_4px_0_0_rgba(0,0,0,1)] relative"
+                  className="flex-1 w-full rounded-[2.4rem] border border-gray-200 overflow-hidden bg-white shadow-sm relative"
                 >
                   <ProfilePreview
                     settings={settings}
@@ -864,7 +864,7 @@ const TemplatesPage = () => {
             className="fixed bottom-6 left-6 right-6 z-[100] lg:hidden"
           >
             <Button
-              className="w-full h-14 rounded-2xl bg-black text-white font-bold shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-between px-6 border-2 border-black"
+              className="w-full h-14 rounded-2xl bg-primary text-primary-foreground font-bold shadow-sm flex items-center justify-between px-6 border border-gray-200"
               onClick={() => setShowMobilePreview(true)}
             >
               <div className="flex items-center gap-3">
@@ -913,3 +913,5 @@ const TemplatesPage = () => {
 };
 
 export default TemplatesPage;
+
+

@@ -73,7 +73,7 @@ const Footer = () => {
         {/* Footer Bottom */}
         <div className="pt-12 border-t border-surface-border flex flex-col md:flex-row justify-between items-center gap-8">
            <div className="flex items-center gap-10">
-              <span className="text-[9px] font-mono text-muted-foreground/20 tracking-[0.2em] uppercase font-black">BIOTRA © 2026</span>
+              <span className="text-[9px] font-mono text-muted-foreground/20 tracking-[0.2em] uppercase font-black">Copyright @2025, Listifyi Innovation Private Limited. All Rights Reserved</span>
               <div className="flex gap-6">
                  {["Privacy", "Terms", "Support"].map(l => (
                     <a key={l} href="#" className="text-[9px] font-mono text-muted-foreground/20 hover:text-primary transition-colors uppercase tracking-[0.2em] font-black">{l}</a>

@@ -136,10 +136,10 @@ const AppsIntegrationsPage = () => {
 
   return (
     <div className="space-y-6">
-      <Card className="bruddle-card p-6 md:p-8 bg-white">
+      <Card className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 md:p-8 bg-white">
         <div className="flex flex-col lg:flex-row lg:items-center gap-5 justify-between">
           <div className="space-y-2">
-            <Badge className="rounded-full border-2 border-black bg-[#D1FAE5] text-black text-[10px] uppercase tracking-widest font-black px-4 py-1">
+            <Badge className="rounded-full border border-gray-200 bg-[#D1FAE5] text-black text-[10px] uppercase tracking-widest font-black px-4 py-1">
               Apps + Integrations
             </Badge>
             <h2 className="text-4xl md:text-5xl font-black tracking-tight text-black uppercase">App Center</h2>
@@ -153,13 +153,13 @@ const AppsIntegrationsPage = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search templates..."
-              className="pl-9 h-11 rounded-xl border-2 border-black"
+              className="pl-9 h-11 rounded-xl border border-gray-200"
             />
           </div>
         </div>
       </Card>
 
-      <Card className="bruddle-card p-5 md:p-6 bg-white space-y-5">
+      <Card className="bg-white border border-gray-200 shadow-sm rounded-xl p-5 md:p-6 bg-white space-y-5">
         <Tabs value={category} onValueChange={(v) => setCategory(v as AppCategory)}>
           <TabsList className="h-auto flex flex-wrap justify-start bg-transparent p-0 gap-2">
             {(Object.keys(categoryLabel) as AppCategory[]).map((key) => (
@@ -167,8 +167,8 @@ const AppsIntegrationsPage = () => {
                 key={key}
                 value={key}
                 className={cn(
-                  "rounded-xl border-2 border-black px-4 py-2 text-[11px] uppercase tracking-wider font-black",
-                  category === key ? "bg-black text-white" : "bg-white text-black"
+                  "rounded-xl border border-gray-200 px-4 py-2 text-[11px] uppercase tracking-wider font-black",
+                  category === key ? "bg-primary text-primary-foreground" : "bg-white text-black"
                 )}
               >
                 {categoryLabel[key]}
@@ -188,8 +188,8 @@ const AppsIntegrationsPage = () => {
               variant="outline"
               onClick={() => setConnectionFilter(f.id)}
               className={cn(
-                "rounded-full border-2 border-black text-[11px] font-black uppercase tracking-wide",
-                connectionFilter === f.id ? "bg-black text-white" : "bg-white text-black"
+                "rounded-full border border-gray-200 text-[11px] font-black uppercase tracking-wide",
+                connectionFilter === f.id ? "bg-primary text-primary-foreground" : "bg-white text-black"
               )}
             >
               {f.label}
@@ -198,27 +198,27 @@ const AppsIntegrationsPage = () => {
         </div>
 
         {dynamicApps.length === 0 ? (
-          <div className="rounded-2xl border-2 border-black bg-[#F8FAFC] p-6 text-center">
+          <div className="rounded-2xl border border-gray-200 bg-[#F8FAFC] p-6 text-center">
             <p className="text-sm font-bold text-black/70">No app templates found in platform settings yet.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {filtered.map((app) => (
-              <div key={app.id} className="rounded-3xl border-[3px] border-black bg-[#F9FAFB] p-4 shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
+              <div key={app.id} className="rounded-3xl border-[3px] border-black bg-[#F9FAFB] p-4 shadow-sm">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="w-11 h-11 rounded-2xl border-2 border-black bg-white flex items-center justify-center">
+                  <div className="w-11 h-11 rounded-2xl border border-gray-200 bg-white flex items-center justify-center">
                     <SocialIcon platform={app.platform} className="w-5 h-5" />
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <Badge className="rounded-full border-2 border-black bg-white text-[9px] uppercase tracking-widest font-black text-black">
+                    <Badge className="rounded-full border border-gray-200 bg-white text-[9px] uppercase tracking-widest font-black text-black">
                       {categoryLabel[app.category]}
                     </Badge>
                     {connectedPlatforms.has(app.platform) ? (
-                      <Badge className="rounded-full border-2 border-black bg-[#D1FAE5] text-[9px] uppercase tracking-widest font-black text-black">
+                      <Badge className="rounded-full border border-gray-200 bg-[#D1FAE5] text-[9px] uppercase tracking-widest font-black text-black">
                         Connected
                       </Badge>
                     ) : (
-                      <Badge className="rounded-full border-2 border-black bg-[#F3F4F6] text-[9px] uppercase tracking-widest font-black text-black/70">
+                      <Badge className="rounded-full border border-gray-200 bg-[#F3F4F6] text-[9px] uppercase tracking-widest font-black text-black/70">
                         Not Connected
                       </Badge>
                     )}
@@ -232,7 +232,7 @@ const AppsIntegrationsPage = () => {
                   </p>
                 </div>
 
-                <div className="mt-3 rounded-xl border-2 border-black/20 bg-white px-3 py-2">
+                <div className="mt-3 rounded-xl border border-gray-200/20 bg-white px-3 py-2">
                   <p className="text-[10px] uppercase tracking-widest font-black text-black/50 mb-1">Quick setup</p>
                   <ul className="space-y-0.5">
                     <li className="text-xs font-semibold text-black/70">- Click Add to Links</li>
@@ -244,7 +244,7 @@ const AppsIntegrationsPage = () => {
                 <div className="mt-4 flex items-center gap-2">
                   <Button
                     onClick={() => addToLinks(app)}
-                    className="flex-1 h-11 rounded-full border-2 border-black bg-black text-white hover:bg-white hover:text-black font-black uppercase tracking-wider"
+                    className="flex-1 h-11 rounded-full border border-gray-200 bg-primary text-primary-foreground hover:bg-white hover:text-black font-black uppercase tracking-wider"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Add to Links
@@ -263,13 +263,13 @@ const AppsIntegrationsPage = () => {
             <Button
               variant="outline"
               onClick={() => setShowAll((s) => !s)}
-              className="rounded-full border-2 border-black font-black uppercase tracking-wide"
+              className="rounded-full border border-gray-200 font-black uppercase tracking-wide"
             >
               {showAll ? "Show Less" : "View All"}
             </Button>
             <Button
               onClick={() => navigate("/dashboard/links")}
-              className="rounded-full border-2 border-black bg-[#D1FAE5] text-black hover:bg-black hover:text-white font-black uppercase tracking-wide"
+              className="rounded-full border border-gray-200 bg-[#D1FAE5] text-black hover:bg-black hover:text-white font-black uppercase tracking-wide"
             >
               <Check className="w-4 h-4 mr-2" />
               Go to Links
@@ -288,3 +288,5 @@ const AppsIntegrationsPage = () => {
 };
 
 export default AppsIntegrationsPage;
+
+

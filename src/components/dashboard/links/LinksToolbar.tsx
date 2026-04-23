@@ -73,7 +73,7 @@ export default function LinksToolbar({
             variant={viewMode === "list" ? "secondary" : "ghost"}
             size="sm"
             className={cn(
-              "h-8 px-3 rounded-lg gap-2 text-[10px] font-black uppercase tracking-widest",
+              "h-8 px-3 rounded-lg gap-2 text-[10px] font-medium text-sm",
               viewMode === "list" ? "bg-white border border-black/10 shadow-sm text-black" : "text-muted-foreground"
             )}
             onClick={() => onViewModeChange("list")}
@@ -85,7 +85,7 @@ export default function LinksToolbar({
             variant={viewMode === "card" ? "secondary" : "ghost"}
             size="sm"
             className={cn(
-              "h-8 px-3 rounded-lg gap-2 text-[10px] font-black uppercase tracking-widest",
+              "h-8 px-3 rounded-lg gap-2 text-[10px] font-medium text-sm",
               viewMode === "card" ? "bg-white border border-black/10 shadow-sm text-black" : "text-muted-foreground"
             )}
             onClick={() => onViewModeChange("card")}
@@ -141,3 +141,4 @@ export default function LinksToolbar({
     </Card>
   );
 }
+

@@ -144,7 +144,7 @@ export const MarketingCMS = () => {
   if (loading) return (
      <div className="flex flex-col items-center justify-center p-20 gap-4">
         <Loader2 className="w-12 h-12 text-black animate-spin" />
-        <span className="text-[10px] font-black uppercase tracking-widest opacity-20">Pulling design specs...</span>
+        <span className="text-[10px] font-medium text-sm opacity-20">Pulling design specs...</span>
      </div>
   );
 
@@ -152,28 +152,28 @@ export const MarketingCMS = () => {
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-           <div className="w-12 h-12 rounded-2xl bg-black text-white flex items-center justify-center">
+           <div className="w-12 h-12 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center">
               <Globe className="w-6 h-6" />
            </div>
            <div>
-              <h2 className="text-2xl font-black uppercase tracking-tight">Main Orchestrator</h2>
-              <p className="text-gray-400 text-xs font-medium uppercase tracking-widest mt-1">Live Page Editor</p>
+              <h2 className="text-2xl font-semibold text-lg">Dashboard</h2>
+              <p className="text-gray-400 text-xs font-medium uppercase tracking-widest mt-1">Edit your content</p>
            </div>
         </div>
         <Button 
           onClick={handleSave}
-          className="bg-black text-white font-black uppercase tracking-widest h-12 px-8 rounded-xl shadow-[6px_6px_0_0_rgba(0,0,0,0.1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all"
+          className="bg-primary text-primary-foreground font-medium text-sm h-12 px-8 rounded-xl shadow-sm hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all"
         >
-          <Save className="w-4 h-4 mr-2" /> Commit to Cloud
+          <Save className="w-4 h-4 mr-2" /> Save Changes
         </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Sections Sidebar */}
         <div className="lg:col-span-4 space-y-4">
-          <div className="p-6 bg-white border-2 border-black rounded-[32px] shadow-[4px_4px_0_0_rgba(0,0,0,0.05)]">
-            <h3 className="text-xs font-black uppercase tracking-widest mb-6 flex items-center gap-2">
-               <Layout className="w-4 h-4" /> Component Stack
+          <div className="p-6 bg-white border border-gray-200 rounded-[32px] shadow-sm">
+            <h3 className="text-xs font-medium text-sm mb-6 flex items-center gap-2">
+               <Layout className="w-4 h-4" /> Page Sections
             </h3>
             
             <div className="space-y-3">
@@ -190,7 +190,7 @@ export const MarketingCMS = () => {
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-[10px] font-black text-black/10 tabular-nums">0{section.order + 1}</span>
-                    <span className="text-[10px] font-black uppercase tracking-widest truncate max-w-[120px]">
+                    <span className="text-[10px] font-medium text-sm truncate max-w-[120px]">
                       {section.type} • {section.id.split('-')[1] || 'Unit'}
                     </span>
                   </div>
@@ -207,15 +207,15 @@ export const MarketingCMS = () => {
             <div className="mt-8 pt-8 border-t-2 border-dashed border-gray-100 grid grid-cols-2 gap-3">
                <button onClick={() => addSection('hero')} className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-gray-50 hover:border-black transition-all bg-gray-50/20 group">
                   <Layout className="w-5 h-5 text-gray-300 group-hover:text-black transition-colors" />
-                  <span className="text-[8px] font-black uppercase tracking-widest">Add Hero</span>
+                  <span className="text-[8px] font-medium text-sm">Add Hero</span>
                </button>
                <button onClick={() => addSection('features')} className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-gray-50 hover:border-black transition-all bg-gray-50/20 group">
                   <Settings className="w-5 h-5 text-gray-300 group-hover:text-black transition-colors" />
-                  <span className="text-[8px] font-black uppercase tracking-widest">Add Units</span>
+                  <span className="text-[8px] font-medium text-sm">Add Units</span>
                </button>
                <button onClick={() => addSection('team')} className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-gray-50 hover:border-black transition-all bg-gray-50/20 group">
                   <User className="w-5 h-5 text-gray-300 group-hover:text-black transition-colors" />
-                  <span className="text-[8px] font-black uppercase tracking-widest">Add Team</span>
+                  <span className="text-[8px] font-medium text-sm">Add Team</span>
                </button>
             </div>
           </div>
@@ -224,14 +224,14 @@ export const MarketingCMS = () => {
         {/* Editor Area */}
         <div className="lg:col-span-8">
            {activeSectionId ? (
-              <div className="p-10 bg-white border-2 border-black rounded-[40px] shadow-[8px_8px_0_0_rgba(0,0,0,0.05)] space-y-10 min-h-[500px]">
+              <div className="p-10 bg-white border border-gray-200 rounded-[40px] shadow-sm space-y-10 min-h-[500px]">
                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center border-2 border-black">
+                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center border border-gray-200">
                        <Settings className="w-5 h-5" />
                     </div>
                     <div>
-                       <h4 className="text-xl font-black uppercase tracking-tight">Configuration Matrix</h4>
-                       <p className="text-[10px] font-black uppercase tracking-widest text-black/40">Section ID: {activeSectionId}</p>
+                       <h4 className="text-xl font-semibold text-lg">Settings</h4>
+                       <p className="text-[10px] font-medium text-sm text-black/40">Section ID: {activeSectionId}</p>
                     </div>
                  </div>
 
@@ -247,8 +247,8 @@ export const MarketingCMS = () => {
                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center border-2 border-gray-200 mb-6 group-hover:scale-110 transition-transform">
                     <Eye className="w-8 h-8 text-gray-200" />
                  </div>
-                 <h4 className="text-lg font-black uppercase tracking-tight mb-2 opacity-30">Stack Inactive</h4>
-                 <p className="text-[9px] font-bold uppercase tracking-widest text-gray-300 max-w-xs">Select a stack component from the left sidebar to begin manual overrides.</p>
+                 <h4 className="text-lg font-semibold text-lg mb-2 opacity-30">No Section Selected</h4>
+                 <p className="text-[9px] font-bold uppercase tracking-widest text-gray-300 max-w-xs">Select a section from the left menu to edit its content.</p>
               </div>
            )}
         </div>
@@ -278,7 +278,7 @@ const SectionEditor = ({
     <div className="animate-in slide-in-from-bottom-2 duration-300 space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
          <div className="space-y-3">
-            <label className="text-[10px] font-black uppercase tracking-widest text-black/40 flex items-center gap-2">
+            <label className="text-[10px] font-medium text-sm text-black/40 flex items-center gap-2">
                <Type className="w-3.5 h-3.5" /> Core Headline
             </label>
             <input 
@@ -289,7 +289,7 @@ const SectionEditor = ({
             />
          </div>
          <div className="space-y-3">
-            <label className="text-[10px] font-black uppercase tracking-widest text-black/40 flex items-center gap-2">
+            <label className="text-[10px] font-medium text-sm text-black/40 flex items-center gap-2">
                <ImageIcon className="w-3.5 h-3.5" /> Unit Visibility
             </label>
             <div className="flex gap-4">
@@ -305,7 +305,7 @@ const SectionEditor = ({
 
       {section.type === 'hero' && (
          <div className="space-y-3 pt-4">
-           <label className="text-[10px] font-black uppercase tracking-widest text-black/40 flex items-center gap-2">
+           <label className="text-[10px] font-medium text-sm text-black/40 flex items-center gap-2">
               <ImageIcon className="w-3.5 h-3.5" /> Hero Visual Asset
            </label>
            <div className="flex gap-4">
@@ -316,7 +316,7 @@ const SectionEditor = ({
                placeholder="Direct public URL..."
              />
              <div className="relative">
-                <Button variant="outline" className="h-11 rounded-xl border-2 border-black/10 hover:border-black font-black text-[10px] uppercase">
+                <Button variant="outline" className="h-11 rounded-xl border border-gray-200/10 hover:border-black font-black text-[10px] uppercase">
                    {isUploading ? "..." : "Upload"}
                 </Button>
                 <input 
@@ -329,7 +329,7 @@ const SectionEditor = ({
              </div>
            </div>
            {content.image_url && (
-             <div className="mt-4 w-full h-40 rounded-2xl border-2 border-black overflow-hidden relative">
+             <div className="mt-4 w-full h-40 rounded-2xl border border-gray-200 overflow-hidden relative">
                 <img src={content.image_url} alt="Preview" className="absolute inset-0 w-full h-full object-cover" />
              </div>
            )}
@@ -338,7 +338,7 @@ const SectionEditor = ({
 
       {(content.subtitle || content.description) !== undefined && (
         <div className="space-y-3">
-          <label className="text-[10px] font-black uppercase tracking-widest text-black/40 flex items-center gap-2">
+          <label className="text-[10px] font-medium text-sm text-black/40 flex items-center gap-2">
              <Type className="w-3.5 h-3.5" /> Narrative Context
           </label>
           <textarea 
@@ -353,7 +353,7 @@ const SectionEditor = ({
       {content.primaryCTA && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 pt-8 border-t-2 border-gray-50">
           <div className="space-y-3">
-            <label className="text-[10px] font-black uppercase tracking-widest text-black/40">Action Label</label>
+            <label className="text-[10px] font-medium text-sm text-black/40">Action Label</label>
             <input 
               value={content.primaryCTA.label}
               onChange={(e) => handleChange('primaryCTA', { ...content.primaryCTA, label: e.target.value })}
@@ -361,7 +361,7 @@ const SectionEditor = ({
             />
           </div>
           <div className="space-y-3">
-            <label className="text-[10px] font-black uppercase tracking-widest text-black/40">Destination Protocol</label>
+            <label className="text-[10px] font-medium text-sm text-black/40">Destination Protocol</label>
             <input 
               value={content.primaryCTA.href}
               onChange={(e) => handleChange('primaryCTA', { ...content.primaryCTA, href: e.target.value })}
@@ -373,10 +373,10 @@ const SectionEditor = ({
 
       {section.type === 'features' && content.items && (
         <div className="space-y-4 pt-8 border-t-2 border-gray-50">
-          <label className="text-[10px] font-black uppercase tracking-widest text-black/40">Unit Modules</label>
+          <label className="text-[10px] font-medium text-sm text-black/40">Unit Modules</label>
           {content.items.map((item: any, idx: number) => (
             <div key={idx} className="p-6 rounded-3xl border-2 border-gray-100 bg-gray-50/20 flex gap-6 group hover:border-black transition-all">
-               <div className="w-10 h-10 rounded-xl bg-white border-2 border-black flex items-center justify-center shrink-0">
+               <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center shrink-0">
                   <Settings className="w-5 h-5 text-gray-200 group-hover:text-black transition-colors" />
                </div>
                <div className="flex-1 space-y-3">
@@ -415,7 +415,7 @@ const SectionEditor = ({
                     placeholder="Narrative summary..."
                   />
                   {item.image_url && (
-                     <div className="mt-2 w-full h-24 rounded-lg border-2 border-black/5 overflow-hidden">
+                     <div className="mt-2 w-full h-24 rounded-lg border border-gray-200/5 overflow-hidden">
                        <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" />
                      </div>
                    )}
@@ -427,10 +427,10 @@ const SectionEditor = ({
 
        {section.type === 'team' && content.members && (
         <div className="space-y-4 pt-8 border-t-2 border-gray-50">
-          <label className="text-[10px] font-black uppercase tracking-widest text-black/40">Team Grid Nodes</label>
+          <label className="text-[10px] font-medium text-sm text-black/40">Team Grid Nodes</label>
           {content.members.map((member: any, idx: number) => (
             <div key={idx} className="p-6 rounded-3xl border-2 border-gray-100 bg-gray-50/20 flex gap-6 group hover:border-black transition-all">
-               <div className="w-14 h-14 rounded-2xl bg-white border-2 border-black overflow-hidden shrink-0 group-hover:scale-105 transition-transform">
+               <div className="w-14 h-14 rounded-2xl bg-white border border-gray-200 overflow-hidden shrink-0 group-hover:scale-105 transition-transform">
                   {member.image_url ? (
                     <img src={member.image_url} alt={member.name} className="w-full h-full object-cover" />
                   ) : (
@@ -459,7 +459,7 @@ const SectionEditor = ({
                             newMembers[idx] = { ...member, role: e.target.value };
                             handleChange('members', newMembers);
                           }}
-                          className="bg-transparent border-none outline-none text-[10px] font-black uppercase tracking-widest text-emerald-600 block w-full"
+                          className="bg-transparent border-none outline-none text-[10px] font-medium text-sm text-emerald-600 block w-full"
                           placeholder="Protocol Role"
                         />
                      </div>
@@ -512,3 +512,5 @@ function getDefaultsForType(type: MarketingSection['type']) {
     default: return { heading: "NEW MODULE UNIT" };
   }
 }
+
+

@@ -12,6 +12,8 @@ import EmbedRenderer from "@/components/public/EmbedRenderer";
 import ContactForm from "@/components/public/ContactForm";
 import PublicCatalog from "@/components/public/PublicCatalog";
 import StudioContentGrid from "@/components/public/StudioContentGrid";
+import PublicCourses from "@/components/public/PublicCourses";
+import CourseCheckoutModal from "@/components/public/CourseCheckoutModal";
 import { ShareModal } from "@/components/public/ShareModal"; /* PREMIUM REDESIGN */
 import ThemeEffects from "@/components/theme/ThemeEffects";
 import TipJar from "@/components/public/TipJar";
@@ -120,9 +122,11 @@ const PublicProfile = () => {
   const [links, setLinks] = useState<LinkData[]>([]);
   const [appearance, setAppearance] = useState<AppearanceData>(defaultAppearance);
   const [catalogItems, setCatalogItems] = useState<any[]>([]);
+  const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [activeTab, setActiveTab] = useState<"links" | "shop">("shop");
+  const [activeTab, setActiveTab] = useState<"links" | "shop" | "courses">("shop");
+  const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isCookieOpen, setIsCookieOpen] = useState(false);
@@ -197,7 +201,7 @@ const PublicProfile = () => {
     
     if (queryData) {
       console.log("✅ PublicProfile Data Received:", queryData.profileData?.username);
-      const { profileData, linksData, appearanceData, catalogData } = queryData;
+      const { profileData, linksData, appearanceData, catalogData, coursesData } = queryData;
       
       let sLinks = (profileData as any).social_links || [];
       if (typeof sLinks === "string") {
@@ -218,6 +222,7 @@ const PublicProfile = () => {
       })));
 
       setCatalogItems(catalogData || []);
+      setCourses(coursesData || []);
 
       if (appearanceData || profileData?.creator_metrics) {
         const a = appearanceData as any || {};
@@ -323,13 +328,15 @@ const PublicProfile = () => {
   // Derived: whether each tab has content to show
   const hasLinks = links.length > 0;
   const hasShop = catalogItems.length > 0;
+  const hasCourses = courses.length > 0;
 
   // Auto-select the first available tab after data loads
   useEffect(() => {
     if (loading) return;
     if (!hasLinks && hasShop) setActiveTab("shop");
+    else if (!hasLinks && !hasShop && hasCourses) setActiveTab("courses");
     else setActiveTab("links");
-  }, [loading, hasLinks, hasShop]);
+  }, [loading, hasLinks, hasShop, hasCourses]);
 
   if (loading) {
     return (
@@ -395,64 +402,95 @@ const PublicProfile = () => {
           onConnect={handleMessageAction}
         />
 
-        {hasLinks && hasShop && (
+        {(hasLinks && (hasShop || hasCourses)) || (hasShop && hasCourses) ? (
           <div className="w-full flex justify-center mb-6 mt-2">
             <div className={cn(
-              "flex items-center w-full max-w-md",
+              "flex items-center w-full max-w-lg",
               isBrutalism ? "border-b-4 border-black" : "border-b border-white/10"
             )}>
-              <button 
-                onClick={() => setActiveTab("shop")}
-                className={cn(
-                  "flex-1 relative z-10 py-3 flex justify-center items-center gap-2 transition-all duration-300",
-                  activeTab === "shop"
-                    ? (isBrutalism ? "text-black" : "")
-                    : (isBrutalism ? "text-black/40 hover:text-black/70" : "text-white/40 hover:text-white/80")
-                )}
-                style={(!isBrutalism && activeTab === "shop") ? { color: palette.cardText } : {}}
-              >
-                <Grid className="w-4 h-4" />
-                <span className={cn("font-bold tracking-widest uppercase text-[10px] sm:text-[11px]")}>
-                  {profile.creator_metrics?.tab_labels?.shop || appearance.shop_tab_label || "Grid"}
-                </span>
-                
-                {activeTab === "shop" && (
-                  <motion.div 
-                    layoutId="activeTabUnderline"
-                    className={cn("absolute bottom-0 left-0 right-0 h-[2px]", isBrutalism ? "bg-black h-[4px] -mb-[4px]" : "")}
-                    style={!isBrutalism ? { backgroundColor: palette.cardText } : {}}
-                    transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
-                  />
-                )}
-              </button>
+              {hasLinks && (
+                <button 
+                  onClick={() => setActiveTab("links")}
+                  className={cn(
+                    "flex-1 relative z-10 py-3 flex justify-center items-center gap-2 transition-all duration-300",
+                    activeTab === "links"
+                      ? (isBrutalism ? "text-black" : "")
+                      : (isBrutalism ? "text-black/40 hover:text-black/70" : "text-white/40 hover:text-white/80")
+                  )}
+                  style={(!isBrutalism && activeTab === "links") ? { color: palette.cardText } : {}}
+                >
+                  <ListIcon className="w-4 h-4" />
+                  <span className={cn("font-bold tracking-widest uppercase text-[10px] sm:text-[11px]")}>
+                    {profile.creator_metrics?.tab_labels?.links || appearance.links_tab_label || "Links"}
+                  </span>
+                  
+                  {activeTab === "links" && (
+                    <motion.div 
+                      layoutId="activeTabUnderline"
+                      className={cn("absolute bottom-0 left-0 right-0 h-[2px]", isBrutalism ? "bg-black h-[4px] -mb-[4px]" : "")}
+                      style={!isBrutalism ? { backgroundColor: palette.cardText } : {}}
+                      transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
+                    />
+                  )}
+                </button>
+              )}
 
-              <button 
-                onClick={() => setActiveTab("links")}
-                className={cn(
-                  "flex-1 relative z-10 py-3 flex justify-center items-center gap-2 transition-all duration-300",
-                  activeTab === "links"
-                    ? (isBrutalism ? "text-black" : "")
-                    : (isBrutalism ? "text-black/40 hover:text-black/70" : "text-white/40 hover:text-white/80")
-                )}
-                style={(!isBrutalism && activeTab === "links") ? { color: palette.cardText } : {}}
-              >
-                <ListIcon className="w-4 h-4" />
-                <span className={cn("font-bold tracking-widest uppercase text-[10px] sm:text-[11px]")}>
-                  {profile.creator_metrics?.tab_labels?.links || appearance.links_tab_label || "Links"}
-                </span>
-                
-                {activeTab === "links" && (
-                  <motion.div 
-                    layoutId="activeTabUnderline"
-                    className={cn("absolute bottom-0 left-0 right-0 h-[2px]", isBrutalism ? "bg-black h-[4px] -mb-[4px]" : "")}
-                    style={!isBrutalism ? { backgroundColor: palette.cardText } : {}}
-                    transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
-                  />
-                )}
-              </button>
+              {hasShop && (
+                <button 
+                  onClick={() => setActiveTab("shop")}
+                  className={cn(
+                    "flex-1 relative z-10 py-3 flex justify-center items-center gap-2 transition-all duration-300",
+                    activeTab === "shop"
+                      ? (isBrutalism ? "text-black" : "")
+                      : (isBrutalism ? "text-black/40 hover:text-black/70" : "text-white/40 hover:text-white/80")
+                  )}
+                  style={(!isBrutalism && activeTab === "shop") ? { color: palette.cardText } : {}}
+                >
+                  <Grid className="w-4 h-4" />
+                  <span className={cn("font-bold tracking-widest uppercase text-[10px] sm:text-[11px]")}>
+                    {profile.creator_metrics?.tab_labels?.shop || appearance.shop_tab_label || "Shop"}
+                  </span>
+                  
+                  {activeTab === "shop" && (
+                    <motion.div 
+                      layoutId="activeTabUnderline"
+                      className={cn("absolute bottom-0 left-0 right-0 h-[2px]", isBrutalism ? "bg-black h-[4px] -mb-[4px]" : "")}
+                      style={!isBrutalism ? { backgroundColor: palette.cardText } : {}}
+                      transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
+                    />
+                  )}
+                </button>
+              )}
+
+              {hasCourses && (
+                <button 
+                  onClick={() => setActiveTab("courses")}
+                  className={cn(
+                    "flex-1 relative z-10 py-3 flex justify-center items-center gap-2 transition-all duration-300",
+                    activeTab === "courses"
+                      ? (isBrutalism ? "text-black" : "")
+                      : (isBrutalism ? "text-black/40 hover:text-black/70" : "text-white/40 hover:text-white/80")
+                  )}
+                  style={(!isBrutalism && activeTab === "courses") ? { color: palette.cardText } : {}}
+                >
+                  <BookOpen className="w-4 h-4" />
+                  <span className={cn("font-bold tracking-widest uppercase text-[10px] sm:text-[11px]")}>
+                    {"Courses"}
+                  </span>
+                  
+                  {activeTab === "courses" && (
+                    <motion.div 
+                      layoutId="activeTabUnderline"
+                      className={cn("absolute bottom-0 left-0 right-0 h-[2px]", isBrutalism ? "bg-black h-[4px] -mb-[4px]" : "")}
+                      style={!isBrutalism ? { backgroundColor: palette.cardText } : {}}
+                      transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
+                    />
+                  )}
+                </button>
+              )}
             </div>
           </div>
-        )}
+        ) : null}
 
         <div className={cn(
           "w-full",
@@ -494,7 +532,7 @@ const PublicProfile = () => {
                   </motion.div>
                 ))}
               </motion.div>
-            ) : (
+            ) : activeTab === "shop" ? (
               <motion.div
                 key="shop-view"
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -516,9 +554,43 @@ const PublicProfile = () => {
                   upiId={profile.upi_id}
                 />
               </motion.div>
+            ) : (
+              <motion.div
+                key="courses-view"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.4, ease: "backOut" }}
+                className="w-full"
+              >
+                <PublicCourses 
+                  courses={courses}
+                  textColor={isBrutalism ? "#000000" : palette.cardText}
+                  cardBg={isBrutalism ? "#ffffff" : palette.cardBg}
+                  buttonBg={isBrutalism ? "#000000" : palette.btnBg}
+                  buttonText={isBrutalism ? "#ffffff" : getContrastColor(palette.btnBg)}
+                  onSelect={(course) => setSelectedCourse(course)}
+                  isBrutalism={isBrutalism}
+                />
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
+
+        <AnimatePresence>
+           {selectedCourse && (
+             <CourseCheckoutModal 
+                course={selectedCourse}
+                profileUserId={profile.user_id}
+                onClose={() => setSelectedCourse(null)}
+                textColor={isBrutalism ? "#000000" : palette.cardText}
+                cardBg={isBrutalism ? "#ffffff" : palette.cardBg}
+                buttonBg={isBrutalism ? "#000000" : palette.btnBg}
+                buttonText={isBrutalism ? "#ffffff" : getContrastColor(palette.btnBg)}
+                isBrutalism={isBrutalism}
+             />
+           )}
+        </AnimatePresence>
         
         <div className="mt-12 w-full">
           <ContactForm
@@ -561,6 +633,9 @@ const PublicProfile = () => {
             <Link to={`/contact?topic=report&profile=${encodeURIComponent(profile.username)}`} className="hover:opacity-100 underline-offset-2 hover:underline">Report</Link>
             <span>&bull;</span>
             <Link to="/privacy" className="hover:opacity-100 underline-offset-2 hover:underline">Privacy</Link>
+          </div>
+          <div className="text-[9px] font-black uppercase tracking-[0.1em] opacity-30 mt-2">
+            Copyright @2025, Listifyi Innovation Private Limited. All Rights Reserved
           </div>
         </footer>
       </div>

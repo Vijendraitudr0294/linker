@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -259,14 +260,14 @@ const SettingsPage = () => {
         <div className="relative z-10 flex flex-wrap items-center gap-4">
            <Button
               variant="outline"
-              className="rounded-full h-16 px-10 border-black/10 bg-white hover:bg-black/5 transition-all text-[11px] font-black uppercase tracking-widest shadow-xl flex items-center gap-3"
+              className="rounded-full h-16 px-10 border-black/10 bg-white hover:bg-black/5 transition-all text-[11px] font-medium text-sm shadow-xl flex items-center gap-3"
               onClick={() => setShowPreview(!showPreview)}
             >
               <Smartphone className="w-5 h-5" />
               {showPreview ? "Hide Preview" : "Show Preview"}
             </Button>
             <Button 
-               className="rounded-full bg-black text-white hover:bg-black/90 px-8 md:px-12 py-6 md:py-8 h-14 md:h-16 text-[10px] md:text-[11px] font-black uppercase tracking-widest shadow-2xl transition-all hover:scale-[1.05] active:scale-95 flex items-center gap-3"
+               className="rounded-full bg-primary text-primary-foreground hover:bg-black/90 px-8 md:px-12 py-6 md:py-8 h-14 md:h-16 text-[10px] md:text-[11px] font-medium text-sm shadow-2xl transition-all hover:scale-[1.05] active:scale-95 flex items-center gap-3"
                onClick={handleSave}
             >
               <Save className="w-6 h-6" />
@@ -277,19 +278,19 @@ const SettingsPage = () => {
 
       {/* Mobile Single View Mirror */}
       <div className="lg:hidden w-full mb-10 animate-in fade-in slide-in-from-top-4 duration-700 px-1">
-         <Card className="bruddle-card-blue p-4 bg-[#E0F2FE] flex flex-col items-center justify-start relative overflow-hidden rounded-[24px] border-2 border-black shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+         <Card className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 bg-[#E0F2FE] flex flex-col items-center justify-start relative overflow-hidden rounded-[24px] border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between w-full mb-3 px-1">
                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-md bg-white border-2 border-black flex items-center justify-center text-black">
+                  <div className="w-5 h-5 rounded-md bg-white border border-gray-200 flex items-center justify-center text-black">
                      <Smartphone className="w-3 h-3" />
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-black">Live View</span>
+                  <span className="text-[10px] font-medium text-sm text-black">Live View</span>
                </div>
-               <Badge className="bg-white/40 text-black border-2 border-black rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest">
+               <Badge className="bg-white/40 text-black border border-gray-200 rounded-full px-2 py-0.5 text-[8px] font-medium text-sm">
                  Live
                </Badge>
             </div>
-            <div className="w-full h-[220px] rounded-[1.8rem] border-2 border-black overflow-hidden bg-white shadow-[2px_2px_0_0_rgba(0,0,0,1)] relative">
+            <div className="w-full h-[220px] rounded-[1.8rem] border border-gray-200 overflow-hidden bg-white shadow-sm relative">
                <ProfilePreview 
                   settings={settings} 
                   user={previewUser} 
@@ -302,16 +303,16 @@ const SettingsPage = () => {
          </Card>
       </div>
 
-      <Card className="sticky top-4 z-20 p-4 md:p-5 rounded-[24px] border-2 border-black bg-white/95 backdrop-blur shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
+      <Card className="sticky top-4 z-20 p-4 md:p-5 rounded-[24px] border border-gray-200 bg-white/95 backdrop-blur shadow-sm">
         <div className="flex flex-wrap items-center gap-2">
           {SETTINGS_SECTION_LINKS.map((item) => (
             <a
               key={item.id}
               href={`#${item.id}`}
               className={cn(
-                "rounded-full border-2 border-black px-4 py-2 text-[11px] font-black uppercase tracking-wider transition-colors",
+                "rounded-full border border-gray-200 px-4 py-2 text-[11px] font-black uppercase tracking-wider transition-colors",
                 activeSection === item.id
-                  ? "bg-black text-white"
+                  ? "bg-primary text-primary-foreground"
                   : "text-black hover:bg-black hover:text-white"
               )}
             >
@@ -347,7 +348,7 @@ const SettingsPage = () => {
                       Re-initialize your identity parameters and onboarding sequence.
                     </p>
                   </div>
-                    <Button onClick={() => navigate("/welcome")} className="w-fit rounded-full bg-black text-white px-10 py-7 h-14 text-[10px] font-black uppercase tracking-widest shadow-2xl transition-all hover:scale-[1.05]">
+                    <Button onClick={() => navigate("/welcome")} className="w-fit rounded-full bg-primary text-primary-foreground px-10 py-7 h-14 text-[10px] font-medium text-sm shadow-2xl transition-all hover:scale-[1.05]">
                     Open Wizard
                   </Button>
                </div>
@@ -365,7 +366,7 @@ const SettingsPage = () => {
                       Refine your visual signature, themes, and global presence.
                     </p>
                   </div>
-                  <Button onClick={() => navigate("/dashboard/links?tab=styles")} className="w-fit rounded-full bg-emerald-600 text-white px-10 py-7 h-14 text-[10px] font-black uppercase tracking-widest shadow-2xl transition-all hover:scale-[1.05]">
+                  <Button onClick={() => navigate("/dashboard/links?tab=styles")} className="w-fit rounded-full bg-emerald-600 text-white px-10 py-7 h-14 text-[10px] font-medium text-sm shadow-2xl transition-all hover:scale-[1.05]">
                     Open Visual Studio
                   </Button>
                </div>
@@ -379,7 +380,7 @@ const SettingsPage = () => {
                 <User className="w-7 h-7" />
               </div>
               <div>
-                <h2 className="text-3xl font-black text-black tracking-tight">Public Profile</h2>
+                <h2 className="text-3xl font-semibold text-gray-900 tracking-tight">Public Profile</h2>
                 <p className="text-[15px] font-medium text-black/40">Visible to global network nodes</p>
               </div>
             </div>
@@ -438,7 +439,7 @@ const SettingsPage = () => {
                      <div className="flex items-center justify-between px-2">
                         <Label className="text-[11px] font-black uppercase tracking-[0.25em] text-black/30">Short Bio</Label>
                         <span className={cn(
-                          "text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full",
+                          "text-[10px] font-medium text-sm px-3 py-1 rounded-full",
                           bio.length >= BIO_MAX ? "bg-rose-500 text-white" : "bg-black/5 text-black/40"
                         )}>
                           {bio.length} / {BIO_MAX}
@@ -468,7 +469,7 @@ const SettingsPage = () => {
             </div>
             
             <div className="pt-10 flex border-t border-black/5">
-               <Button onClick={handleSave} className="rounded-full bg-black text-white px-12 py-8 h-16 text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl transition-all hover:scale-[1.05] active:scale-95 flex items-center gap-4">
+               <Button onClick={handleSave} className="rounded-full bg-primary text-primary-foreground px-12 py-8 h-16 text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl transition-all hover:scale-[1.05] active:scale-95 flex items-center gap-4">
                   <Save className="w-6 h-6" />
                   Save Profile
                </Button>
@@ -482,7 +483,7 @@ const SettingsPage = () => {
                 <IndianRupee className="w-7 h-7" />
               </div>
               <div>
-                <h2 className="text-3xl font-black text-black tracking-tight">Payment Settings</h2>
+                <h2 className="text-3xl font-semibold text-gray-900 tracking-tight">Payment Settings</h2>
                 <p className="text-[15px] font-medium text-black/40">Set how people can pay you.</p>
               </div>
             </div>
@@ -527,7 +528,7 @@ const SettingsPage = () => {
                   <AtSign className="w-7 h-7" />
                 </div>
                 <div>
-                  <h2 className="text-3xl font-black text-black tracking-tight">Social Links</h2>
+                  <h2 className="text-3xl font-semibold text-gray-900 tracking-tight">Social Links</h2>
                   <p className="text-[15px] font-medium text-black/40">Add all your social profiles and websites.</p>
                 </div>
              </div>
@@ -538,7 +539,7 @@ const SettingsPage = () => {
              
              <div className="pt-10 flex border-t border-black/5">
                 <Button
-                  className="rounded-full bg-black text-white px-12 py-8 h-16 text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl transition-all hover:scale-[1.05]"
+                  className="rounded-full bg-primary text-primary-foreground px-12 py-8 h-16 text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl transition-all hover:scale-[1.05]"
                   onClick={async () => {
                     try {
                       await updateProfile({ social_links: socialLinks });
@@ -563,7 +564,7 @@ const SettingsPage = () => {
               className="flex w-full items-start justify-between gap-10 text-left relative z-10"
             >
               <div>
-                <h2 className="text-3xl font-black text-black tracking-tight group-hover:text-primary transition-colors">
+                <h2 className="text-3xl font-semibold text-gray-900 tracking-tight group-hover:text-primary transition-colors">
                   Advanced Cluster
                 </h2>
                 <p className="text-black/30 text-[16px] font-medium mt-3 leading-relaxed max-lg:max-w-lg">
@@ -604,7 +605,7 @@ const SettingsPage = () => {
                     ))}
                   </div>
                   <Button
-                    className="h-16 rounded-full bg-black text-white px-12 text-[11px] font-black uppercase tracking-[0.2em] transition-all hover:scale-[1.05] shadow-2xl"
+                    className="h-16 rounded-full bg-primary text-primary-foreground px-12 text-[11px] font-black uppercase tracking-[0.2em] transition-all hover:scale-[1.05] shadow-2xl"
                     onClick={async () => {
                       try {
                         await updateProfile({ social_stats: socialStats });
@@ -647,7 +648,7 @@ const SettingsPage = () => {
                     ))}
                   </div>
                   <Button
-                    className="h-16 rounded-full bg-black text-white px-12 text-[11px] font-black uppercase tracking-[0.2em] transition-all hover:scale-[1.05] shadow-2xl"
+                    className="h-16 rounded-full bg-primary text-primary-foreground px-12 text-[11px] font-black uppercase tracking-[0.2em] transition-all hover:scale-[1.05] shadow-2xl"
                     onClick={async () => {
                       try {
                         await updateProfile({ creator_metrics: creatorMetrics });
@@ -705,7 +706,7 @@ const SettingsPage = () => {
                 <Button
                    type="button"
                    variant="outline"
-                   className="h-10 px-6 rounded-full text-[10px] font-black uppercase tracking-widest border-black/10 hover:bg-black text-black bg-white hover:text-white transition-all shadow-lg"
+                   className="h-10 px-6 rounded-full text-[10px] font-medium text-sm border-black/10 hover:bg-black text-black bg-white hover:text-white transition-all shadow-lg"
                    onClick={() => navigate("/dashboard/appearance")}
                  >
                    Visual Style
@@ -731,13 +732,13 @@ const SettingsPage = () => {
                       href={profileUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 inline-flex items-center justify-center gap-3 rounded-3xl h-16 bg-black/[0.03] hover:bg-black/5 text-black text-[11px] font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95"
+                      className="flex-1 inline-flex items-center justify-center gap-3 rounded-3xl h-16 bg-black/[0.03] hover:bg-black/5 text-black text-[11px] font-medium text-sm transition-all hover:scale-[1.02] active:scale-95"
                     >
                       <ExternalLink className="w-5 h-5 opacity-40" /> View Node
                     </a>
                     <Button
                       onClick={copyProfileLink}
-                      className="flex-1 gap-3 rounded-3xl h-16 bg-black text-white text-[11px] font-black uppercase tracking-widest transition-all shadow-2xl hover:shadow-black/30 hover:scale-[1.05] active:scale-95 border-none"
+                      className="flex-1 gap-3 rounded-3xl h-16 bg-primary text-primary-foreground text-[11px] font-medium text-sm transition-all shadow-2xl hover:shadow-black/30 hover:scale-[1.05] active:scale-95 border-none"
                     >
                       <Copy className="w-5 h-5" /> Copy URI
                     </Button>
@@ -796,7 +797,7 @@ const SettingsPage = () => {
                   void copyProfileLink();
                   setShowPreview(false);
                 }}
-                className="gap-4 rounded-3xl h-20 bg-black text-white text-[13px] font-black uppercase tracking-[0.2em] shadow-2xl flex-1"
+                className="gap-4 rounded-3xl h-20 bg-primary text-primary-foreground text-[13px] font-black uppercase tracking-[0.2em] shadow-2xl flex-1"
               >
                 <Copy className="w-6 h-6" /> Copy URI
               </Button>
@@ -820,3 +821,5 @@ const SettingsPage = () => {
 };
 
 export default SettingsPage;
+
+

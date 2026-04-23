@@ -259,12 +259,12 @@ const AnalyticsPage = () => {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4">
           {Array.from({ length: 7 }).map((_, i) => (
-            <div key={i} className="h-28 bg-black/5 animate-pulse rounded-[28px] border-2 border-black" />
+            <div key={i} className="h-28 bg-black/5 animate-pulse rounded-[28px] border border-gray-200" />
           ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="h-72 bg-black/5 animate-pulse rounded-[28px] border-2 border-black" />
-          <div className="h-72 bg-black/5 animate-pulse rounded-[28px] border-2 border-black" />
+          <div className="h-72 bg-black/5 animate-pulse rounded-[28px] border border-gray-200" />
+          <div className="h-72 bg-black/5 animate-pulse rounded-[28px] border border-gray-200" />
         </div>
       </div>
     );
@@ -276,14 +276,14 @@ const AnalyticsPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-black/30 mb-1">Your Stats</p>
-          <h1 className="text-3xl md:text-4xl font-black text-black tracking-tight">Analytics</h1>
+          <h1 className="text-3xl md:text-4xl font-semibold text-gray-900 tracking-tight">Analytics</h1>
         </div>
         <div className="flex items-center gap-3">
           <DateRangeFilter value={dateRange} onChange={setDateRange} />
           <Button
             variant="outline"
             size="icon"
-            className="h-10 w-10 border-2 border-black rounded-xl shadow-[3px_3px_0_0_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
+            className="h-10 w-10 border border-gray-200 rounded-xl shadow-sm hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
             onClick={() => setRefreshKey(k => k + 1)}
             title="Refresh Data"
           >
@@ -295,8 +295,8 @@ const AnalyticsPage = () => {
       {/* KPI Grid — all from real DB */}
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-7 gap-4">
         {stats.map((s, idx) => (
-          <Card key={idx} className={cn("bruddle-card p-5 flex flex-col gap-4 hover:-translate-y-1 hover:shadow-[6px_6px_0_0_rgba(0,0,0,1)] transition-all", s.bg)}>
-            <div className="w-10 h-10 bg-white border-2 border-black rounded-xl flex items-center justify-center">
+          <Card key={idx} className={cn("bg-white border border-gray-200 shadow-sm rounded-xl p-5 flex flex-col gap-4 hover:-translate-y-1 hover:shadow-sm transition-all", s.bg)}>
+            <div className="w-10 h-10 bg-white border border-gray-200 rounded-xl flex items-center justify-center">
               <s.icon className="w-4 h-4 text-black" />
             </div>
             <div>
@@ -309,7 +309,7 @@ const AnalyticsPage = () => {
 
       {/* Profile Views Chart (7-day) */}
       {profileViewsHistory.length > 0 && (
-        <Card className="bruddle-card p-6 md:p-8 bg-white">
+        <Card className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 md:p-8 bg-white">
           <h2 className="text-xl font-black text-black uppercase tracking-tight mb-6">Profile Views — Last 7 Days</h2>
           <ChartContainer config={chartConfig} className="h-[220px] w-full">
             <LineChart data={profileViewsHistory}>
@@ -325,7 +325,7 @@ const AnalyticsPage = () => {
 
       {/* Charts Row: Link Clicks + Click Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bruddle-card p-6 md:p-8 bg-white">
+        <Card className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 md:p-8 bg-white">
           <h2 className="text-xl font-black text-black uppercase tracking-tight mb-6">Link Clicks</h2>
           {linkChartData.length > 0 && linkChartData.some(d => d.clicks > 0) ? (
             <ChartContainer config={chartConfig} className="h-[240px] w-full">
@@ -340,12 +340,12 @@ const AnalyticsPage = () => {
           ) : (
             <div className="h-[240px] flex flex-col items-center justify-center gap-3 text-black/30">
               <BarChart3 className="w-10 h-10" />
-              <p className="text-xs font-black uppercase tracking-widest">No click data yet — share your links!</p>
+              <p className="text-xs font-medium text-sm">No click data yet — share your links!</p>
             </div>
           )}
         </Card>
 
-        <Card className="bruddle-card p-6 md:p-8 bg-white">
+        <Card className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 md:p-8 bg-white">
           <h2 className="text-xl font-black text-black uppercase tracking-tight mb-6">Click Distribution</h2>
           {pieData.length > 0 && pieData.some(d => d.value > 1) ? (
             <ChartContainer config={chartConfig} className="h-[240px] w-full">
@@ -359,7 +359,7 @@ const AnalyticsPage = () => {
           ) : (
             <div className="h-[240px] flex flex-col items-center justify-center gap-3 text-black/30">
               <TrendingUp className="w-10 h-10" />
-              <p className="text-xs font-black uppercase tracking-widest">Add & share links to see breakdown</p>
+              <p className="text-xs font-medium text-sm">Add & share links to see breakdown</p>
             </div>
           )}
         </Card>
@@ -367,7 +367,7 @@ const AnalyticsPage = () => {
 
       {/* QR Scan Analytics — Real data from qr_scans */}
       {qrCodes.length > 0 && (
-        <Card className="bruddle-card p-6 md:p-8 bg-white">
+        <Card className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 md:p-8 bg-white">
           <h2 className="text-xl font-black text-black uppercase tracking-tight mb-6 flex items-center gap-3">
             <QrCode className="w-5 h-5" /> QR Code Scans
           </h2>
@@ -381,8 +381,8 @@ const AnalyticsPage = () => {
                   const codeScans = qrScans.filter(s => s.qr_code_id === qr.id).length;
                   const totalForPct = qrScans.length || 1;
                   return (
-                    <div key={qr.id} className="flex items-center gap-3 p-4 border-2 border-black rounded-2xl hover:bg-black/[0.02] transition-all">
-                      <div className="w-10 h-10 bg-[#FEF9C3] border-2 border-black rounded-xl flex items-center justify-center shrink-0">
+                    <div key={qr.id} className="flex items-center gap-3 p-4 border border-gray-200 rounded-2xl hover:bg-black/[0.02] transition-all">
+                      <div className="w-10 h-10 bg-[#FEF9C3] border border-gray-200 rounded-xl flex items-center justify-center shrink-0">
                         <QrCode className="w-4 h-4" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -408,7 +408,7 @@ const AnalyticsPage = () => {
 
             {/* Device Breakdown */}
             <div className="flex flex-col gap-4">
-              <h3 className="text-sm font-black uppercase tracking-widest text-black/40">Device Breakdown</h3>
+              <h3 className="text-sm font-medium text-sm text-black/40">Device Breakdown</h3>
               {qrDeviceData.length > 0 ? (
                 <>
                   <div className="space-y-3">
@@ -417,7 +417,7 @@ const AnalyticsPage = () => {
                       { label: "Android", count: androidScans, icon: Smartphone, color: "bg-[#3DDC84]" },
                       { label: "Other", count: otherScans, icon: Globe, color: "bg-[#94A3B8]" },
                     ].map((d) => (
-                      <div key={d.label} className="flex items-center gap-3 p-3 border-2 border-black rounded-xl">
+                      <div key={d.label} className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl">
                         <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", d.color)}>
                           <d.icon className="w-4 h-4 text-white" />
                         </div>
@@ -428,12 +428,12 @@ const AnalyticsPage = () => {
                       </div>
                     ))}
                   </div>
-                  <p className="text-[9px] text-black/30 font-black uppercase tracking-widest text-center">Based on last 100 scans</p>
+                  <p className="text-[9px] text-black/30 font-medium text-sm text-center">Based on last 100 scans</p>
                 </>
               ) : (
                 <div className="flex flex-col items-center justify-center py-8 gap-2 text-black/30">
                   <Smartphone className="w-8 h-8" />
-                  <p className="text-xs font-black uppercase tracking-widest text-center">No scans recorded yet</p>
+                  <p className="text-xs font-medium text-sm text-center">No scans recorded yet</p>
                 </div>
               )}
             </div>
@@ -443,7 +443,7 @@ const AnalyticsPage = () => {
 
       {/* Catalog Performance — real catalog_analytics data */}
       {catalogStats.length > 0 && (
-        <Card className="bruddle-card p-6 md:p-8 bg-white">
+        <Card className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 md:p-8 bg-white">
           <h2 className="text-xl font-black text-black uppercase tracking-tight mb-6">Catalog Performance</h2>
           <ChartContainer config={chartConfig} className="h-[260px] w-full">
             <BarChart data={catalogStats.slice(0, 8).map((s) => ({
@@ -464,7 +464,7 @@ const AnalyticsPage = () => {
 
       {/* Catalog Item Breakdown Table */}
       {catalogStats.length > 0 && (
-        <Card className="bruddle-card p-6 md:p-8 bg-white overflow-hidden">
+        <Card className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 md:p-8 bg-white overflow-hidden">
           <h2 className="text-xl font-black text-black uppercase tracking-tight mb-6">Item Breakdown</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[560px]">
@@ -477,7 +477,7 @@ const AnalyticsPage = () => {
                     ["orders", "Orders"],
                     ["conversionRate", "Conv. %"],
                   ] as [SortKey, string][]).map(([key, label]) => (
-                    <th key={key} className="text-left py-3 px-3 text-[10px] font-black uppercase tracking-widest">
+                    <th key={key} className="text-left py-3 px-3 text-[10px] font-medium text-sm">
                       <button onClick={() => handleSort(key)} className="flex items-center gap-1 hover:text-black/60 transition-colors">
                         {label} <ArrowUpDown className="w-3 h-3" />
                       </button>
@@ -511,12 +511,12 @@ const AnalyticsPage = () => {
       )}
 
       {/* Link Performance — real clicks from DB */}
-      <Card className="bruddle-card p-6 md:p-8 bg-white">
+      <Card className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 md:p-8 bg-white">
         <h2 className="text-xl font-black text-black uppercase tracking-tight mb-6">Link Performance</h2>
         {links.length === 0 ? (
           <div className="text-center py-12 flex flex-col items-center gap-3 text-black/30">
             <Link2 className="w-10 h-10" />
-            <p className="text-xs font-black uppercase tracking-widest">No links yet. Add links to start tracking.</p>
+            <p className="text-xs font-medium text-sm">No links yet. Add links to start tracking.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -525,7 +525,7 @@ const AnalyticsPage = () => {
               return (
                 <div key={link.id} className="flex items-center gap-4">
                   <span className="text-xs font-black text-black/30 w-5">{index + 1}</span>
-                  <div className="w-9 h-9 rounded-xl bg-black/5 border-2 border-black flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-black/5 border border-gray-200 flex items-center justify-center shrink-0">
                     <SocialIcon platform={link.platform} className="w-4 h-4 text-black" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -551,20 +551,20 @@ const AnalyticsPage = () => {
       </Card>
 
       {/* Recent Activity */}
-      <Card className="bruddle-card p-6 md:p-8 bg-white">
+      <Card className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 md:p-8 bg-white">
         <h2 className="text-xl font-black text-black uppercase tracking-tight mb-6 flex items-center gap-3">
           <Activity className="w-5 h-5" /> Recent Activity
         </h2>
         {recentActivity.length === 0 ? (
           <div className="text-center py-8 flex flex-col items-center gap-3 text-black/30">
             <Activity className="w-8 h-8" />
-            <p className="text-xs font-black uppercase tracking-widest">No activity logged yet</p>
+            <p className="text-xs font-medium text-sm">No activity logged yet</p>
           </div>
         ) : (
           <div className="space-y-3">
             {recentActivity.map((ev) => (
-              <div key={ev.id} className="flex items-start gap-3 p-3 border-2 border-black/5 rounded-2xl hover:border-black/10 transition-all">
-                <div className="w-8 h-8 bg-[#E0F2FE] border-2 border-black rounded-xl flex items-center justify-center shrink-0">
+              <div key={ev.id} className="flex items-start gap-3 p-3 border border-gray-200/5 rounded-2xl hover:border-black/10 transition-all">
+                <div className="w-8 h-8 bg-[#E0F2FE] border border-gray-200 rounded-xl flex items-center justify-center shrink-0">
                   <Activity className="w-3.5 h-3.5" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -584,3 +584,5 @@ const AnalyticsPage = () => {
 };
 
 export default AnalyticsPage;
+
+

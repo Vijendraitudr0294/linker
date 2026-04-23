@@ -426,7 +426,7 @@ const NicheTemplates = () => {
               placeholder="Search premium layouts..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-11 h-12 rounded-2xl border-2 border-black/5 bg-white shadow-sm focus:border-black transition-all"
+              className="pl-11 h-12 rounded-2xl border border-gray-200/5 bg-white shadow-sm focus:border-black transition-all"
             />
           </div>
 
@@ -506,7 +506,7 @@ const NicheTemplates = () => {
                   {/* Animation indicator */}
                   {template.theme.animationClass && (
                     <div className="absolute top-5 left-1/2 -translate-x-1/2 z-20">
-                      <Badge className={cn("backdrop-blur-md text-[8px] font-black uppercase tracking-tighter", variant.tag)}>
+                      <Badge className={cn("backdrop-blur-md text-[8px] font-semibold text-lger", variant.tag)}>
                         {template.theme.animationClass.replace('animate-', '').toUpperCase()}
                       </Badge>
                     </div>
@@ -590,13 +590,13 @@ const NicheTemplates = () => {
 
                       <div className="flex-1 space-y-6 overflow-y-auto no-scrollbar pb-4">
                         <div className="space-y-2">
-                          <Label className="text-[9px] font-black uppercase tracking-widest opacity-60">Your Bio</Label>
+                          <Label className="text-[9px] font-medium text-sm opacity-60">Your Bio</Label>
                           <Textarea value={customBio} onChange={(e) => setCustomBio(e.target.value)} className="rounded-2xl bg-muted/50 border-border/40 min-h-[80px]" />
                         </div>
 
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
-                            <Label className="text-[9px] font-black uppercase tracking-widest opacity-60">Visual Assets</Label>
+                            <Label className="text-[9px] font-medium text-sm opacity-60">Visual Assets</Label>
                             <div className="flex gap-2">
                               <Button size="sm" variant="outline" onClick={() => bgFileRef.current?.click()} className="h-7 px-3 rounded-lg text-[9px] uppercase font-black tracking-widest bg-card">BG Upload</Button>
                               <Button size="sm" variant="outline" onClick={() => avatarFileRef.current?.click()} className="h-7 px-3 rounded-lg text-[9px] uppercase font-black tracking-widest bg-card">Avatar</Button>
@@ -658,6 +658,7 @@ const NicheTemplates = () => {
 };
 
 export default NicheTemplates;
+
 
 
 

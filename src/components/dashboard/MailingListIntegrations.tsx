@@ -181,16 +181,16 @@ const MailingListIntegrations = ({ userId }: { userId?: string }) => {
   };
 
   return (
-    <Card className="p-8 md:p-12 rounded-[48px] border-2 border-black bg-white shadow-[12px_12px_0_0_rgba(0,0,0,1)] space-y-10 relative overflow-hidden group">
+    <Card className="p-8 md:p-12 rounded-[48px] border border-gray-200 bg-white shadow-sm space-y-10 relative overflow-hidden group">
       <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-400/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-1000" />
       
       <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-5">
-          <div className="w-16 h-16 rounded-[24px] border-2 border-black bg-[#D1FAE5] flex items-center justify-center shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+          <div className="w-16 h-16 rounded-[24px] border border-gray-200 bg-[#D1FAE5] flex items-center justify-center shadow-sm">
             <Mail className="w-8 h-8 text-black" />
           </div>
           <div>
-            <h3 className="text-3xl font-black text-black tracking-tight uppercase">Mailing Matrix</h3>
+            <h3 className="text-3xl font-semibold text-gray-900 tracking-tight uppercase">Mailing Matrix</h3>
             <p className="text-[12px] font-black uppercase text-black/40 tracking-widest mt-1">
               Connect your audience directly to your newsletter stack.
             </p>
@@ -200,15 +200,15 @@ const MailingListIntegrations = ({ userId }: { userId?: string }) => {
         <Button
           variant="outline"
           onClick={() => setShowAllProviders((v) => !v)}
-          className="rounded-full border-2 border-black h-12 px-6 font-black text-[11px] uppercase tracking-[0.2em] hover:bg-black hover:text-white transition-all shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none"
+          className="rounded-full border border-gray-200 h-12 px-6 font-black text-[11px] uppercase tracking-[0.2em] hover:bg-black hover:text-white transition-all shadow-sm active:translate-x-1 active:translate-y-1 active:shadow-none"
         >
           {showAllProviders ? "Hide Inactive" : "Show All Providers"}
         </Button>
       </div>
 
       {providers.length === 0 && (
-        <div className="rounded-[32px] border-2 border-black border-dashed bg-black/5 p-12 text-center">
-          <p className="text-sm font-black uppercase tracking-widest text-black/40">No integration seeds found.</p>
+        <div className="rounded-[32px] border border-gray-200 border-dashed bg-black/5 p-12 text-center">
+          <p className="text-sm font-medium text-sm text-black/40">No integration seeds found.</p>
         </div>
       )}
 
@@ -222,22 +222,22 @@ const MailingListIntegrations = ({ userId }: { userId?: string }) => {
             <div 
               key={provider.key} 
               className={cn(
-                "rounded-[32px] border-2 border-black p-8 transition-all duration-300 relative group/item",
-                isConnected ? "bg-emerald-50/50 shadow-[6px_6px_0_0_rgba(16,185,129,0.3)]" : "bg-white hover:shadow-[8px_8px_0_0_rgba(0,0,0,1)]"
+                "rounded-[32px] border border-gray-200 p-8 transition-all duration-300 relative group/item",
+                isConnected ? "bg-emerald-50/50 shadow-sm" : "bg-white hover:shadow-sm"
               )}
             >
               <div className="flex items-center justify-between gap-4 mb-6">
                 <div className="flex items-center gap-3">
                   <div className={cn(
-                    "w-10 h-10 rounded-xl border-2 border-black flex items-center justify-center",
+                    "w-10 h-10 rounded-xl border border-gray-200 flex items-center justify-center",
                     isConnected ? "bg-emerald-400" : "bg-black/5"
                   )}>
                     <Link2 className="w-5 h-5 text-black" />
                   </div>
-                  <p className="text-lg font-black text-black tracking-tight">{provider.label}</p>
+                  <p className="text-lg font-semibold text-gray-900 tracking-tight">{provider.label}</p>
                 </div>
                 <Badge className={cn(
-                  "rounded-full border-2 border-black px-4 py-1.5 text-[10px] uppercase tracking-[0.2em] font-black",
+                  "rounded-full border border-gray-200 px-4 py-1.5 text-[10px] uppercase tracking-[0.2em] font-black",
                   isConnected ? "bg-emerald-400 text-black" : "bg-white text-black/30"
                 )}>
                   {isConnected ? "Active" : "Standby"}
@@ -249,7 +249,7 @@ const MailingListIntegrations = ({ userId }: { userId?: string }) => {
                   value={draftValue}
                   onChange={(e) => setUrlDrafts((prev) => ({ ...prev, [provider.key]: e.target.value }))}
                   placeholder={provider.placeholder}
-                  className="h-16 rounded-2xl border-2 border-black bg-white text-black font-bold focus:shadow-[4px_4px_0_0_rgba(0,0,0,1)] transition-all px-6 text-[15px]"
+                  className="h-16 rounded-2xl border border-gray-200 bg-white text-black font-bold focus:shadow-sm transition-all px-6 text-[15px]"
                 />
               </div>
 
@@ -258,8 +258,8 @@ const MailingListIntegrations = ({ userId }: { userId?: string }) => {
                   onClick={() => handleConnect(provider, existing?.id)}
                   disabled={loading}
                   className={cn(
-                    "flex-1 h-14 rounded-2xl border-2 border-black font-black text-[11px] uppercase tracking-[0.2em] shadow-[4px_4px_0_0_rgba(0,0,0,1)] transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none",
-                    isConnected ? "bg-black text-white" : "bg-emerald-400 text-black hover:bg-emerald-500"
+                    "flex-1 h-14 rounded-2xl border border-gray-200 font-black text-[11px] uppercase tracking-[0.2em] shadow-sm transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none",
+                    isConnected ? "bg-primary text-primary-foreground" : "bg-emerald-400 text-black hover:bg-emerald-500"
                   )}
                 >
                   {loading ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : isConnected ? <CheckCircle2 className="w-4 h-4 mr-2" /> : <PlugZap className="w-4 h-4 mr-2" />}
@@ -274,7 +274,7 @@ const MailingListIntegrations = ({ userId }: { userId?: string }) => {
                       onClick={() => handleDisconnect(provider.key, existing.id)}
                       disabled={loading}
                       title="Disconnect"
-                      className="w-14 h-14 rounded-2xl border-2 border-black bg-rose-100/50 text-rose-600 hover:bg-rose-500 hover:text-white transition-all shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+                      className="w-14 h-14 rounded-2xl border border-gray-200 bg-rose-100/50 text-rose-600 hover:bg-rose-500 hover:text-white transition-all shadow-sm active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
                     >
                       <Unplug className="w-6 h-6" />
                     </Button>
@@ -284,7 +284,7 @@ const MailingListIntegrations = ({ userId }: { userId?: string }) => {
                     size="icon"
                     onClick={() => handleTest(provider, existing?.url)}
                     title="Open Live Test"
-                    className="w-14 h-14 rounded-2xl border-2 border-black bg-white text-black hover:bg-black hover:text-white transition-all shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+                    className="w-14 h-14 rounded-2xl border border-gray-200 bg-white text-black hover:bg-black hover:text-white transition-all shadow-sm active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
                   >
                     <ExternalLink className="w-6 h-6" />
                   </Button>
@@ -293,7 +293,7 @@ const MailingListIntegrations = ({ userId }: { userId?: string }) => {
                     size="icon"
                     onClick={() => handleCopy(provider, existing?.url)}
                     title="Copy URI"
-                    className="w-14 h-14 rounded-2xl border-2 border-black bg-white text-black hover:bg-black hover:text-white transition-all shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+                    className="w-14 h-14 rounded-2xl border border-gray-200 bg-white text-black hover:bg-black hover:text-white transition-all shadow-sm active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
                   >
                     <Copy className="w-6 h-6" />
                   </Button>
@@ -301,7 +301,7 @@ const MailingListIntegrations = ({ userId }: { userId?: string }) => {
               </div>
 
               {lastTested[provider.key] && (
-                <div className="mt-4 text-[10px] font-black uppercase tracking-widest text-emerald-600/60 flex items-center gap-2">
+                <div className="mt-4 text-[10px] font-medium text-sm text-emerald-600/60 flex items-center gap-2">
                   <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
                   Connection Verified: {lastTested[provider.key]}
                 </div>
@@ -321,3 +321,5 @@ const MailingListIntegrations = ({ userId }: { userId?: string }) => {
 };
 
 export default MailingListIntegrations;
+
+

@@ -41,7 +41,7 @@ export default function AddBlockButton({ onSelect, onOpen }: { onSelect: (type: 
         <Button 
           onClick={handleToggle}
           className={cn(
-            "w-full h-14 rounded-full bg-[#8B5CF6] hover:bg-[#7C3AED] text-white transition-all flex items-center justify-center gap-3 font-black text-lg shadow-[0_8px_30px_rgb(139,92,246,0.3)] hover:shadow-[0_8px_30px_rgb(139,92,246,0.5)] active:scale-95",
+            "w-full h-14 rounded-full bg-[#8B5CF6] hover:bg-[#7C3AED] text-white transition-all flex items-center justify-center gap-3 font-black text-lg shadow-sm hover:shadow-sm active:scale-95",
             isOpen && "bg-zinc-900"
           )}
         >
@@ -59,7 +59,7 @@ export default function AddBlockButton({ onSelect, onOpen }: { onSelect: (type: 
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="absolute top-16 left-0 right-0 z-50 p-6 rounded-[2rem] border-2 border-black bg-white shadow-[12px_12px_0_0_rgba(0,0,0,1)] grid grid-cols-2 sm:grid-cols-4 gap-4"
+            className="absolute top-16 left-0 right-0 z-50 p-6 rounded-[2rem] border border-gray-200 bg-white shadow-sm grid grid-cols-2 sm:grid-cols-4 gap-4"
           >
             {BLOCK_OPTIONS.map((opt) => (
               <button
@@ -74,7 +74,7 @@ export default function AddBlockButton({ onSelect, onOpen }: { onSelect: (type: 
                   <opt.icon className="w-5 h-5" />
                 </div>
                 <div className="text-center">
-                  <p className="text-[10px] font-black uppercase tracking-widest">{opt.label}</p>
+                  <p className="text-[10px] font-medium text-sm">{opt.label}</p>
                 </div>
               </button>
             ))}
@@ -84,3 +84,4 @@ export default function AddBlockButton({ onSelect, onOpen }: { onSelect: (type: 
     </div>
   );
 }
+

@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS custom_domains (
   id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id      uuid NOT NULL REFERENCES users(id)
+  user_id      uuid NOT NULL REFERENCES auth.users(id)
                  ON DELETE CASCADE,
   domain       text NOT NULL UNIQUE,
   verified     boolean NOT NULL DEFAULT false,
@@ -21,5 +21,5 @@ CREATE INDEX IF NOT EXISTS idx_custom_domains_user
 
 UPDATE custom_domains
 SET verified = true, verified_at = now()
-WHERE user_id = (SELECT id FROM users WHERE email = 'vijendraitudr@gmail.com');
+WHERE user_id = (SELECT id FROM auth.users WHERE email = 'vijendraitudr@gmail.com');
 

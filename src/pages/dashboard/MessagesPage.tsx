@@ -73,7 +73,7 @@ const MessagesPage = () => {
           </h1>
         </div>
         {unreadCount > 0 && (
-          <Badge className="bg-emerald-500 text-white border-0 text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg shadow-emerald-500/20">
+          <Badge className="bg-emerald-500 text-white border-0 text-[10px] font-medium text-sm px-4 py-1.5 rounded-full shadow-lg shadow-emerald-500/20">
             {unreadCount} New Requests
           </Badge>
         )}
@@ -175,3 +175,4 @@ const MessagesPage = () => {
 };
 
 export default MessagesPage;
+

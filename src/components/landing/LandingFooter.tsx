@@ -52,10 +52,10 @@ const LandingFooter = () => {
                <div className="space-y-10">
                   <h4 className="inline-block px-4 py-2 bg-yellow-400 text-black border-2 border-black rounded-lg text-[10px] font-black uppercase tracking-[0.5em] italic shadow-[4px_4px_0_0_rgba(0,0,0,1)]">PLATFORM</h4>
                   <div className="flex flex-col gap-6 text-[12px] font-black uppercase tracking-widest text-black/60">
-                     <a href="/#studio" className="hover:text-black hover:translate-x-2 transition-all">Studio</a>
-                     <a href="/#forge" className="hover:text-black hover:translate-x-2 transition-all">QR Forge</a>
-                     <a href="/#solutions" className="hover:text-black hover:translate-x-2 transition-all">Solutions</a>
-                     <Link to="/faq" className="hover:text-black hover:translate-x-2 transition-all">Knowledge Base</Link>
+                     <a href="/#studio" className="hover:text-black hover:translate-x-2 transition-all">Design Studio</a>
+                     <Link to="/dashboard/catalog" className="hover:text-black hover:translate-x-2 transition-all">Digital Store</Link>
+                     <Link to="/dashboard/courses" className="hover:text-black hover:translate-x-2 transition-all">Course Builder</Link>
+                     <Link to="/dashboard/socialflow" className="hover:text-black hover:translate-x-2 transition-all">AutoDM Flow</Link>
                   </div>
                </div>
                <div className="space-y-10">
@@ -91,7 +91,7 @@ const LandingFooter = () => {
                <ShieldCheck size={48} strokeWidth={2} />
             </div>
             <div className="flex flex-col md:flex-row gap-12 text-[10px] items-center font-black uppercase tracking-[0.4em] text-black text-center md:text-left leading-relaxed">
-               <span>© 2024 BIOTRA – THE #1 AI-POWERED PLATFORM FOR MODERN CREATORS</span>
+               <span>Copyright @2025, Listifyi Innovation Private Limited. All Rights Reserved</span>
                <div className="flex gap-4 md:gap-8 flex-wrap justify-center">
                   <Link to="/privacy" className="hover:text-pink-600 transition-colors bg-white px-4 py-2 border-2 border-black rounded-lg shadow-[4px_4px_0_0_rgba(0,0,0,1)]">PRIVACY POLICY</Link>
                   <Link to="/security" className="hover:text-emerald-600 transition-colors bg-white px-4 py-2 border-2 border-black rounded-lg shadow-[4px_4px_0_0_rgba(0,0,0,1)]">SECURITY HUB</Link>

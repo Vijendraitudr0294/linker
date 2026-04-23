@@ -33,11 +33,11 @@ const primaryNavItems: NavItem[] = [
   { icon: Palette,         label: "Themes",      path: "/dashboard/appearance",   feature: null,      badge: "Elite", accentColor: "#a78bfa" },
   { icon: LayoutTemplate,  label: "Templates",   path: "/dashboard/templates",    feature: null,                    accentColor: "#60a5fa" },
   { icon: Link2,           label: "Links",       path: "/dashboard/links",        feature: "feature_social_links",  accentColor: "#34d399" },
-  { icon: ShoppingBag,     label: "Shop",        path: "/dashboard/catalog",      feature: "feature_catalog",       accentColor: "#f472b6" },
-  { icon: Puzzle,          label: "Apps",        path: "/dashboard/apps",         feature: null,                    accentColor: "#fb923c" },
+  { icon: ShoppingBag,     label: "Store",       path: "/dashboard/catalog",      feature: "feature_catalog",       accentColor: "#f472b6" },
+  { icon: FileText,        label: "Courses",     path: "/dashboard/courses",      feature: null,                    accentColor: "#a78bfa", badge: "Elite" },
   { icon: Target,          label: "Analytics",   path: "/dashboard/analytics",    feature: "feature_analytics",     accentColor: "#38bdf8" },
-  { icon: FileText,        label: "Forms",       path: "/dashboard/forms",        feature: "feature_contact_form",  badge: "New", accentColor: "#fbbf24" },
-  { icon: Search,          label: "Social Flow", path: "/dashboard/socialflow",   feature: null,                    accentColor: "#818cf8" },
+  { icon: LayoutTemplate,  label: "Leads",       path: "/dashboard/forms",        feature: "feature_contact_form",  accentColor: "#fbbf24" },
+  { icon: Zap,             label: "AutoDM",      path: "/dashboard/socialflow",   feature: null,                    accentColor: "#818cf8", badge: "Beta" },
   { icon: QrCode,          label: "QR Codes",    path: "/dashboard/qrforge",      feature: null,                    accentColor: "#34d399" },
 ];
 
@@ -85,7 +85,7 @@ export function DashboardSidebar() {
       <SidebarHeader className={cn("px-5 pt-6 pb-4", collapsed && "px-3")}>
         <div className={cn("flex items-center gap-3 transition-all", collapsed && "justify-center")}>
           {/* Brutalist logo mark */}
-          <div className="w-9 h-9 bg-[#34d399] border-2 border-black rounded-[10px] shadow-[3px_3px_0_0_rgba(255,255,255,0.15)] flex items-center justify-center shrink-0 rotate-0">
+          <div className="w-9 h-9 bg-[#34d399] border border-gray-200 rounded-[10px] shadow-sm flex items-center justify-center shrink-0 rotate-0">
             <Zap className="w-4 h-4 text-black fill-black" />
           </div>
           {!collapsed && (
@@ -115,7 +115,7 @@ export function DashboardSidebar() {
                     "h-10 rounded-xl transition-all duration-200 w-full group relative overflow-hidden",
                     collapsed ? "justify-center px-0" : "px-3",
                     active
-                      ? "bg-white/10 shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.12)]"
+                      ? "bg-white/10 shadow-sm"
                       : "hover:bg-white/[0.05]"
                   )}
                 >
@@ -133,7 +133,7 @@ export function DashboardSidebar() {
                       className={cn(
                         "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all",
                         active
-                          ? "shadow-[0_0_12px_0px_rgba(52,211,153,0.3)]"
+                          ? "shadow-sm"
                           : "bg-white/5 group-hover:bg-white/10"
                       )}
                       style={active ? { backgroundColor: `${item.accentColor}22`, border: `1.5px solid ${item.accentColor}55` } : {}}
@@ -159,7 +159,7 @@ export function DashboardSidebar() {
                     {/* Badge */}
                     {item.badge && !collapsed && (
                       <span
-                        className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md border"
+                        className="text-[8px] font-medium text-sm px-1.5 py-0.5 rounded-md border"
                         style={
                           item.badge === "Elite"
                             ? { background: "rgba(167,139,250,0.15)", color: "#a78bfa", borderColor: "rgba(167,139,250,0.3)" }
@@ -222,7 +222,7 @@ export function DashboardSidebar() {
             {/* User Card — Brutalist style */}
             <div className="flex items-center gap-3 px-2 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.07]">
               <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-black text-[12px] font-black shrink-0 border-2 border-black shadow-[2px_2px_0_0_rgba(52,211,153,0.5)]"
+                className="w-9 h-9 rounded-xl flex items-center justify-center text-black text-[12px] font-black shrink-0 border border-gray-200 shadow-sm"
                 style={{ background: "linear-gradient(135deg, #34d399, #059669)" }}
               >
                 {initials}
@@ -256,7 +256,7 @@ export function DashboardSidebar() {
         ) : (
           <div className="flex flex-col items-center gap-2">
             <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center text-black text-[11px] font-black border-2 border-black"
+              className="w-8 h-8 rounded-xl flex items-center justify-center text-black text-[11px] font-black border border-gray-200"
               style={{ background: "linear-gradient(135deg, #34d399, #059669)" }}
             >
               {initials}
@@ -274,3 +274,4 @@ export function DashboardSidebar() {
     </Sidebar>
   );
 }
+

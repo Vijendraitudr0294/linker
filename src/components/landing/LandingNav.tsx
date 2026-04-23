@@ -123,7 +123,7 @@ const LandingNav = () => {
                         
                         <div className="mt-auto pt-10 border-t-2 border-black/10 flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-black/30">
                             <span>Biotra v1.2</span>
-                            <span>© 2024</span>
+                            <span>© 2025</span>
                         </div>
                     </motion.div>
                 )}

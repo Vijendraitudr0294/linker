@@ -65,8 +65,8 @@ const ThemePreviewCard = ({
         className={cn(
           "relative rounded-[28px] border-4 overflow-hidden cursor-pointer transition-all group",
           selected
-            ? "border-black shadow-[8px_8px_0_0_rgba(0,0,0,1)]"
-            : "border-black/10 shadow-[4px_4px_0_0_rgba(0,0,0,0.08)] hover:border-black hover:shadow-[6px_6px_0_0_rgba(0,0,0,1)]"
+            ? "border-black shadow-sm"
+            : "border-black/10 shadow-sm hover:border-black hover:shadow-sm"
         )}
         onClick={() => onSelect(theme)}
       >
@@ -80,7 +80,7 @@ const ThemePreviewCard = ({
         {/* Delete button (admin only) */}
         {onDelete && (
           <button
-            className="absolute top-3 right-3 z-50 w-7 h-7 rounded-xl bg-white border-2 border-black flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:bg-red-500 hover:border-red-500 hover:text-white"
+            className="absolute top-3 right-3 z-50 w-7 h-7 rounded-xl bg-white border border-gray-200 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-sm hover:bg-red-500 hover:border-red-500 hover:text-white"
             onClick={(e) => {
               e.stopPropagation();
               onDelete(theme.id);
@@ -129,7 +129,7 @@ const ThemePreviewCard = ({
               </div>
               {/* CTA button */}
               <div
-                className={cn("h-7 w-full flex items-center justify-center text-[9px] font-black uppercase tracking-widest border", buttonClasses)}
+                className={cn("h-7 w-full flex items-center justify-center text-[9px] font-medium text-sm border", buttonClasses)}
                 style={{ ...buttonStyle, borderColor: theme.buttonStyle === "outline" ? palette.btnBg : "transparent" }}
               >
                 Follow
@@ -154,12 +154,12 @@ const ThemePreviewCard = ({
             {selected ? (
               <div className="flex items-center gap-1.5 bg-emerald-500 text-white px-2.5 py-1 rounded-lg shadow-lg shadow-emerald-500/20">
                 <Check className="w-3 h-3" strokeWidth={3} />
-                <span className="text-[8px] font-black uppercase tracking-tighter">Applied</span>
+                <span className="text-[8px] font-semibold text-lger">Applied</span>
               </div>
             ) : (
               <Button 
                 size="sm" 
-                className="h-8 rounded-lg bg-black text-white hover:bg-black/80 text-[9px] font-black uppercase tracking-widest px-3 invisible group-hover:visible animate-in fade-in slide-in-from-right-2"
+                className="h-8 rounded-lg bg-primary text-primary-foreground hover:bg-black/80 text-[9px] font-medium text-sm px-3 invisible group-hover:visible animate-in fade-in slide-in-from-right-2"
                 onClick={handleApply}
               >
                 Apply <Zap className="w-2.5 h-2.5 ml-1 fill-yellow-400 text-yellow-400" />
@@ -173,3 +173,4 @@ const ThemePreviewCard = ({
 };
 
 export default ThemePreviewCard;
+

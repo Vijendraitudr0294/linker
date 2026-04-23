@@ -468,19 +468,19 @@ const LinkEditor = () => {
     <div className="space-y-6 animate-fade-in max-w-[1200px] mx-auto pb-10">
       {/* Mobile Single View Mirror */}
       <div className="lg:hidden w-full mb-4 animate-in fade-in slide-in-from-top-4 duration-700">
-         <Card className="bruddle-card-blue p-4 bg-[#E0F2FE] flex flex-col items-center justify-start relative overflow-hidden rounded-[24px] border-2 border-black shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+         <Card className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 bg-[#E0F2FE] flex flex-col items-center justify-start relative overflow-hidden rounded-[24px] border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between w-full mb-3 px-1">
                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-md bg-white border-2 border-black flex items-center justify-center">
+                  <div className="w-5 h-5 rounded-md bg-white border border-gray-200 flex items-center justify-center">
                      <Smartphone className="w-3 h-3" />
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-black">Live View</span>
+                  <span className="text-[10px] font-medium text-sm text-black">Live View</span>
                </div>
-               <Badge className="bg-white/40 text-black border-2 border-black rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest">
+               <Badge className="bg-white/40 text-black border border-gray-200 rounded-full px-2 py-0.5 text-[8px] font-medium text-sm">
                  Live
                </Badge>
             </div>
-            <div className="w-full h-[220px] rounded-[1.8rem] border-2 border-black overflow-hidden bg-white shadow-[2px_2px_0_0_rgba(0,0,0,1)] relative">
+            <div className="w-full h-[220px] rounded-[1.8rem] border border-gray-200 overflow-hidden bg-white shadow-sm relative">
                <ProfilePreview 
                   settings={settings} 
                   user={user} 
@@ -509,8 +509,8 @@ const LinkEditor = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
           >
-             <h1 className="text-3xl font-black text-black tracking-tight mb-1">Identity Nodes</h1>
-             <p className="text-sm font-medium text-black/40">Manage your active profile links.</p>
+             <h1 className="text-3xl font-semibold text-gray-900 tracking-tight mb-1">My Links</h1>
+             <p className="text-sm font-medium text-black/40">Add, edit, and organize your links.</p>
           </motion.div>
 
           {/* Link Filters */}
@@ -540,58 +540,16 @@ const LinkEditor = () => {
           <AnimatePresence>
             {showAdd && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
-                <Card className="bruddle-card-green p-8 space-y-6 relative overflow-hidden">
+                <Card className="bg-white border border-gray-200 shadow-sm rounded-xl p-8 space-y-6 relative overflow-hidden">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2 text-black">
                       <Zap className="w-5 h-5" />
-                      <h3 className="font-black text-lg uppercase tracking-tight">New Block</h3>
+                      <h3 className="font-black text-lg uppercase tracking-tight">Add New Link</h3>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => setShowAdd(false)} className="rounded-2xl bg-white border-2 border-black hover:bg-black hover:text-white transition-all shadow-sm">
+                    <Button variant="ghost" size="icon" onClick={() => setShowAdd(false)} className="rounded-2xl bg-white border border-gray-200 hover:bg-black hover:text-white transition-all shadow-sm">
                       <X className="w-4 h-4" />
                     </Button>
                   </div>
-
-                  <div className="grid gap-3 md:grid-cols-2">
-                    <button
-                      type="button"
-                      onClick={() => setAddMode("template")}
-                      className={`rounded-2xl border p-4 text-left transition-all ${
-                        addMode === "template"
-                          ? "border-primary bg-primary/10 shadow-lg"
-                          : "border-border/60 bg-background/40"
-                      }`}
-                    >
-                      <p className="text-base font-black">Guided Setup</p>
-                      <p className="text-xs text-muted-foreground">Pick a platform template</p>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setAddMode("custom")}
-                      className={`rounded-2xl border p-4 text-left transition-all ${
-                        addMode === "custom"
-                          ? "border-primary bg-primary/10 shadow-lg"
-                          : "border-border/60 bg-background/40"
-                      }`}
-                    >
-                      <p className="text-base font-black">Direct URL</p>
-                      <p className="text-xs text-muted-foreground">Paste any destination URL</p>
-                    </button>
-                  </div>
-
-                  {addMode === "template" && (
-                    <TemplatePicker
-                      categories={templateCategories}
-                      templateCategoryId={templateCategoryId}
-                      templateId={templateId}
-                      templateSearch={templateSearch}
-                      selectedTemplateCategory={selectedTemplateCategory}
-                      selectedTemplate={selectedTemplate}
-                      onCategoryChange={handleTemplateCategoryChange}
-                      onTemplateSelect={handleTemplateSelect}
-                      onTemplateSearchChange={setTemplateSearch}
-                      onTemplateClear={clearTemplateSelection}
-                    />
-                  )}
 
                   <div className="space-y-4 pt-2">
                     <div className="space-y-2">
@@ -662,7 +620,7 @@ const LinkEditor = () => {
                 {viewMode === "card" && editingId !== link.id ? (
                   // CARD VIEW
                   <Card className={cn(
-                    "bruddle-card overflow-hidden group hover:shadow-[10px_10px_0_0_rgba(0,0,0,1)] hover:-translate-y-1 transition-all duration-300 border-4 border-black",
+                    "bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden group hover:shadow-sm hover:-translate-y-1 transition-all duration-300 border-4 border-black",
                     !link.enabled && "opacity-60 grayscale"
                   )}>
                     <div className="relative aspect-video overflow-hidden border-b-4 border-black">
@@ -674,7 +632,7 @@ const LinkEditor = () => {
                       <div className="absolute inset-0 bg-black/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm">
                          <Button 
                            onClick={() => startEdit(link)}
-                           className="bg-white border-2 border-black rounded-xl font-black text-[10px] uppercase text-black hover:bg-black hover:text-white shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:shadow-none translate-y-2 group-hover:translate-y-0 transition-all"
+                           className="bg-white border border-gray-200 rounded-xl font-black text-[10px] uppercase text-black hover:bg-black hover:text-white shadow-sm active:shadow-none translate-y-2 group-hover:translate-y-0 transition-all"
                          >
                             Edit Node
                          </Button>
@@ -683,7 +641,7 @@ const LinkEditor = () => {
                         <Switch 
                            checked={link.enabled} 
                            onCheckedChange={() => toggleLink.mutate({ id: link.id, enabled: !link.enabled })}
-                           className="data-[state=checked]:bg-emerald-400 border-2 border-black shadow-[3px_3px_0_0_rgba(0,0,0,1)]"
+                           className="data-[state=checked]:bg-emerald-400 border border-gray-200 shadow-sm"
                          />
                       </div>
                     </div>
@@ -698,13 +656,13 @@ const LinkEditor = () => {
                        </div>
                        <div className="flex flex-col gap-2">
                           <Button 
-                            variant="ghost" size="icon" className="w-9 h-9 border-2 border-black rounded-xl hover:bg-emerald-100"
+                            variant="ghost" size="icon" className="w-9 h-9 border border-gray-200 rounded-xl hover:bg-emerald-100"
                             onClick={() => copyLinkUrl(link.url)}
                           >
                              <Copy className="w-4 h-4" />
                           </Button>
                           <Button 
-                            variant="ghost" size="icon" className="w-9 h-9 border-2 border-black rounded-xl hover:bg-red-100"
+                            variant="ghost" size="icon" className="w-9 h-9 border border-gray-200 rounded-xl hover:bg-red-100"
                             onClick={() => handleDelete(link.id)}
                           >
                              <Trash2 className="w-4 h-4" />
@@ -715,7 +673,7 @@ const LinkEditor = () => {
                 ) : (
                   // LIST VIEW (The default logic)
                   <Card className={cn(
-                    "bruddle-card p-5 flex items-center gap-5 hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:-translate-y-1 transition-all duration-300 relative group overflow-hidden",
+                    "bg-white border border-gray-200 shadow-sm rounded-xl p-5 flex items-center gap-5 hover:shadow-sm hover:-translate-y-1 transition-all duration-300 relative group overflow-hidden",
                     !link.enabled && "opacity-60 grayscale-[0.5]"
                   )}>
                     
@@ -820,7 +778,7 @@ const LinkEditor = () => {
                         <h3 className="text-[17px] font-black tracking-tight text-foreground truncate group-hover:text-primary transition-colors">{link.title}</h3>
                         <p className="text-[12px] font-medium text-muted-foreground/50 truncate max-w-[300px]">{link.url}</p>
                         {link.layout && link.layout !== 'default' && (
-                          <Badge variant="outline" className="mt-1.5 text-[9px] font-black uppercase tracking-widest bg-white/5 border-white/10 text-muted-foreground/40 px-2 py-0">
+                          <Badge variant="outline" className="mt-1.5 text-[9px] font-medium text-sm bg-white/5 border-white/10 text-muted-foreground/40 px-2 py-0">
                             {link.layout} BLOCK
                           </Badge>
                         )}
@@ -898,8 +856,8 @@ const LinkEditor = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
             >
-              <Card className="bruddle-card-yellow p-12 text-center">
-                <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-white border-2 border-black flex items-center justify-center shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+              <Card className="bg-white border border-gray-200 shadow-sm rounded-xl-yellow p-12 text-center">
+                <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-white border border-gray-200 flex items-center justify-center shadow-sm">
                   <Link2 className="w-10 h-10 text-black" />
                 </div>
                 <h3 className="font-black text-black text-2xl mb-2 tracking-tight">Your stage is empty</h3>
@@ -908,7 +866,7 @@ const LinkEditor = () => {
                 </p>
                 <Button
                   onClick={openAddForm}
-                  className="rounded-2xl bg-black hover:bg-black/90 text-white font-black px-8 h-12 shadow-[4px_4px_0_0_rgba(0,0,0,1)] uppercase tracking-widest text-[10px]"
+                  className="rounded-2xl bg-black hover:bg-black/90 text-white font-black px-8 h-12 shadow-sm uppercase tracking-widest text-[10px]"
                 >
                   <Plus className="w-4 h-4 mr-2" /> Add Your First Link
                 </Button>
@@ -922,7 +880,7 @@ const LinkEditor = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
-              className="bruddle-card p-8 flex items-center justify-around font-bruddle"
+              className="bg-white border border-gray-200 shadow-sm rounded-xl p-8 flex items-center justify-around font-bruddle"
             >
               <div className="flex flex-col items-center">
                 <span className="text-3xl font-black text-black">{links.length}</span>
@@ -944,7 +902,7 @@ const LinkEditor = () => {
 
         {/* Right Column: Single Preview View */}
         <div className="hidden lg:block w-[320px] 2xl:w-[360px] shrink-0 self-start sticky top-6 z-30 font-bruddle">
-          <div className="bruddle-card-blue p-8 relative overflow-hidden group/sidebar">
+          <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-8 relative overflow-hidden group/sidebar">
             <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:rotate-12 transition-all">
                 <Smartphone size={120} strokeWidth={1} />
             </div>
@@ -955,7 +913,7 @@ const LinkEditor = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  className="rounded-xl px-4 py-2 bg-white border-2 border-black text-[10px] font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
+                  className="rounded-xl px-4 py-2 bg-white border border-gray-200 text-[10px] font-medium text-sm hover:bg-black hover:text-white transition-all shadow-sm hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
                   onClick={() => window.location.assign("/dashboard/appearance")}
                 >
                   Edit
@@ -963,7 +921,7 @@ const LinkEditor = () => {
               </div>
 
               <div className="relative group/preview flex flex-col gap-6">
-                <div className="rounded-[2.4rem] border-2 border-black overflow-hidden bg-white shadow-2xl relative z-10 scale-95 origin-top">
+                <div className="rounded-[2.4rem] border border-gray-200 overflow-hidden bg-white shadow-2xl relative z-10 scale-95 origin-top">
                   {previewPanel}
                 </div>
 
@@ -972,13 +930,13 @@ const LinkEditor = () => {
                     href={profileUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl h-12 bg-white hover:bg-black border-2 border-black text-black hover:text-white text-[10px] font-black uppercase tracking-widest transition-all shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]"
+                    className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl h-12 bg-white hover:bg-black border border-gray-200 text-black hover:text-white text-[10px] font-medium text-sm transition-all shadow-sm hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]"
                   >
                     View Site
                   </a>
                   <Button
                     onClick={copyProfileLink}
-                    className="flex-1 gap-2 rounded-2xl h-12 bg-black hover:bg-black/90 text-white text-[10px] font-black uppercase tracking-widest transition-all shadow-[4px_4px_0_0_rgba(255,255,255,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]"
+                    className="flex-1 gap-2 rounded-2xl h-12 bg-black hover:bg-black/90 text-white text-[10px] font-medium text-sm transition-all shadow-sm hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]"
                   >
                     Copy URL
                   </Button>
@@ -1061,3 +1019,5 @@ const LinkEditor = () => {
 
 
 export default LinkEditor;
+
+

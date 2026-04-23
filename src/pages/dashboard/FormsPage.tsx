@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { uploadFormFileToR2 } from "@/lib/formUploads";
 import { buildPublicFormUrl, upsertForm } from "@/lib/formsUi";
+import { useAuthStore } from "@/stores/authStore";
 import { cn } from "@/lib/utils";
 import { 
   cancelForm, createForm, deleteForm, listFormSubmissions, listMyForms, 
@@ -248,7 +249,11 @@ const FormsPage = () => {
     }
   };
 
+  const { user, isAuthenticated, loading: authLoading } = useAuthStore();
+
   useEffect(() => {
+    if (authLoading || !isAuthenticated) return;
+    
     let mounted = true;
     const run = async () => {
       try {
@@ -259,7 +264,10 @@ const FormsPage = () => {
       } catch (e: any) {
         if (mounted) {
            console.error("Critical: Forms list failed", e);
-           toast.error(`Could not load forms: ${e.message || "Database connection error"}`);
+           // Avoid toast error if it's just a transient auth state issue
+           if (e.message !== "Please login first") {
+             toast.error(`Could not load forms: ${e.message || "Database connection error"}`);
+           }
         }
       }
     };
@@ -267,7 +275,7 @@ const FormsPage = () => {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [isAuthenticated, authLoading]);
 
   const addField = (type: FieldType) => {
     const newField: FormField = { id: makeFieldId(), ...defaultFieldForType(type) };
@@ -665,7 +673,7 @@ const FormsPage = () => {
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-               <div className="w-10 h-10 rounded-2xl bg-emerald-500 flex items-center justify-center border-2 border-black shadow-[3px_3px_0_0_rgba(0,0,0,1)]">
+               <div className="w-10 h-10 rounded-2xl bg-emerald-500 flex items-center justify-center border border-gray-200 shadow-sm">
                   <Layout className="w-5 h-5 text-white" />
                </div>
                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-600">Form Management</p>
@@ -677,13 +685,13 @@ const FormsPage = () => {
           </div>
           
           <div className="flex items-center gap-3">
-             <div className="flex flex-col items-center px-4 py-2 border-2 border-black bg-[#ecfeff] shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
-                <span className="text-[9px] font-black uppercase tracking-widest text-black/40">Total Responses</span>
+             <div className="flex flex-col items-center px-4 py-2 border border-gray-200 bg-[#ecfeff] shadow-sm">
+                <span className="text-[9px] font-medium text-sm text-black/40">Total Responses</span>
                 <span className="text-xl font-black">{stats.submissions}</span>
              </div>
              <button 
                onClick={() => setView("builder")}
-               className="h-14 px-8 border-3 border-black bg-emerald-500 text-white font-black uppercase tracking-widest shadow-[6px_6px_0_0_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
+               className="h-14 px-8 border-3 border-black bg-emerald-500 text-white font-medium text-sm shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
              >
                 Create New Form
              </button>
@@ -694,7 +702,7 @@ const FormsPage = () => {
            <button 
              onClick={() => { setActiveFormId(null); setView("dashboard"); }}
              className={cn(
-               "px-6 py-4 text-[11px] font-black uppercase tracking-widest transition-all border-b-3 -mb-[2px]",
+               "px-6 py-4 text-[11px] font-medium text-sm transition-all border-b-3 -mb-[2px]",
                view === "dashboard" 
                  ? "border-black text-black bg-black/5" 
                  : "border-transparent text-black/40 hover:text-black hover:bg-black/5"
@@ -705,7 +713,7 @@ const FormsPage = () => {
            <button 
              onClick={() => { setActiveFormId(null); setView("analytics"); }}
              className={cn(
-               "px-6 py-4 text-[11px] font-black uppercase tracking-widest transition-all border-b-3 -mb-[2px]",
+               "px-6 py-4 text-[11px] font-medium text-sm transition-all border-b-3 -mb-[2px]",
                view === "analytics" 
                  ? "border-black text-black bg-black/5" 
                  : "border-transparent text-black/40 hover:text-black hover:bg-black/5"
@@ -721,7 +729,7 @@ const FormsPage = () => {
                   <h2 className="text-sm font-black uppercase tracking-[0.2em] text-black/40">Your Recent Forms</h2>
                   <div className="flex items-center gap-4">
                      {["all", "published", "draft"].map(f => (
-                        <button key={f} onClick={() => setStatusFilter(f as any)} className={cn("text-[10px] font-black uppercase tracking-widest", statusFilter === f ? "text-emerald-500" : "text-black/30")}>
+                        <button key={f} onClick={() => setStatusFilter(f as any)} className={cn("text-[10px] font-medium text-sm", statusFilter === f ? "text-emerald-500" : "text-black/30")}>
                            {f}
                         </button>
                      ))}
@@ -732,7 +740,7 @@ const FormsPage = () => {
                   {forms.length === 0 ? (
                     <div className="col-span-2 py-20 border-3 border-dashed border-black/10 flex flex-col items-center justify-center gap-4 text-center">
                        <HelpCircle className="w-10 h-10 text-black/20" />
-                       <p className="text-sm font-black uppercase tracking-widest text-black/20">No forms found. Start by naming your first one!</p>
+                       <p className="text-sm font-medium text-sm text-black/20">No forms found. Start by naming your first one!</p>
                        <button 
                           onClick={async () => {
                              const f = await createForm({ name: "Sample Survey", fields: [{ id: "1", type: "short_text", title: "Testing" }], styleJson: { theme: "brutal" } });
@@ -740,7 +748,7 @@ const FormsPage = () => {
                              toast.success("Seeded!");
                              void refreshFormsSafe();
                           }}
-                          className="px-6 h-10 border-2 border-black bg-white font-black uppercase text-[10px] tracking-widest shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:bg-black hover:text-white transition-all"
+                          className="px-6 h-10 border border-gray-200 bg-white font-black uppercase text-[10px] tracking-widest shadow-sm hover:bg-black hover:text-white transition-all"
                         >
                            Seed Sample Data
                         </button>
@@ -748,17 +756,17 @@ const FormsPage = () => {
                   ) : forms
                      .filter(f => statusFilter === "all" || f.status === statusFilter)
                      .map(form => (
-                    <div key={form.id} className="group border-3 border-black bg-white p-5 shadow-[6px_6px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all relative overflow-hidden">
+                    <div key={form.id} className="group border-3 border-black bg-white p-5 shadow-sm hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all relative overflow-hidden">
                        <div className="flex items-start justify-between mb-8">
                           <div className={cn(
-                             "w-10 h-10 border-2 border-black flex items-center justify-center",
+                             "w-10 h-10 border border-gray-200 flex items-center justify-center",
                              form.status === "published" ? "bg-emerald-100" : "bg-orange-100"
                           )}>
                              <FileText className="w-5 h-5" />
                           </div>
                           <div className="flex items-center gap-2">
                              <Badge className={cn(
-                                "text-[9px] uppercase font-black px-2 py-0.5 border-2 border-black",
+                                "text-[9px] uppercase font-black px-2 py-0.5 border border-gray-200",
                                 form.status === "published" ? "bg-emerald-500 text-white" : "bg-white text-black"
                              )}>
                                 {form.status}
@@ -770,7 +778,7 @@ const FormsPage = () => {
                                   e.stopPropagation();
                                   handleDeleteForm(form.id); 
                                 }}
-                                className="w-8 h-8 rounded-full border-2 border-black bg-white text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-none active:translate-x-0.5 active:translate-y-0.5"
+                                className="w-8 h-8 rounded-full border border-gray-200 bg-white text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm hover:shadow-none active:translate-x-0.5 active:translate-y-0.5"
                                 title="Delete"
                              >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -785,20 +793,20 @@ const FormsPage = () => {
                        <div className="flex items-center gap-2">
                            <button 
                              onClick={() => loadFormToBuilder(form)}
-                             className="flex-1 h-10 border-2 border-black bg-black text-white text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 transition-colors"
+                             className="flex-1 h-10 border border-gray-200 bg-primary text-primary-foreground text-[10px] font-medium text-sm hover:bg-emerald-500 transition-colors"
                            >
                               Edit Builder
                            </button>
                            <button 
                               onClick={() => { setActiveFormId(form.id); setView("analytics"); }}
-                              className="w-10 h-10 border-2 border-black bg-white flex items-center justify-center hover:bg-black hover:text-white transition-colors group"
+                              className="w-10 h-10 border border-gray-200 bg-white flex items-center justify-center hover:bg-black hover:text-white transition-colors group"
                               title="Analytics"
                            >
                                <Icons.BarChart3 className="w-4 h-4 group-hover:scale-110 transition-transform" />
                             </button>
                            <button 
                               onClick={() => { setActiveFormId(form.id); setView("submissions"); refreshSubmissions(form.id); }}
-                              className="w-10 h-10 border-2 border-black bg-white flex items-center justify-center hover:bg-black hover:text-white transition-colors group"
+                              className="w-10 h-10 border border-gray-200 bg-white flex items-center justify-center hover:bg-black hover:text-white transition-colors group"
                               title="Submissions"
                             >
                                <Database className="w-4 h-4 group-hover:scale-110 transition-transform" />
@@ -812,12 +820,12 @@ const FormsPage = () => {
 
             <div className="space-y-6">
                <div className="grid grid-cols-2 gap-4">
-                  <div className="border-3 border-black bg-white p-4 shadow-[4px_4px_0_0_rgba(0,0,0,1)] text-center">
-                     <p className="text-[9px] font-black uppercase tracking-widest text-black/40 mb-1">Published</p>
+                  <div className="border-3 border-black bg-white p-4 shadow-sm text-center">
+                     <p className="text-[9px] font-medium text-sm text-black/40 mb-1">Published</p>
                      <p className="text-2xl font-black">{stats.published}</p>
                   </div>
-                  <div className="border-3 border-black bg-white p-4 shadow-[4px_4px_0_0_rgba(0,0,0,1)] text-center">
-                     <p className="text-[9px] font-black uppercase tracking-widest text-black/40 mb-1">Drafts</p>
+                  <div className="border-3 border-black bg-white p-4 shadow-sm text-center">
+                     <p className="text-[9px] font-medium text-sm text-black/40 mb-1">Drafts</p>
                      <p className="text-2xl font-black">{stats.total - stats.published}</p>
                   </div>
                </div>
@@ -828,10 +836,10 @@ const FormsPage = () => {
                      <button 
                        key={t.id} 
                        onClick={() => applyTemplate(t)}
-                       className="w-full text-left border-3 border-black bg-[#f8fafc] p-4 shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all group"
+                       className="w-full text-left border-3 border-black bg-[#f8fafc] p-4 shadow-sm hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all group"
                      >
                         <div className="flex items-center justify-between gap-3 mb-2">
-                           <span className="text-[10px] font-black uppercase tracking-widest py-1 px-2 bg-emerald-100 border-2 border-black">{t.category}</span>
+                           <span className="text-[10px] font-medium text-sm py-1 px-2 bg-emerald-100 border border-gray-200">{t.category}</span>
                            <Sparkles className="w-4 h-4 text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                         <h4 className="font-black text-lg uppercase tracking-tight">{t.name}</h4>
@@ -840,7 +848,7 @@ const FormsPage = () => {
                   ))}
                </div>
                
-               <div className="p-6 border-3 border-black bg-black text-white shadow-[6px_6px_0_0_rgba(16,185,129,1)]">
+               <div className="p-6 border-3 border-black bg-primary text-primary-foreground shadow-sm">
                   <h3 className="font-black text-xl mb-2 uppercase tracking-tight">Need Support?</h3>
                   <p className="text-xs font-semibold text-white/60 mb-4 leading-relaxed">
                      Our team can help you design custom logic or integrate with your favorite CRM.
@@ -859,11 +867,11 @@ const FormsPage = () => {
     return (
       <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <header className="flex items-center gap-6">
-          <button onClick={() => setView("builder")} className="w-10 h-10 border-2 border-black rounded-full flex items-center justify-center hover:bg-black hover:text-white transition-all">
+          <button onClick={() => setView("builder")} className="w-10 h-10 border border-gray-200 rounded-full flex items-center justify-center hover:bg-black hover:text-white transition-all">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-4xl font-black uppercase tracking-tight">Form Settings</h1>
+            <h1 className="text-4xl font-semibold text-lg">Form Settings</h1>
             <p className="text-sm font-bold text-black/40">Configure how your form behaves and looks.</p>
           </div>
         </header>
@@ -881,7 +889,7 @@ const FormsPage = () => {
                 onClick={() => setSettingsTab(tab.id as any)}
                 className={cn(
                   "w-full h-12 px-4 flex items-center gap-3 font-black uppercase text-[10px] tracking-widest border-2 transition-all",
-                  settingsTab === tab.id ? "bg-black text-white border-black" : "bg-white text-black border-transparent hover:border-black/10"
+                  settingsTab === tab.id ? "bg-primary text-primary-foreground border-black" : "bg-white text-black border-transparent hover:border-black/10"
                 )}
               >
                 <tab.icon className="w-4 h-4" />
@@ -890,11 +898,11 @@ const FormsPage = () => {
             ))}
           </aside>
 
-          <main className="border-4 border-black bg-white p-8 shadow-[10px_10px_0_0_rgba(0,0,0,1)] space-y-8">
+          <main className="border-4 border-black bg-white p-8 shadow-sm space-y-8">
             {settingsTab === "universal" && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-xl font-black uppercase tracking-tight mb-1">Choose a mode</h3>
+                  <h3 className="text-xl font-semibold text-lg mb-1">Choose a mode</h3>
                   <p className="text-xs font-bold text-black/40">Modes give you the right tools for your form, so you can create and publish faster.</p>
                 </div>
                 
@@ -911,7 +919,7 @@ const FormsPage = () => {
                         formMode === mode.id ? "border-black bg-emerald-50" : "border-black/5 bg-white hover:border-black/20"
                       )}
                     >
-                      <h4 className="font-black uppercase tracking-tight mb-1">{mode.name}</h4>
+                      <h4 className="font-semibold text-lg mb-1">{mode.name}</h4>
                       <p className="text-[10px] font-bold text-black/40">{mode.desc}</p>
                     </button>
                   ))}
@@ -927,7 +935,7 @@ const FormsPage = () => {
 
             {settingsTab === "display" && (
               <div className="space-y-6">
-                <h3 className="text-xl font-black uppercase tracking-tight">Display Settings</h3>
+                <h3 className="text-xl font-semibold text-lg">Display Settings</h3>
                 <div className="grid grid-cols-1 gap-4">
                   {[
                     { id: "branding", label: "Biotra branding" },
@@ -936,8 +944,8 @@ const FormsPage = () => {
                     { id: "questionNumbers", label: "Question number" },
                     { id: "answerLetters", label: "Letters on answers" },
                   ].map(opt => (
-                    <div key={opt.id} className="flex items-center justify-between p-4 border-2 border-black/5 hover:border-black/10">
-                      <span className="text-xs font-black uppercase tracking-tight">{opt.label}</span>
+                    <div key={opt.id} className="flex items-center justify-between p-4 border border-gray-200/5 hover:border-black/10">
+                      <span className="text-xs font-semibold text-lg">{opt.label}</span>
                       <Switch checked={(displaySettings as any)[opt.id]} onCheckedChange={(v) => setDisplaySettings(s => ({ ...s, [opt.id]: v }))} />
                     </div>
                   ))}
@@ -947,7 +955,7 @@ const FormsPage = () => {
 
             {settingsTab === "preferences" && (
               <div className="space-y-6">
-                <h3 className="text-xl font-black uppercase tracking-tight">Preferences</h3>
+                <h3 className="text-xl font-semibold text-lg">Preferences</h3>
                 <div className="grid grid-cols-1 gap-4">
                   {[
                     { state: prefAutosave, set: setPrefAutosave, label: "Autosave progress" },
@@ -957,8 +965,8 @@ const FormsPage = () => {
                     { state: prefSpamPrevention, set: setPrefSpamPrevention, label: "Spam prevention" },
                     { state: prefDuplicatePrevention, set: setPrefDuplicatePrevention, label: "Duplicate response prevention" },
                   ].map((opt, i) => (
-                    <div key={i} className="flex items-center justify-between p-4 border-2 border-black/5 hover:border-black/10">
-                      <span className="text-xs font-black uppercase tracking-tight">{opt.label}</span>
+                    <div key={i} className="flex items-center justify-between p-4 border border-gray-200/5 hover:border-black/10">
+                      <span className="text-xs font-semibold text-lg">{opt.label}</span>
                       <Switch checked={opt.state} onCheckedChange={opt.set} />
                     </div>
                   ))}
@@ -969,12 +977,12 @@ const FormsPage = () => {
             {settingsTab === "language" && (
               <div className="space-y-8">
                 <div className="flex items-center justify-between">
-                   <h3 className="text-xl font-black uppercase tracking-tight">System Messages</h3>
-                   <button onClick={() => setSystemMessages(DEFAULT_SYSTEM_MESSAGES)} className="text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:underline">Reset all</button>
+                   <h3 className="text-xl font-semibold text-lg">System Messages</h3>
+                   <button onClick={() => setSystemMessages(DEFAULT_SYSTEM_MESSAGES)} className="text-[10px] font-medium text-sm text-emerald-600 hover:underline">Reset all</button>
                 </div>
 
                 <div className="space-y-4">
-                   <label className="text-[10px] font-black uppercase tracking-widest text-black/40">Main language</label>
+                   <label className="text-[10px] font-medium text-sm text-black/40">Main language</label>
                    <select 
                      value={mainLanguage} 
                      onChange={(e) => {
@@ -985,7 +993,7 @@ const FormsPage = () => {
                            toast.success(`${lang} preset applied!`);
                         }
                      }}
-                     className="w-full h-12 border-2 border-black bg-white px-4 font-black text-sm outline-none focus:ring-1 focus:ring-emerald-500"
+                     className="w-full h-12 border border-gray-200 bg-white px-4 font-black text-sm outline-none focus:ring-1 focus:ring-emerald-500"
                    >
                       {Object.keys(LANGUAGE_PRESETS).map(lang => (
                         <option key={lang}>{lang}</option>
@@ -999,14 +1007,14 @@ const FormsPage = () => {
                          <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-black/30 border-b border-black/5 pb-1 mt-4">{category.replace("_", " ")}</h4>
                          {Object.entries(items).map(([key, value]) => (
                             <div key={key} className="space-y-1.5">
-                               <label className="text-[9px] font-black uppercase tracking-widest text-black/60">{key.replace("_", " ")}</label>
+                               <label className="text-[9px] font-medium text-sm text-black/60">{key.replace("_", " ")}</label>
                                <input 
                                  value={value as string} 
                                  onChange={(e) => setSystemMessages(prev => ({
                                    ...prev,
                                    [category]: { ...prev[category as keyof typeof prev], [key]: e.target.value }
                                  }))}
-                                 className="w-full h-10 border-2 border-black/10 bg-[#f8fafc] px-3 text-xs font-semibold focus:border-black transition-colors"
+                                 className="w-full h-10 border border-gray-200/10 bg-[#f8fafc] px-3 text-xs font-semibold focus:border-black transition-colors"
                                />
                             </div>
                          ))}
@@ -1020,7 +1028,7 @@ const FormsPage = () => {
                <button 
                  onClick={handleSaveForm}
                  disabled={saving}
-                 className="h-12 px-10 border-3 border-black bg-black text-white font-black uppercase tracking-widest shadow-[6px_6px_0_0_rgba(16,185,129,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
+                 className="h-12 px-10 border-3 border-black bg-primary text-primary-foreground font-medium text-sm shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
                >
                   {saving ? "Saving..." : "Save Settings"}
                </button>
@@ -1035,19 +1043,19 @@ const FormsPage = () => {
     return (
       <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <header className="flex items-center gap-6">
-          <button onClick={() => setView("builder")} className="w-10 h-10 border-2 border-black rounded-full flex items-center justify-center hover:bg-black hover:text-white transition-all">
+          <button onClick={() => setView("builder")} className="w-10 h-10 border border-gray-200 rounded-full flex items-center justify-center hover:bg-black hover:text-white transition-all">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-4xl font-black uppercase tracking-tight">Design Studio</h1>
+            <h1 className="text-4xl font-semibold text-lg">Design Studio</h1>
             <p className="text-sm font-bold text-black/40">Choose a theme or create your own custom look.</p>
           </div>
         </header>
 
         <div className="space-y-8">
            <div className="flex items-center gap-8 border-b-2 border-black/5 pb-2">
-              <button className="text-xs font-black uppercase tracking-widest text-black/40 hover:text-black">My themes</button>
-              <button className="text-xs font-black uppercase tracking-widest text-black border-b-2 border-black pb-2">Gallery</button>
+              <button className="text-xs font-medium text-sm text-black/40 hover:text-black">My themes</button>
+              <button className="text-xs font-medium text-sm text-black border-b-2 border-black pb-2">Gallery</button>
            </div>
 
            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1093,7 +1101,7 @@ const FormsPage = () => {
                         isSelected ? "border-black" : "border-transparent hover:border-black/5"
                       )}
                     >
-                       <div className={cn("aspect-[4/3] w-full p-4 flex flex-col justify-between border-2 border-black/5", theme.page)}>
+                       <div className={cn("aspect-[4/3] w-full p-4 flex flex-col justify-between border border-gray-200/5", theme.page)}>
                           <div className={cn("p-3 space-y-2", theme.card)}>
                              <div className="h-1.5 w-1/2 bg-black/10 rounded-full" />
                              <div className="h-1.5 w-full bg-black/5 rounded-full" />
@@ -1106,11 +1114,11 @@ const FormsPage = () => {
                           </div>
                        </div>
                        <div className="p-3 bg-white border-t-2 border-black/5 flex items-center justify-between">
-                          <span className="text-[10px] font-black uppercase tracking-tight">{theme.name}</span>
+                          <span className="text-[10px] font-semibold text-lg">{theme.name}</span>
                           <Icons.MoreHorizontal className="w-3 h-3 text-black/20" />
                        </div>
                        {isSelected && (
-                         <div className="absolute top-2 right-2 w-5 h-5 bg-black text-white rounded-full flex items-center justify-center border border-white">
+                         <div className="absolute top-2 right-2 w-5 h-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center border border-white">
                             <Icons.Check className="w-3 h-3" />
                          </div>
                        )}
@@ -1119,16 +1127,16 @@ const FormsPage = () => {
               })}
            </div>
 
-            <div className="border-4 border-black bg-white p-8 shadow-[10px_10px_0_0_rgba(0,0,0,1)] space-y-8 mt-12">
+            <div className="border-4 border-black bg-white p-8 shadow-sm space-y-8 mt-12">
                <div className="space-y-2">
-                  <h3 className="text-xl font-black uppercase tracking-tight">Design Customization</h3>
+                  <h3 className="text-xl font-semibold text-lg">Design Customization</h3>
                   <p className="text-[10px] font-bold text-black/40 uppercase tracking-widest leading-relaxed">Fine-tune your brand colors and overrides.</p>
                </div>
 
                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
                   {Object.keys(customColors).map((key) => (
                      <div key={key} className="space-y-3">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-black/40 block">
+                        <label className="text-[9px] font-medium text-sm text-black/40 block">
                            {key === "page" ? "Background" : key.charAt(0).toUpperCase() + key.slice(1)} Color
                         </label>
                         <div className="flex items-center gap-3">
@@ -1136,14 +1144,14 @@ const FormsPage = () => {
                               type="color" 
                               value={(customColors as any)[key] || "#ffffff"} 
                               onChange={(e) => setCustomColors(prev => ({ ...prev, [key]: e.target.value }))}
-                              className="w-10 h-10 border-2 border-black p-0 cursor-pointer overflow-hidden rounded-sm"
+                              className="w-10 h-10 border border-gray-200 p-0 cursor-pointer overflow-hidden rounded-sm"
                            />
                            <input 
                               type="text" 
                               value={(customColors as any)[key] || ""} 
                               onChange={(e) => setCustomColors(prev => ({ ...prev, [key]: e.target.value }))}
                               placeholder="Default"
-                              className="flex-1 h-10 border-2 border-black bg-[#f8fafc] px-2 text-[10px] font-black tracking-widest uppercase focus:ring-2 focus:ring-emerald-500/20"
+                              className="flex-1 h-10 border border-gray-200 bg-[#f8fafc] px-2 text-[10px] font-black tracking-widest uppercase focus:ring-2 focus:ring-emerald-500/20"
                            />
                         </div>
                      </div>
@@ -1154,7 +1162,7 @@ const FormsPage = () => {
                   <button 
                      onClick={handleSaveForm}
                      disabled={saving}
-                     className="h-12 px-10 border-3 border-black bg-black text-white font-black uppercase tracking-widest shadow-[6px_6px_0_0_rgba(16,185,129,1)] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all"
+                     className="h-12 px-10 border-3 border-black bg-primary text-primary-foreground font-medium text-sm shadow-sm active:translate-x-1 active:translate-y-1 active:shadow-none transition-all"
                   >
                      {saving ? "Saving..." : "Apply Custom Colors"}
                   </button>
@@ -1172,7 +1180,7 @@ const FormsPage = () => {
            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div className="space-y-4">
                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-indigo-500 flex items-center justify-center border-2 border-black shadow-[3px_3px_0_0_rgba(0,0,0,1)]">
+                    <div className="w-10 h-10 rounded-2xl bg-indigo-500 flex items-center justify-center border border-gray-200 shadow-sm">
                        <Icons.BarChart3 className="w-5 h-5 text-white" />
                     </div>
                     <p className="text-[11px] font-black uppercase tracking-[0.2em] text-indigo-600">Performance Insights</p>
@@ -1183,7 +1191,7 @@ const FormsPage = () => {
                  </p>
               </div>
               <div className="flex items-center gap-3">
-                 <button onClick={exportAllFormsCsv} className="h-14 px-8 border-3 border-black bg-black text-white font-black uppercase tracking-widest shadow-[6px_6px_0_0_rgba(16,185,129,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2">
+                 <button onClick={exportAllFormsCsv} className="h-14 px-8 border-3 border-black bg-primary text-primary-foreground font-medium text-sm shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2">
                     <Icons.Download className="w-5 h-5" /> Download Master Report
                  </button>
               </div>
@@ -1192,23 +1200,23 @@ const FormsPage = () => {
            <div className="flex items-center gap-1 border-b-2 border-black/5 mb-8">
               <button 
                 onClick={() => { setActiveFormId(null); setView("dashboard"); }}
-                className="px-6 py-4 text-[11px] font-black uppercase tracking-widest transition-all border-b-3 -mb-[2px] border-transparent text-black/40 hover:text-black hover:bg-black/5"
+                className="px-6 py-4 text-[11px] font-medium text-sm transition-all border-b-3 -mb-[2px] border-transparent text-black/40 hover:text-black hover:bg-black/5"
               >
                 Management
               </button>
               <button 
                 onClick={() => { setActiveFormId(null); setView("analytics"); }}
-                className="px-6 py-4 text-[11px] font-black uppercase tracking-widest transition-all border-b-3 -mb-[2px] border-black text-black bg-black/5"
+                className="px-6 py-4 text-[11px] font-medium text-sm transition-all border-b-3 -mb-[2px] border-black text-black bg-black/5"
               >
                 Analytics
               </button>
            </div>
 
            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              <div className="lg:col-span-3 border-4 border-black bg-white p-8 shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+              <div className="lg:col-span-3 border-4 border-black bg-white p-8 shadow-sm">
                  <div className="flex items-center justify-between mb-8">
                     <div>
-                       <h3 className="text-xl font-black uppercase tracking-tight">Response Volume</h3>
+                       <h3 className="text-xl font-semibold text-lg">Response Volume</h3>
                        <p className="text-[10px] font-bold text-black/40 uppercase tracking-widest">Global submission trend across all active flows</p>
                     </div>
                     <div className="flex items-center gap-4">
@@ -1270,32 +1278,32 @@ const FormsPage = () => {
               </div>
 
               <div className="space-y-6">
-                 <div className="border-4 border-black bg-[#ecfeff] p-6 shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
+                 <div className="border-4 border-black bg-[#ecfeff] p-6 shadow-sm">
                     <Icons.TrendingUp className="w-8 h-8 text-black mb-4" />
-                    <h4 className="text-[11px] font-black uppercase tracking-widest text-black/40 mb-1">Growth Velocity</h4>
+                    <h4 className="text-[11px] font-medium text-sm text-black/40 mb-1">Growth Velocity</h4>
                     <p className="text-3xl font-black">+240%</p>
                     <p className="text-[10px] font-bold text-emerald-600 mt-2">Spike in last 24 hours</p>
                  </div>
-                 <div className="border-4 border-black bg-black text-white p-6 shadow-[6px_6px_0_0_rgba(16,185,129,1)]">
+                 <div className="border-4 border-black bg-primary text-primary-foreground p-6 shadow-sm">
                     <Icons.Zap className="w-8 h-8 text-emerald-400 mb-4" />
-                    <h4 className="text-[11px] font-black uppercase tracking-widest text-white/40 mb-1">Active Now</h4>
+                    <h4 className="text-[11px] font-medium text-sm text-white/40 mb-1">Active Now</h4>
                     <p className="text-3xl font-black">12</p>
                     <p className="text-[10px] font-bold text-white/60 mt-2">Users currently interacting</p>
                  </div>
               </div>
            </div>
 
-           <div className="border-4 border-black bg-white shadow-[10px_10px_0_0_rgba(0,0,0,1)] overflow-hidden">
+           <div className="border-4 border-black bg-white shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                  <table className="w-full text-left border-collapse">
                     <thead>
                        <tr className="border-b-4 border-black bg-[#f8fafc]">
-                          <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-black/60 border-r-2 border-black">Form Name</th>
-                          <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-black/60 border-r-2 border-black">Status</th>
-                          <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-black/60 border-r-2 border-black text-center">Views</th>
-                          <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-black/60 border-r-2 border-black text-center">Responses</th>
-                          <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-black/60 border-r-2 border-black text-center">Conv. Rate</th>
-                          <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-black/60 text-center">Action</th>
+                          <th className="px-6 py-4 text-[10px] font-medium text-sm text-black/60 border-r-2 border-black">Form Name</th>
+                          <th className="px-6 py-4 text-[10px] font-medium text-sm text-black/60 border-r-2 border-black">Status</th>
+                          <th className="px-6 py-4 text-[10px] font-medium text-sm text-black/60 border-r-2 border-black text-center">Views</th>
+                          <th className="px-6 py-4 text-[10px] font-medium text-sm text-black/60 border-r-2 border-black text-center">Responses</th>
+                          <th className="px-6 py-4 text-[10px] font-medium text-sm text-black/60 border-r-2 border-black text-center">Conv. Rate</th>
+                          <th className="px-6 py-4 text-[10px] font-medium text-sm text-black/60 text-center">Action</th>
                        </tr>
                     </thead>
                     <tbody className="divide-y-2 divide-black/5">
@@ -1312,7 +1320,7 @@ const FormsPage = () => {
                                 </td>
                                 <td className="px-6 py-4 border-r-2 border-black/5">
                                    <Badge className={cn(
-                                      "text-[8px] font-black uppercase px-2 py-0 border-2 border-black",
+                                      "text-[8px] font-black uppercase px-2 py-0 border border-gray-200",
                                       form.status === "published" ? "bg-emerald-500 text-white" : "bg-white text-black"
                                    )}>
                                       {form.status}
@@ -1322,7 +1330,7 @@ const FormsPage = () => {
                                 <td className="px-6 py-4 border-r-2 border-black/5 text-center font-black tabular-nums">{responseCount}</td>
                                 <td className="px-6 py-4 border-r-2 border-black/5 text-center">
                                    <span className={cn(
-                                      "px-3 py-1 rounded-full text-[10px] font-black border-2 border-black",
+                                      "px-3 py-1 rounded-full text-[10px] font-black border border-gray-200",
                                       rate > 50 ? "bg-emerald-100 text-emerald-700" : rate > 20 ? "bg-orange-100 text-orange-700" : "bg-red-100 text-red-700"
                                    )}>
                                       {rate}%
@@ -1331,7 +1339,7 @@ const FormsPage = () => {
                                 <td className="px-6 py-4 text-center">
                                    <button 
                                      onClick={() => { setActiveFormId(form.id); setView("analytics"); }}
-                                     className="px-4 h-8 border-2 border-black bg-white text-[9px] font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all shadow-[3px_3px_0_0_rgba(0,0,0,1)] group-hover:shadow-none group-hover:translate-x-0.5 group-hover:translate-y-0.5"
+                                     className="px-4 h-8 border border-gray-200 bg-white text-[9px] font-medium text-sm hover:bg-black hover:text-white transition-all shadow-sm group-hover:shadow-none group-hover:translate-x-0.5 group-hover:translate-y-0.5"
                                    >
                                       Full Data
                                    </button>
@@ -1355,46 +1363,46 @@ const FormsPage = () => {
       <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
          <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b-4 border-black pb-8">
             <div className="flex items-center gap-6">
-               <button onClick={() => setView("dashboard")} className="w-12 h-12 border-3 border-black rounded-full flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none">
+               <button onClick={() => setView("dashboard")} className="w-12 h-12 border-3 border-black rounded-full flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-sm active:translate-x-0.5 active:translate-y-0.5 active:shadow-none">
                   <Icons.ArrowLeft className="w-6 h-6" />
                </button>
                <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-600 mb-1">Results & Analytics</p>
-                  <h1 className="text-4xl font-black uppercase tracking-tight">{activeForm.name}</h1>
+                  <h1 className="text-4xl font-semibold text-lg">{activeForm.name}</h1>
                </div>
             </div>
             <div className="flex items-center gap-3">
                <button onClick={() => setView("submissions")} className="h-12 px-6 border-3 border-black bg-white font-black uppercase text-[10px] tracking-widest hover:bg-black hover:text-white transition-all">
                   Browse Responses
                </button>
-               <button onClick={() => window.open(publicFormUrl || "", "_blank")} className="h-12 px-6 border-3 border-black bg-black text-white font-black uppercase text-[10px] tracking-widest shadow-[4px_4px_0_0_rgba(16,185,129,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all">
+               <button onClick={() => window.open(publicFormUrl || "", "_blank")} className="h-12 px-6 border-3 border-black bg-primary text-primary-foreground font-black uppercase text-[10px] tracking-widest shadow-sm active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all">
                   View Live Form
                </button>
             </div>
          </header>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-             <div className="border-3 border-black bg-white p-6 shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
-                <p className="text-[10px] font-black uppercase tracking-widest text-black/40 mb-2">Total Views</p>
+             <div className="border-3 border-black bg-white p-6 shadow-sm">
+                <p className="text-[10px] font-medium text-sm text-black/40 mb-2">Total Views</p>
                 <h3 className="text-4xl font-black tabular-nums">{viewsNum}</h3>
                 <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-emerald-600">
                    <Icons.ArrowUpRight className="w-3 h-3" /> +12% from last week
                 </div>
              </div>
-             <div className="border-3 border-black bg-[#ecfeff] p-6 shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
-                <p className="text-[10px] font-black uppercase tracking-widest text-black/40 mb-2">Starts</p>
+             <div className="border-3 border-black bg-[#ecfeff] p-6 shadow-sm">
+                <p className="text-[10px] font-medium text-sm text-black/40 mb-2">Starts</p>
                 <h3 className="text-4xl font-black tabular-nums">{Math.floor(viewsNum * 0.7)}</h3>
                 <span className="text-[10px] font-bold opacity-40">70% Click Rate</span>
              </div>
-             <div className="border-3 border-black bg-white p-6 shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
-                <p className="text-[10px] font-black uppercase tracking-widest text-black/40 mb-2">Submissions</p>
+             <div className="border-3 border-black bg-white p-6 shadow-sm">
+                <p className="text-[10px] font-medium text-sm text-black/40 mb-2">Submissions</p>
                 <h3 className="text-4xl font-black tabular-nums">{responseCount}</h3>
                 <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-indigo-600">
                    <Icons.UserCheck className="w-3 h-3" /> All verified unique
                 </div>
              </div>
-             <div className="border-3 border-black bg-emerald-500 text-white p-6 shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
-                <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-2">Completion Rate</p>
+             <div className="border-3 border-black bg-emerald-500 text-white p-6 shadow-sm">
+                <p className="text-[10px] font-medium text-sm text-white/60 mb-2">Completion Rate</p>
                 <h3 className="text-4xl font-black tabular-nums">{completionRate}%</h3>
                 <div className="mt-4 w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
                    <div className="h-full bg-white transition-all duration-1000" style={{ width: `${completionRate}%` }} />
@@ -1403,8 +1411,8 @@ const FormsPage = () => {
           </div>
  
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-             <div className="lg:col-span-2 border-4 border-black bg-white p-8 shadow-[10px_10px_0_0_rgba(0,0,0,1)]">
-                <h3 className="text-xl font-black uppercase tracking-tight mb-8 pb-4 border-b-2 border-black/5 flex items-center gap-2">
+             <div className="lg:col-span-2 border-4 border-black bg-white p-8 shadow-sm">
+                <h3 className="text-xl font-semibold text-lg mb-8 pb-4 border-b-2 border-black/5 flex items-center gap-2">
                    <Icons.Filter className="w-5 h-5" /> Conversion Funnel
                 </h3>
                 <div className="space-y-4">
@@ -1421,12 +1429,12 @@ const FormsPage = () => {
                             <div className="flex-1 space-y-2">
                                <div className="flex justify-between items-end">
                                   <div>
-                                     <p className="text-[10px] font-black uppercase tracking-widest text-black/40">{step.label}</p>
+                                     <p className="text-[10px] font-medium text-sm text-black/40">{step.label}</p>
                                      <p className="text-2xl font-black">{step.count}</p>
                                   </div>
                                   <p className="text-xl font-black opacity-20">{step.percent}%</p>
                                </div>
-                               <div className="h-4 border-2 border-black bg-white p-0.5 relative">
+                               <div className="h-4 border border-gray-200 bg-white p-0.5 relative">
                                   <div className={cn("h-full transition-all duration-1000", step.color)} style={{ width: `${step.percent}%` }} />
                                </div>
                             </div>
@@ -1439,25 +1447,25 @@ const FormsPage = () => {
                 </div>
              </div>
 
-             <div className="border-4 border-black bg-[#fafafa] p-8 shadow-[10px_10px_0_0_rgba(0,0,0,1)] space-y-6">
+             <div className="border-4 border-black bg-[#fafafa] p-8 shadow-sm space-y-6">
                 <div className="flex items-center justify-between pb-4 border-b-2 border-black/5">
-                   <h3 className="text-xl font-black uppercase tracking-tight">Intelligence</h3>
+                   <h3 className="text-xl font-semibold text-lg">Intelligence</h3>
                    <Icons.BrainCircuit className="w-5 h-5 text-indigo-500" />
                 </div>
                 <div className="space-y-6">
                    <div className="space-y-1">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-black/40">Bounce Rate</p>
+                      <p className="text-[9px] font-medium text-sm text-black/40">Bounce Rate</p>
                       <p className="text-3xl font-black">{100 - 70}%</p>
                       <div className="h-1.5 w-full bg-black/5 border border-black/10 mt-2">
                          <div className="h-full bg-red-500" style={{ width: '30%' }} />
                       </div>
                    </div>
                    <div className="space-y-1">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-black/40">Retention Velocity</p>
+                      <p className="text-[9px] font-medium text-sm text-black/40">Retention Velocity</p>
                       <p className="text-3xl font-black">High</p>
                       <p className="text-[10px] font-bold text-emerald-600 mt-1">Users are highly engaged</p>
                    </div>
-                   <div className="p-4 bg-emerald-500 border-3 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+                   <div className="p-4 bg-emerald-500 border-3 border-black shadow-sm">
                       <p className="text-[11px] font-black uppercase text-white mb-2 tracking-widest flex items-center gap-2">
                         <Icons.Trophy className="w-4 h-4" /> Optimization Tip
                       </p>
@@ -1470,8 +1478,8 @@ const FormsPage = () => {
           </div>
 
          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="border-4 border-black bg-white p-8 shadow-[10px_10px_0_0_rgba(0,0,0,1)]">
-               <h3 className="text-xl font-black uppercase tracking-tight mb-8 pb-4 border-b-2 border-black/5">Platform Distribution</h3>
+            <div className="border-4 border-black bg-white p-8 shadow-sm">
+               <h3 className="text-xl font-semibold text-lg mb-8 pb-4 border-b-2 border-black/5">Platform Distribution</h3>
                <div className="space-y-6">
                   {[
                      { label: "Mobile (iOS/Android)", value: 65, color: "bg-emerald-500" },
@@ -1479,11 +1487,11 @@ const FormsPage = () => {
                      { label: "Tablet", value: 7, color: "bg-black/20" }
                   ].map(item => (
                      <div key={item.label} className="space-y-2">
-                        <div className="flex justify-between text-[11px] font-black uppercase tracking-widest">
+                        <div className="flex justify-between text-[11px] font-medium text-sm">
                            <span>{item.label}</span>
                            <span>{item.value}%</span>
                         </div>
-                        <div className="h-4 border-2 border-black bg-white p-0.5 overflow-hidden">
+                        <div className="h-4 border border-gray-200 bg-white p-0.5 overflow-hidden">
                            <div className={cn("h-full transition-all duration-1000", item.color)} style={{ width: `${item.value}%` }} />
                         </div>
                      </div>
@@ -1491,25 +1499,25 @@ const FormsPage = () => {
                </div>
             </div>
 
-            <div className="border-4 border-black bg-white p-8 shadow-[10px_10px_0_0_rgba(0,0,0,1)]">
-               <h3 className="text-xl font-black uppercase tracking-tight mb-8 pb-4 border-b-2 border-black/5">Performance Metrics</h3>
+            <div className="border-4 border-black bg-white p-8 shadow-sm">
+               <h3 className="text-xl font-semibold text-lg mb-8 pb-4 border-b-2 border-black/5">Performance Metrics</h3>
                <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-1">
-                     <p className="text-[9px] font-black uppercase tracking-widest text-black/40">Avg. Time to Complete</p>
+                     <p className="text-[9px] font-medium text-sm text-black/40">Avg. Time to Complete</p>
                      <p className="text-2xl font-black tracking-tight">02:45</p>
                      <p className="text-[10px] font-bold text-emerald-600">-15s improvement</p>
                   </div>
                   <div className="space-y-1">
-                     <p className="text-[9px] font-black uppercase tracking-widest text-black/40">Drop-off Point</p>
+                     <p className="text-[9px] font-medium text-sm text-black/40">Drop-off Point</p>
                      <p className="text-2xl font-black tracking-tight">Step 3</p>
                      <p className="text-[10px] font-bold text-orange-600">Contact detail gate</p>
                   </div>
                   <div className="space-y-1">
-                     <p className="text-[9px] font-black uppercase tracking-widest text-black/40">Unique Visitors</p>
+                     <p className="text-[9px] font-medium text-sm text-black/40">Unique Visitors</p>
                      <p className="text-2xl font-black tracking-tight">{Math.floor(viewsNum * 0.9)}</p>
                   </div>
                   <div className="space-y-1">
-                     <p className="text-[9px] font-black uppercase tracking-widest text-black/40">Conversion Value</p>
+                     <p className="text-[9px] font-medium text-sm text-black/40">Conversion Value</p>
                      <p className="text-2xl font-black tracking-tight">Premium</p>
                   </div>
                </div>
@@ -1524,16 +1532,16 @@ const FormsPage = () => {
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
          <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b-4 border-black pb-8">
             <div className="flex items-center gap-6">
-               <button onClick={() => setView("dashboard")} className="w-12 h-12 border-3 border-black rounded-full flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none">
+               <button onClick={() => setView("dashboard")} className="w-12 h-12 border-3 border-black rounded-full flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-sm active:translate-x-0.5 active:translate-y-0.5 active:shadow-none">
                   <Icons.ArrowLeft className="w-6 h-6" />
                </button>
                <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-600 mb-1">Response Data & Exports</p>
-                  <h1 className="text-4xl font-black uppercase tracking-tight">{activeForm.name}</h1>
+                  <h1 className="text-4xl font-semibold text-lg">{activeForm.name}</h1>
                </div>
             </div>
             <div className="flex items-center gap-3">
-               <button onClick={exportSubmissionsCsv} className="h-12 px-6 border-3 border-black bg-emerald-500 text-white font-black uppercase text-[10px] tracking-widest shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all flex items-center gap-2">
+               <button onClick={exportSubmissionsCsv} className="h-12 px-6 border-3 border-black bg-emerald-500 text-white font-black uppercase text-[10px] tracking-widest shadow-sm active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all flex items-center gap-2">
                   <Icons.Download className="w-4 h-4" /> Export CSV
                </button>
                <button onClick={() => setView("analytics")} className="h-12 px-6 border-3 border-black bg-white text-black font-black uppercase text-[10px] tracking-widest hover:bg-black hover:text-white transition-all flex items-center gap-2">
@@ -1542,7 +1550,7 @@ const FormsPage = () => {
             </div>
          </header>
 
-         <div className="border-4 border-black bg-white shadow-[10px_10px_0_0_rgba(0,0,0,1)] overflow-hidden">
+         <div className="border-4 border-black bg-white shadow-sm overflow-hidden">
             <div className="p-6 border-b-2 border-black bg-black/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
                <div className="flex items-center gap-3 flex-1">
                   <Icons.Search className="w-5 h-5 opacity-40" />
@@ -1556,7 +1564,7 @@ const FormsPage = () => {
                      <button 
                        onClick={handleBulkDelete}
                        disabled={isBulkDeleting}
-                       className="h-9 px-4 bg-red-500 text-white border-2 border-black rounded-lg font-black text-[9px] uppercase shadow-[3px_3px_0_0_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all flex items-center gap-2 mr-2"
+                       className="h-9 px-4 bg-red-500 text-white border border-gray-200 rounded-lg font-black text-[9px] uppercase shadow-sm hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all flex items-center gap-2 mr-2"
                      >
                         {isBulkDeleting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Icons.Trash2 className="w-3 h-3" />}
                         Wipe {selectedSubs.length} Nodes
@@ -1569,13 +1577,13 @@ const FormsPage = () => {
                   )}
                </div>
                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Filter Date:</span>
+                  <span className="text-[10px] font-medium text-sm opacity-40">Filter Date:</span>
                   <div className="relative flex items-center">
                     <input
                       type="date"
                       value={submissionDateFrom}
                       onChange={(e) => setSubmissionDateFrom(e.target.value)}
-                      className="text-[11px] font-bold border-2 border-black bg-white px-3 py-1.5 h-9 focus:outline-none focus:border-emerald-500 transition-colors"
+                      className="text-[11px] font-bold border border-gray-200 bg-white px-3 py-1.5 h-9 focus:outline-none focus:border-emerald-500 transition-colors"
                     />
                     {submissionDateFrom && (
                       <button onClick={() => setSubmissionDateFrom('')} className="absolute right-1 text-black/30 hover:text-black">
@@ -1589,7 +1597,7 @@ const FormsPage = () => {
                       type="date"
                       value={submissionDateTo}
                       onChange={(e) => setSubmissionDateTo(e.target.value)}
-                      className="text-[11px] font-bold border-2 border-black bg-white px-3 py-1.5 h-9 focus:outline-none focus:border-emerald-500 transition-colors"
+                      className="text-[11px] font-bold border border-gray-200 bg-white px-3 py-1.5 h-9 focus:outline-none focus:border-emerald-500 transition-colors"
                     />
                     {submissionDateTo && (
                       <button onClick={() => setSubmissionDateTo('')} className="absolute right-1 text-black/30 hover:text-black">
@@ -1600,7 +1608,7 @@ const FormsPage = () => {
                   {(submissionDateFrom || submissionDateTo) && (
                     <button
                       onClick={() => { setSubmissionDateFrom(''); setSubmissionDateTo(''); }}
-                      className="text-[10px] font-black uppercase tracking-widest text-red-500 hover:underline"
+                      className="text-[10px] font-medium text-sm text-red-500 hover:underline"
                     >
                       Clear
                     </button>
@@ -1611,7 +1619,7 @@ const FormsPage = () => {
             <div className="overflow-x-auto">
                <table className="w-full text-left border-collapse">
                   <thead>
-                     <tr className="bg-black text-white text-[10px] font-black uppercase tracking-widest">
+                     <tr className="bg-primary text-primary-foreground text-[10px] font-medium text-sm">
                         <th className="p-4 border-r border-white/10 w-10">
                            <input 
                                type="checkbox" 
@@ -1631,7 +1639,7 @@ const FormsPage = () => {
                         <tr>
                            <td colSpan={4} className="p-20 text-center space-y-4">
                               <Icons.Inbox className="w-12 h-12 mx-auto opacity-20" />
-                              <p className="text-sm font-black uppercase tracking-widest opacity-40">No responses found for this criteria.</p>
+                              <p className="text-sm font-medium text-sm opacity-40">No responses found for this criteria.</p>
                            </td>
                         </tr>
                      ) : (
@@ -1647,7 +1655,7 @@ const FormsPage = () => {
                                        e.stopPropagation();
                                        setSelectedSubs(prev => prev.includes(sub.id) ? prev.filter(id => id !== sub.id) : [...prev, sub.id]);
                                      }}
-                                     className="w-4 h-4 accent-emerald-500 border-2 border-black rounded cursor-pointer"
+                                     className="w-4 h-4 accent-emerald-500 border border-gray-200 rounded cursor-pointer"
                                   />
                                </td>
                                <td className="p-4 text-[10px] font-black opacity-40 font-mono">#{sub.id.slice(-6)}</td>
@@ -1661,7 +1669,7 @@ const FormsPage = () => {
                                        <span className="text-[10px] font-bold text-black/30">No data</span>
                                      ) : payloadEntries.slice(0, 3).map(([key, val]) => (
                                         <div key={key} className="flex items-start gap-2">
-                                           <span className="text-[9px] font-black uppercase tracking-widest text-black/30 w-24 shrink-0 pt-0.5 truncate">{getFieldLabel(key)}:</span>
+                                           <span className="text-[9px] font-medium text-sm text-black/30 w-24 shrink-0 pt-0.5 truncate">{getFieldLabel(key)}:</span>
                                            <span className="text-[11px] font-semibold text-black truncate max-w-[220px]">{String(val)}</span>
                                         </div>
                                      ))}
@@ -1686,18 +1694,18 @@ const FormsPage = () => {
                </table>
             </div>
             <div className="p-4 bg-black/5 border-t-2 border-black flex justify-between items-center">
-               <span className="text-[10px] font-black uppercase tracking-widest opacity-40">
+               <span className="text-[10px] font-medium text-sm opacity-40">
                   Showing {paginatedSubmissions.length} of {filteredSubmissions.length} results
                   {totalPages > 1 && ` · Page ${subPage + 1} of ${totalPages}`}
                </span>
                <div className="flex gap-2">
                   <button
-                    className="px-4 py-1.5 border-2 border-black bg-white text-[10px] font-black uppercase disabled:opacity-30 hover:bg-black hover:text-white transition-all"
+                    className="px-4 py-1.5 border border-gray-200 bg-white text-[10px] font-black uppercase disabled:opacity-30 hover:bg-black hover:text-white transition-all"
                     disabled={subPage === 0}
                     onClick={() => setSubPage(p => Math.max(0, p - 1))}
                   >Prev</button>
                   <button
-                    className="px-4 py-1.5 border-2 border-black bg-white text-[10px] font-black uppercase disabled:opacity-30 hover:bg-black hover:text-white transition-all"
+                    className="px-4 py-1.5 border border-gray-200 bg-white text-[10px] font-black uppercase disabled:opacity-30 hover:bg-black hover:text-white transition-all"
                     disabled={subPage >= totalPages - 1}
                     onClick={() => setSubPage(p => Math.min(totalPages - 1, p + 1))}
                   >Next</button>
@@ -1706,10 +1714,10 @@ const FormsPage = () => {
          </div>
 
          <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-            <DialogContent className="max-w-2xl border-4 border-black rounded-none shadow-[10px_10px_0_0_rgba(0,0,0,1)]">
+            <DialogContent className="max-w-2xl border-4 border-black rounded-none shadow-sm">
                <DialogHeader className="border-b-4 border-black pb-6 -mx-6 px-6 bg-[#f8fafc]">
                   <p className="text-[10px] font-black uppercase tracking-[0.3em] text-black/40 mb-1">Response Detail View</p>
-                  <DialogTitle className="text-3xl font-black uppercase tracking-tight">Submission #{selectedSubmission?.id.slice(-6)}</DialogTitle>
+                  <DialogTitle className="text-3xl font-semibold text-lg">Submission #{selectedSubmission?.id.slice(-6)}</DialogTitle>
                   <DialogDescription className="text-xs font-bold text-black/60">
                      Received on {selectedSubmission && new Date(selectedSubmission.created_at).toLocaleString()}
                   </DialogDescription>
@@ -1718,15 +1726,15 @@ const FormsPage = () => {
                <div className="py-6 space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      {Object.entries(selectedSubmission?.payload || {}).map(([key, val]) => (
-                        <div key={key} className="border-2 border-black p-4 bg-white shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
-                           <p className="text-[9px] font-black uppercase tracking-widest text-black/40 mb-1">{getFieldLabel(key)}</p>
+                        <div key={key} className="border border-gray-200 p-4 bg-white shadow-sm">
+                           <p className="text-[9px] font-medium text-sm text-black/40 mb-1">{getFieldLabel(key)}</p>
                            <p className="text-sm font-black whitespace-pre-wrap">{String(val)}</p>
                         </div>
                      ))}
                   </div>
 
                   <div className="border-2 border-dashed border-black/20 p-6 bg-slate-50/50">
-                     <h4 className="text-[10px] font-black uppercase tracking-widest text-black mb-4 flex items-center gap-2">
+                     <h4 className="text-[10px] font-medium text-sm text-black mb-4 flex items-center gap-2">
                         <Icons.Shield className="w-3 h-3" /> Security & Metadata
                      </h4>
                      <div className="grid grid-cols-2 gap-4 text-[10px] font-bold text-black/60">
@@ -1745,7 +1753,7 @@ const FormsPage = () => {
                <div className="border-t-4 border-black pt-6 -mx-6 px-6 flex justify-end">
                   <button 
                     onClick={() => setIsDetailOpen(false)}
-                    className="h-12 px-10 border-3 border-black bg-black text-white font-black uppercase tracking-widest shadow-[6px_6px_0_0_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all"
+                    className="h-12 px-10 border-3 border-black bg-primary text-primary-foreground font-medium text-sm shadow-sm active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all"
                   >
                      Close Report
                   </button>
@@ -1760,14 +1768,14 @@ const FormsPage = () => {
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-700">
        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-             <button onClick={visitDashboard} className="w-10 h-10 border-2 border-black rounded-full flex items-center justify-center hover:bg-black hover:text-white transition-all">
+             <button onClick={visitDashboard} className="w-10 h-10 border border-gray-200 rounded-full flex items-center justify-center hover:bg-black hover:text-white transition-all">
                 <ArrowLeft className="w-5 h-5" />
              </button>
              <div>
                 <input 
                   value={formName} 
                   onChange={(e) => setFormName(e.target.value)}
-                  className="bg-transparent border-none text-2xl font-black uppercase tracking-tight focus:ring-0 p-0 w-full md:min-w-[300px]" 
+                  className="bg-transparent border-none text-2xl font-semibold text-lg focus:ring-0 p-0 w-full md:min-w-[300px]" 
                 />
                 <input 
                   value={description} 
@@ -1781,7 +1789,7 @@ const FormsPage = () => {
           <div className="flex items-center gap-2">
              <button
                onClick={() => setPreviewMode(!previewMode)}
-               className={cn("h-11 px-5 border-3 border-black flex items-center gap-2 font-black uppercase text-[10px] tracking-widest transition-all", previewMode ? "bg-black text-white" : "bg-white text-black hover:bg-emerald-50")}
+               className={cn("h-11 px-5 border-3 border-black flex items-center gap-2 font-black uppercase text-[10px] tracking-widest transition-all", previewMode ? "bg-primary text-primary-foreground" : "bg-white text-black hover:bg-emerald-50")}
              >
                 {previewMode ? <Icons.Settings className="w-4 h-4" /> : <Icons.Eye className="w-4 h-4" />}
                 {previewMode ? "Exit Preview" : "Preview"}
@@ -1806,7 +1814,7 @@ const FormsPage = () => {
              <button 
                onClick={handleSaveForm}
                disabled={saving}
-               className="h-11 px-6 border-3 border-black bg-white font-black uppercase text-[10px] tracking-widest shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+               className="h-11 px-6 border-3 border-black bg-white font-black uppercase text-[10px] tracking-widest shadow-sm hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
              >
                 {saving ? "Saving..." : "Save Draft"}
              </button>
@@ -1814,7 +1822,7 @@ const FormsPage = () => {
              <button 
                onClick={handlePublish}
                disabled={publishing || !activeFormId}
-               className="h-11 px-8 border-3 border-black bg-black text-white font-black uppercase text-[10px] tracking-widest shadow-[4px_4px_0_0_rgba(16,185,129,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+               className="h-11 px-8 border-3 border-black bg-primary text-primary-foreground font-black uppercase text-[10px] tracking-widest shadow-sm hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
              >
                 {publishing ? "..." : (activeForm?.published ? "Update Live" : "Go Public")}
              </button>
@@ -1830,7 +1838,7 @@ const FormsPage = () => {
                  </button>
                  <button 
                    onClick={() => setIsShareOpen(true)}
-                   className="h-11 px-5 border-3 border-black bg-white flex items-center gap-2 font-black uppercase text-[10px] tracking-widest hover:bg-emerald-50 transition-all shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5"
+                   className="h-11 px-5 border-3 border-black bg-white flex items-center gap-2 font-black uppercase text-[10px] tracking-widest hover:bg-emerald-50 transition-all shadow-sm hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5"
                  >
                     <Icons.Share2 className="w-4 h-4" />
                     Share
@@ -1843,7 +1851,7 @@ const FormsPage = () => {
        <div className="grid grid-cols-1 xl:grid-cols-[300px_1fr_320px] gap-6">
           {!previewMode && (
              <aside className="space-y-6 overflow-y-auto max-h-[80vh] custom-scrollbar pr-2">
-               <div className="border-3 border-black bg-white p-5 shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
+               <div className="border-3 border-black bg-white p-5 shadow-sm">
                   <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-black/40 mb-6 flex items-center gap-2">
                      <Plus className="w-3 h-3" /> Form Elements
                   </h3>
@@ -1851,7 +1859,7 @@ const FormsPage = () => {
                   <div className="space-y-8">
                      {QUESTION_CATEGORIES.map(category => (
                         <div key={category.id} className="space-y-3">
-                           <h4 className="text-[9px] font-black uppercase tracking-widest text-black/30 border-b border-black/5 pb-1">
+                           <h4 className="text-[9px] font-medium text-sm text-black/30 border-b border-black/5 pb-1">
                               {category.name}
                            </h4>
                            <div className="grid grid-cols-1 gap-2">
@@ -1863,10 +1871,10 @@ const FormsPage = () => {
                                       onClick={() => addField(item.type as FieldType)}
                                       draggable
                                       onDragStart={(e) => e.dataTransfer.setData("text/plain", `new:${item.type}`)}
-                                      className="w-full h-10 px-3 border-2 border-black bg-[#f8fafc] flex items-center gap-3 group hover:bg-emerald-100 transition-colors text-left"
+                                      className="w-full h-10 px-3 border border-gray-200 bg-[#f8fafc] flex items-center gap-3 group hover:bg-emerald-100 transition-colors text-left"
                                     >
                                        <Icon className="w-4 h-4 text-black/40 group-hover:text-black transition-colors" />
-                                       <span className="text-[10px] font-black uppercase tracking-tight">{item.label}</span>
+                                       <span className="text-[10px] font-semibold text-lg">{item.label}</span>
                                     </button>
                                  );
                               })}
@@ -1876,14 +1884,14 @@ const FormsPage = () => {
                   </div>
                </div>
 
-               <div className="border-3 border-black bg-[#fefce8] p-5 shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
+               <div className="border-3 border-black bg-[#fefce8] p-5 shadow-sm">
                   <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-black/40 mb-3 flex items-center gap-2">
                      <Share className="w-3 h-3" /> Connect & Share
                   </h3>
                   {publicFormUrl ? (
                      <div className="space-y-3">
                         <p className="text-[10px] font-bold text-black/60 truncate bg-white p-2 border border-black/10">{publicFormUrl}</p>
-                        <button onClick={handleCopyPublicUrl} className="w-full py-2 bg-black text-white text-[9px] font-black uppercase tracking-widest border-2 border-black">Copy Public Link</button>
+                        <button onClick={handleCopyPublicUrl} className="w-full py-2 bg-primary text-primary-foreground text-[9px] font-medium text-sm border border-gray-200">Copy Public Link</button>
                      </div>
                   ) : (
                      <p className="text-[10px] font-bold text-black/40">Publish your form to generate a shareable URL.</p>
@@ -1893,19 +1901,19 @@ const FormsPage = () => {
           )}
 
           <div className={cn("space-y-6", previewMode && "xl:col-span-2 max-w-2xl mx-auto w-full")}>
-             <div className="border-4 border-black bg-white shadow-[10px_10px_0_0_rgba(0,0,0,1)] min-h-[600px] flex flex-col">
+             <div className="border-4 border-black bg-white shadow-sm min-h-[600px] flex flex-col">
                 <div className="p-8 pb-4">
-                   <h2 className={cn("font-black uppercase tracking-tight mb-2", previewMode ? "text-4xl" : "text-2xl")}>{formName}</h2>
+                   <h2 className={cn("font-semibold text-lg mb-2", previewMode ? "text-4xl" : "text-2xl")}>{formName}</h2>
                    <p className="text-sm font-bold text-black/40">{description}</p>
                 </div>
 
                 <div className="p-8 pt-4 flex-1 space-y-4">
                    {fields.length === 0 ? (
                       <div className="h-[300px] border-3 border-dashed border-black/10 bg-emerald-50/30 flex flex-col items-center justify-center gap-3 text-center">
-                         <div className="w-12 h-12 rounded-full border-2 border-black/20 flex items-center justify-center">
+                         <div className="w-12 h-12 rounded-full border border-gray-200/20 flex items-center justify-center">
                             <Plus className="w-6 h-6 text-black/20" />
                          </div>
-                         <p className="text-sm font-black uppercase tracking-widest text-black/20 max-w-[150px]">Drag or Add fields to start building</p>
+                         <p className="text-sm font-medium text-sm text-black/20 max-w-[150px]">Drag or Add fields to start building</p>
                       </div>
                    ) : (
                       fields.map((field) => {
@@ -1924,12 +1932,12 @@ const FormsPage = () => {
                             onClick={() => setSelectedFieldId(field.id)}
                             className={cn(
                               "relative group p-4 border-2 transition-all",
-                              isSelected ? "border-emerald-500 bg-emerald-50/30 shadow-[4px_4px_0_0_rgba(16,185,129,0.1)]" : "border-black/5 bg-transparent",
+                              isSelected ? "border-emerald-500 bg-emerald-50/30 shadow-sm" : "border-black/5 bg-transparent",
                               previewMode ? "cursor-default" : "cursor-pointer hover:border-black/20"
                             )}
                           >
                             {!previewMode && isSelected && (
-                               <div className="absolute -top-3 left-4 bg-emerald-500 text-white text-[8px] font-black uppercase tracking-widest px-2 py-0.5 border border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
+                               <div className="absolute -top-3 left-4 bg-emerald-500 text-white text-[8px] font-medium text-sm px-2 py-0.5 border border-black shadow-sm">
                                   Editing: {field.type}
                                </div>
                             )}
@@ -1954,7 +1962,7 @@ const FormsPage = () => {
                    
                    {fields.length > 0 && (
                       <div className="pt-6">
-                         <button className="w-full h-14 bg-black text-white font-black uppercase tracking-[0.2em] shadow-[6px_6px_0_0_rgba(16,185,129,1)]">
+                         <button className="w-full h-14 bg-primary text-primary-foreground font-black uppercase tracking-[0.2em] shadow-sm">
                             {successMessage ? "Preview Submit" : "Submit Response"}
                          </button>
                       </div>
@@ -1965,60 +1973,60 @@ const FormsPage = () => {
 
           {!previewMode && (
             <aside className="space-y-6">
-               <div className="border-3 border-black bg-white p-5 shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
+               <div className="border-3 border-black bg-white p-5 shadow-sm">
                   <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-black/40 mb-4 flex items-center gap-2">
                      <Settings className="w-3 h-3" /> Field Customization
                   </h3>
                   {!selectedField ? (
                     <div className="py-10 text-center border-2 border-dashed border-black/10">
-                       <p className="text-[10px] font-black uppercase tracking-widest text-black/20 px-4">Tap a field on canvas to edit properties</p>
+                       <p className="text-[10px] font-medium text-sm text-black/20 px-4">Tap a field on canvas to edit properties</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
                        <div>
-                          <label className="text-[9px] font-black uppercase tracking-widest text-black/40 block mb-1">Field Label</label>
+                          <label className="text-[9px] font-medium text-sm text-black/40 block mb-1">Field Label</label>
                           <input 
                             value={selectedField.label} 
                             onChange={(e) => updateField(selectedField.id, { label: e.target.value })}
-                            className="w-full h-10 border-2 border-black bg-white px-2 text-sm font-black" 
+                            className="w-full h-10 border border-gray-200 bg-white px-2 text-sm font-black" 
                           />
                        </div>
 
                        <div>
-                          <label className="text-[9px] font-black uppercase tracking-widest text-black/40 block mb-1">Media URL (GIF/Image)</label>
+                          <label className="text-[9px] font-medium text-sm text-black/40 block mb-1">Media URL (GIF/Image)</label>
                           <input 
                             value={(selectedField as any).mediaUrl || ""} 
                             onChange={(e) => updateField(selectedField.id, { mediaUrl: e.target.value })}
                             placeholder="https://.../image.gif"
-                            className="w-full h-10 border-2 border-black bg-white px-2 text-[10px] font-semibold" 
+                            className="w-full h-10 border border-gray-200 bg-white px-2 text-[10px] font-semibold" 
                           />
                        </div>
                        
                        {(["short_text", "email", "phone", "long_text"].includes(selectedField.type)) && (
                          <div>
-                            <label className="text-[9px] font-black uppercase tracking-widest text-black/40 block mb-1">Placeholder</label>
+                            <label className="text-[9px] font-medium text-sm text-black/40 block mb-1">Placeholder</label>
                             <input 
                               value={selectedField.placeholder || ""} 
                               onChange={(e) => updateField(selectedField.id, { placeholder: e.target.value })}
-                              className="w-full h-10 border-2 border-black bg-white px-2 text-sm font-semibold" 
+                              className="w-full h-10 border border-gray-200 bg-white px-2 text-sm font-semibold" 
                             />
                          </div>
                        )}
 
                        {selectedField.type === "dropdown" && (
                          <div>
-                            <label className="text-[9px] font-black uppercase tracking-widest text-black/40 block mb-1">Options (Comma Sep.)</label>
+                            <label className="text-[9px] font-medium text-sm text-black/40 block mb-1">Options (Comma Sep.)</label>
                             <textarea 
                                rows={3}
                                value={(selectedField.options || []).join(", ")}
                                onChange={(e) => updateField(selectedField.id, { options: e.target.value.split(",").map(v => v.trim()).filter(Boolean) })}
-                               className="w-full border-2 border-black bg-white p-2 text-sm font-semibold" 
+                               className="w-full border border-gray-200 bg-white p-2 text-sm font-semibold" 
                             />
                          </div>
                        )}
 
-                       <div className="flex items-center justify-between p-3 bg-black/5 border-2 border-black">
-                         <span className="text-[10px] font-black uppercase tracking-widest">Mark Required</span>
+                       <div className="flex items-center justify-between p-3 bg-black/5 border border-gray-200">
+                         <span className="text-[10px] font-medium text-sm">Mark Required</span>
                          <Switch 
                            checked={selectedField.required} 
                            onCheckedChange={(val) => updateField(selectedField.id, { required: val })} 
@@ -2027,16 +2035,16 @@ const FormsPage = () => {
 
                        {formMode === "quiz" && (
                          <div className="pt-4 mt-4 border-t-2 border-black/10 space-y-4">
-                            <h4 className="text-[10px] font-black uppercase tracking-widest text-[#6D28D9] flex items-center gap-2">
+                            <h4 className="text-[10px] font-medium text-sm text-[#6D28D9] flex items-center gap-2">
                                <Sparkles className="w-3 h-3" /> Quiz Settings
                             </h4>
                             <div>
-                               <label className="text-[9px] font-black uppercase tracking-widest text-black/40 block mb-1">Correct Answer</label>
+                               <label className="text-[9px] font-medium text-sm text-black/40 block mb-1">Correct Answer</label>
                                {["multiple_choice", "dropdown", "yes_no"].includes(selectedField.type) ? (
                                  <select 
                                    value={(selectedField as any).correctAnswer || ""}
                                    onChange={(e) => updateField(selectedField.id, { correctAnswer: e.target.value })}
-                                   className="w-full h-10 border-2 border-black bg-white px-2 text-sm font-black"
+                                   className="w-full h-10 border border-gray-200 bg-white px-2 text-sm font-black"
                                  >
                                     <option value="">Select correct option...</option>
                                     {(selectedField.options || (selectedField.type === "yes_no" ? ["Yes", "No"] : [])).map(o => (
@@ -2047,18 +2055,18 @@ const FormsPage = () => {
                                   <input 
                                     value={(selectedField as any).correctAnswer || ""} 
                                     onChange={(e) => updateField(selectedField.id, { correctAnswer: e.target.value })}
-                                    className="w-full h-10 border-2 border-black bg-white px-2 text-sm font-semibold" 
+                                    className="w-full h-10 border border-gray-200 bg-white px-2 text-sm font-semibold" 
                                     placeholder="Type correct answer..."
                                   />
                                )}
                             </div>
                             <div>
-                               <label className="text-[9px] font-black uppercase tracking-widest text-black/40 block mb-1">Points</label>
+                               <label className="text-[9px] font-medium text-sm text-black/40 block mb-1">Points</label>
                                <input 
                                  type="number"
                                  value={(selectedField as any).points || 1} 
                                  onChange={(e) => updateField(selectedField.id, { points: parseInt(e.target.value) || 0 })}
-                                 className="w-full h-10 border-2 border-black bg-white px-2 text-sm font-black" 
+                                 className="w-full h-10 border border-gray-200 bg-white px-2 text-sm font-black" 
                                />
                             </div>
                          </div>
@@ -2067,7 +2075,7 @@ const FormsPage = () => {
                   )}
                </div>
 
-               <div className="border-3 border-black bg-white p-5 shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
+               <div className="border-3 border-black bg-white p-5 shadow-sm">
                   <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-black/40 mb-4 flex items-center gap-2">
                      <Sparkles className="w-3 h-3" /> Form Logic & UX
                   </h3>
@@ -2078,7 +2086,7 @@ const FormsPage = () => {
                         { label: "Allow File Uploads", state: toolCollectFiles, set: setToolCollectFiles }
                      ].map((item, i) => (
                         <div key={i} className="flex items-center justify-between">
-                           <span className="text-[10px] font-black uppercase tracking-tight">{item.label}</span>
+                           <span className="text-[10px] font-semibold text-lg">{item.label}</span>
                            <Switch checked={item.state} onCheckedChange={item.set} />
                         </div>
                      ))}
@@ -2099,15 +2107,15 @@ const FormsPage = () => {
 };
 
 const FieldRenderer = ({ field, uploading, uploads, onUpload }: { field: FormField; uploading: boolean; uploads: UploadedItem[]; onUpload: (e: any) => void }) => {
-   if (field.type === "long_text") return <textarea rows={3} disabled className="w-full border-2 border-black bg-white p-2 text-sm" placeholder={field.placeholder || ""} />;
+   if (field.type === "long_text") return <textarea rows={3} disabled className="w-full border border-gray-200 bg-white p-2 text-sm" placeholder={field.placeholder || ""} />;
    
    if (field.type === "multiple_choice" || field.type === "picture_choice" || field.type === "checkbox") {
       return (
          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {(field.options || ["Option 1", "Option 2", "Option 3"]).map((o, i) => (
-               <div key={i} className="flex items-center gap-3 p-3 border-2 border-black bg-white">
-                  <div className={cn("w-5 h-5 border-2 border-black", field.type === "checkbox" ? "rounded-sm" : "rounded-full")} />
-                  <span className="text-[10px] font-black uppercase tracking-tight">{o}</span>
+               <div key={i} className="flex items-center gap-3 p-3 border border-gray-200 bg-white">
+                  <div className={cn("w-5 h-5 border border-gray-200", field.type === "checkbox" ? "rounded-sm" : "rounded-full")} />
+                  <span className="text-[10px] font-semibold text-lg">{o}</span>
                </div>
             ))}
          </div>
@@ -2115,7 +2123,7 @@ const FieldRenderer = ({ field, uploading, uploads, onUpload }: { field: FormFie
    }
 
    if (field.type === "dropdown") return (
-      <select disabled className="w-full h-11 border-2 border-black bg-white px-2 text-xs font-bold uppercase tracking-widest">
+      <select disabled className="w-full h-11 border border-gray-200 bg-white px-2 text-xs font-bold uppercase tracking-widest">
          {(field.options || ["Choose Option"]).map((o, i) => <option key={i}>{o}</option>)}
       </select>
    );
@@ -2125,7 +2133,7 @@ const FieldRenderer = ({ field, uploading, uploads, onUpload }: { field: FormFie
       return (
          <div className="flex flex-wrap gap-2">
             {Array.from({ length: count }).map((_, i) => (
-               <div key={i} className="w-10 h-10 border-2 border-black flex items-center justify-center font-black text-xs hover:bg-emerald-100 transition-colors">
+               <div key={i} className="w-10 h-10 border border-gray-200 flex items-center justify-center font-black text-xs hover:bg-emerald-100 transition-colors">
                   {field.type === "rating" ? <Icons.Star className="w-4 h-4" /> : i + 1}
                </div>
             ))}
@@ -2138,10 +2146,10 @@ const FieldRenderer = ({ field, uploading, uploads, onUpload }: { field: FormFie
          <div className="space-y-4">
             <div className="flex gap-1 overflow-x-auto pb-2">
                {Array.from({ length: 11 }).map((_, i) => (
-                  <div key={i} className="min-w-[40px] h-10 border-2 border-black flex items-center justify-center font-black text-xs">{i}</div>
+                  <div key={i} className="min-w-[40px] h-10 border border-gray-200 flex items-center justify-center font-black text-xs">{i}</div>
                ))}
             </div>
-            <div className="flex justify-between text-[8px] font-black uppercase tracking-widest text-black/40">
+            <div className="flex justify-between text-[8px] font-medium text-sm text-black/40">
                <span>Not likely at all</span>
                <span>Extremely likely</span>
             </div>
@@ -2152,11 +2160,11 @@ const FieldRenderer = ({ field, uploading, uploads, onUpload }: { field: FormFie
    if (field.type === "yes_no") {
       return (
          <div className="flex gap-4">
-            <div className="flex-1 h-12 border-2 border-black flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest">
-                <div className="w-4 h-4 rounded-full border-2 border-black" /> Yes
+            <div className="flex-1 h-12 border border-gray-200 flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest">
+                <div className="w-4 h-4 rounded-full border border-gray-200" /> Yes
             </div>
-            <div className="flex-1 h-12 border-2 border-black flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest">
-                <div className="w-4 h-4 rounded-full border-2 border-black" /> No
+            <div className="flex-1 h-12 border border-gray-200 flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest">
+                <div className="w-4 h-4 rounded-full border border-gray-200" /> No
             </div>
          </div>
       );
@@ -2164,7 +2172,7 @@ const FieldRenderer = ({ field, uploading, uploads, onUpload }: { field: FormFie
 
    if (field.type === "signature") {
       return (
-         <div className="w-full h-32 border-2 border-black bg-slate-50 flex items-center justify-center relative">
+         <div className="w-full h-32 border border-gray-200 bg-slate-50 flex items-center justify-center relative">
             <Icons.PenTool className="w-6 h-6 text-black/10" />
             <div className="absolute bottom-4 left-4 right-4 border-t border-black/10" />
          </div>
@@ -2174,9 +2182,9 @@ const FieldRenderer = ({ field, uploading, uploads, onUpload }: { field: FormFie
    if (field.type === "file" || field.type === "google_drive") {
       return (
          <div className="space-y-2">
-            <div className="w-full h-12 border-2 border-black bg-gray-50 flex items-center justify-center gap-3">
+            <div className="w-full h-12 border border-gray-200 bg-gray-50 flex items-center justify-center gap-3">
                <UploadCloud className="w-4 h-4 opacity-30" />
-               <span className="text-[9px] font-black uppercase tracking-widest text-black/30">Drop file or click to browse</span>
+               <span className="text-[9px] font-medium text-sm text-black/30">Drop file or click to browse</span>
             </div>
          </div>
       );
@@ -2186,12 +2194,13 @@ const FieldRenderer = ({ field, uploading, uploads, onUpload }: { field: FormFie
       return (
          <div className="py-10 text-center space-y-4 border-2 border-dashed border-black/10">
             <Icons.Flag className="w-8 h-8 mx-auto text-black/20" />
-            <p className="text-[10px] font-black uppercase tracking-widest text-black/40">This will appear as a full-screen {field.type.replace("_", " ")}</p>
+            <p className="text-[10px] font-medium text-sm text-black/40">This will appear as a full-screen {field.type.replace("_", " ")}</p>
          </div>
       );
    }
 
-   return <input disabled className="w-full h-11 border-2 border-black bg-white px-3 text-sm font-semibold" placeholder={field.placeholder || ""} />;
+   return <input disabled className="w-full h-11 border border-gray-200 bg-white px-3 text-sm font-semibold" placeholder={field.placeholder || ""} />;
 };
 
 export default FormsPage;
+

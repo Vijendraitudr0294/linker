@@ -112,29 +112,29 @@ const Hero = () => {
                 <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>
                     <div className="flex flex-wrap items-center gap-4 mb-8">
                         <div className="inline-flex items-center gap-3 px-6 py-3 bg-emerald-400 border-4 border-black rounded-full text-[10px] font-black uppercase tracking-[0.4em] shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
-                            <Sparkles className="w-4 h-4 fill-black" /> REAL STORIES: TESSA
+                            <Sparkles className="w-4 h-4 fill-black" /> CREATOR TOOLKIT 2.0
                         </div>
-                        <div className="inline-flex items-center gap-3 px-6 py-3 bg-pink-300 border-4 border-black rounded-full text-[10px] font-black uppercase tracking-[0.4em] shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
-                            <Zap className="w-4 h-4 fill-black text-black" /> AI POWERED
+                        <div className="inline-flex items-center gap-3 px-6 py-3 bg-white border-4 border-black rounded-full text-[10px] font-black uppercase tracking-[0.4em] shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+                            <Zap className="w-4 h-4 fill-black text-black" /> ROI FOCUSED
                         </div>
                     </div>
                     <h1 className="text-[42px] md:text-[64px] font-[1000] tracking-tighter leading-[1.1] text-black mb-10 uppercase">
-                        ONE LINK FOR <br />
+                        SCALE YOUR <br />
                         <span className="relative inline-block mt-4">
-                            <span className="relative z-10 text-white px-4">EVERYTHING.</span>
-                            <span className="absolute inset-0 bg-black -rotate-1 skew-x-3 scale-[1.05] border-4 border-black shadow-[12px_12px_0_0_rgba(236,72,153,1)]" />
+                            <span className="relative z-10 text-white px-4">INFLUENCE.</span>
+                            <span className="absolute inset-0 bg-black -rotate-1 skew-x-3 scale-[1.05] border-4 border-black shadow-[12px_12px_0_0_rgba(16,185,129,1)]" />
                         </span>
                     </h1>
                     <p className="text-lg font-[1000] text-black/70 leading-relaxed mb-8 max-w-xl uppercase">
-                        STOP USING LINKS YOU DON'T OWN. BIOTRA GIVES YOU A PAGE THAT YOU CONTROL. IT'S YOUR BRAND. IT'S YOUR MONEY. ONE LINK, ALL YOUR STUFF.
+                        MONETIZE YOUR AUDIENCE WITH DIGITAL PRODUCTS, COURSES, AND AUTODM AUTOMATION. 100% PROFIT OWNERSHIP. ZERO COMMISSION.
                     </p>
                     <p className="text-sm font-black uppercase tracking-widest text-emerald-600 mb-10 italic">
-                        "EASY TO START. IMPOSSIBLE TO IGNORE."
+                        "THE ONLY TOOLKIT YOU NEED TO BUILD A REAL BUSINESS."
                     </p>
 
                     <div className="flex flex-col sm:flex-row items-center gap-8">
                         <Link to="/register" className="w-full sm:w-auto px-12 py-6 bg-emerald-400 text-black border-4 border-black rounded-[24px] text-xl font-[1000] uppercase tracking-widest shadow-[12px_12px_0_0_rgba(0,0,0,1)] hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all text-center">
-                            GET STARTED FREE
+                            GET STARTED FOR FREE
                         </Link>
                     </div>
                 </motion.div>
@@ -142,12 +142,12 @@ const Hero = () => {
                 <div className="relative">
                     <motion.div 
                         style={{ y: y1 }}
-                        className="relative w-full aspect-square bg-pink-300 border-8 border-black rounded-[60px] shadow-[32px_32px_0_0_rgba(0,0,0,1)] overflow-hidden"
+                        className="relative w-full aspect-square bg-white border-8 border-black rounded-[60px] shadow-[32px_32px_0_0_rgba(0,0,0,1)] overflow-hidden"
                     >
-                        <img src="/images/hero_new.png" alt="Biotra Product Showcase" className="w-full h-full object-cover" />
+                        <img src="/hero_modern_creator_toolkit_1776956360092.png" alt="Biotra 2.0 Toolkit" className="w-full h-full object-cover" />
                         
-                        <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2, repeat: Infinity }} className="absolute top-12 right-12 w-48 h-16 bg-white border-4 border-black rounded-xl shadow-[8px_8px_0_0_rgba(0,0,0,1)] flex items-center justify-center font-[1000] uppercase text-[10px] tracking-widest gap-2">
-                           <Radio className="w-4 h-4 text-emerald-500 animate-pulse" /> Tessa Live Now
+                        <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2, repeat: Infinity }} className="absolute top-12 right-12 px-6 h-16 bg-white border-4 border-black rounded-xl shadow-[8px_8px_0_0_rgba(0,0,0,1)] flex items-center justify-center font-[1000] uppercase text-[10px] tracking-widest gap-2">
+                           <Radio className="w-4 h-4 text-emerald-500 animate-pulse" /> Growth Sync Active
                         </motion.div>
                     </motion.div>
                 </div>

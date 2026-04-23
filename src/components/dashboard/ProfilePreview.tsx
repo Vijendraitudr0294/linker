@@ -41,7 +41,7 @@ const ProfilePreview = ({ user, settings, links = [], catalogItems = [], blocks,
     animation_class: settings.animationClass || settings.animation_class || undefined,
     layout_type: settings.layoutType || settings.layout_type,
     card_style: settings.cardStyle || settings.card_style,
-    theme_id: settings.theme_id || settings.theme_id
+    theme_id: settings.themeId || settings.theme_id
   }), [settings]);
 
   const bgStyle = useMemo(() => computeBgStyle(appearance), [appearance]);
@@ -136,7 +136,7 @@ const ProfilePreview = ({ user, settings, links = [], catalogItems = [], blocks,
         return (
            <div key={block.id} className="p-6 border-2 border-dashed border-black/10 rounded-2xl mb-8 flex flex-col items-center gap-2 opacity-40">
               <Zap size={20} />
-              <p className="text-[10px] font-black uppercase tracking-widest">{block.label}</p>
+              <p className="text-[10px] font-medium text-sm">{block.label}</p>
            </div>
         );
       default:
@@ -237,7 +237,7 @@ const ProfilePreview = ({ user, settings, links = [], catalogItems = [], blocks,
                   {!hasLinks && (
                     <div className="col-span-full py-20 text-center opacity-20 border-2 border-dashed border-black/10 rounded-3xl">
                        <Link2 className="w-8 h-8 mx-auto mb-2" />
-                       <p className="text-[10px] font-black uppercase tracking-widest">Awaiting digital nodes...</p>
+                       <p className="text-[10px] font-medium text-sm">Awaiting digital nodes...</p>
                     </div>
                   )}
                 </motion.div>
@@ -293,3 +293,4 @@ const ProfilePreview = ({ user, settings, links = [], catalogItems = [], blocks,
 };
 
 export default ProfilePreview;
+

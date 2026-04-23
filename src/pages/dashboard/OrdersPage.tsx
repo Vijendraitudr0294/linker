@@ -118,7 +118,7 @@ const OrdersPage = () => {
                 size="sm"
                 onClick={() => setFilter(s)}
                 className={cn(
-                  "rounded-full text-[11px] font-black uppercase tracking-widest h-9 px-5 transition-all",
+                  "rounded-full text-[11px] font-medium text-sm h-9 px-5 transition-all",
                   filter === s ? "bg-white text-primary shadow-md" : "text-black/40 hover:text-black/60"
                 )}
              >
@@ -206,3 +206,4 @@ const OrdersPage = () => {
 };
 
 export default OrdersPage;
+

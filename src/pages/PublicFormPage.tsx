@@ -167,10 +167,33 @@ const PublicFormPage = () => {
 
   const nextStep = () => {
     const val = values[currentField?.id];
-    if (currentField?.required) {
-      if (val === undefined || val === null || val === "" || (Array.isArray(val) && val.length === 0)) {
-        toast.error(systemMsgs.errors.required || "Please fill this in");
-        return;
+    const isEmpty = val === undefined || val === null || val === "" || (Array.isArray(val) && val.length === 0);
+
+    if (currentField?.required && isEmpty) {
+      toast.error(systemMsgs.errors.required || "Please fill this in");
+      return;
+    }
+
+    if (!isEmpty) {
+      if (currentField?.type === "email") {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(String(val))) {
+          toast.error(systemMsgs.errors.invalidEmail || "Please enter a valid email address");
+          return;
+        }
+      } else if (currentField?.type === "website" || currentField?.type === "url") {
+        try {
+          new URL(String(val).startsWith("http") ? String(val) : `https://${val}`);
+        } catch {
+          toast.error("Please enter a valid URL");
+          return;
+        }
+      } else if (currentField?.type === "phone") {
+        const phoneRegex = /^[\d\+\-\(\)\s]{7,20}$/;
+        if (!phoneRegex.test(String(val))) {
+          toast.error("Please enter a valid phone number");
+          return;
+        }
       }
     }
     

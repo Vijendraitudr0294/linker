@@ -406,12 +406,12 @@ Return ONLY the blog post title, nothing else. Make it compelling and keyword-ri
           <div className="flex items-center gap-4">
             <button
               onClick={() => { setIsEditing(false); setCurrentPost(null); setCurrentFaq(null); setCurrentPlan(null); }}
-              className="w-10 h-10 flex items-center justify-center border-2 border-black rounded-xl bg-white hover:bg-black hover:text-white transition-all shadow-[3px_3px_0_0_black] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px]"
+              className="w-10 h-10 flex items-center justify-center border border-gray-200 rounded-xl bg-white hover:bg-black hover:text-white transition-all shadow-sm hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px]"
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
             <div>
-              <h2 className="text-xl font-black uppercase tracking-tight">
+              <h2 className="text-xl font-semibold text-lg">
                 {activeTab === "blog" ? (currentPost?.id ? "Edit Post" : "New Post") : activeTab === "faq" ? "Edit FAQ" : "Edit Plan"}
               </h2>
               <p className="text-[10px] font-bold text-black/40 uppercase tracking-widest">Full Editor Mode</p>
@@ -421,7 +421,7 @@ Return ONLY the blog post title, nothing else. Make it compelling and keyword-ri
             <Button 
               variant="ghost" 
               onClick={() => { setIsEditing(false); setCurrentPost(null); setCurrentFaq(null); setCurrentPlan(null); }}
-              className="font-black uppercase tracking-widest text-xs h-10 px-5 rounded-xl hover:bg-gray-50"
+              className="font-medium text-sm text-xs h-10 px-5 rounded-xl hover:bg-gray-50"
             >
               Cancel
             </Button>
@@ -446,7 +446,7 @@ Return ONLY the blog post title, nothing else. Make it compelling and keyword-ri
                   fetchPlans();
                 } catch (err) { toast.error("Failed"); }
               }}
-              className="bg-emerald-500 text-white font-black uppercase tracking-widest text-xs h-10 px-6 rounded-xl shadow-[4px_4px_0_0_rgba(16,185,129,0.3)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all"
+              className="bg-emerald-500 text-white font-medium text-sm text-xs h-10 px-6 rounded-xl shadow-sm hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all"
             >
               <Save className="w-4 h-4 mr-2" /> Save & Publish
             </Button>
@@ -466,19 +466,19 @@ Return ONLY the blog post title, nothing else. Make it compelling and keyword-ri
                 <Input 
                   value={currentPost?.title || ""}
                   onChange={(e) => setCurrentPost(prev => ({ ...prev, title: e.target.value }))}
-                  className="h-14 text-xl font-black uppercase border-2 border-black/10 focus:border-black rounded-2xl px-5 bg-white"
+                  className="h-14 text-xl font-black uppercase border border-gray-200/10 focus:border-black rounded-2xl px-5 bg-white"
                   placeholder="Your blog post title..."
                 />
               </div>
 
               {/* AI Buttons */}
               <div className="flex flex-wrap gap-3 p-4 bg-gradient-to-r from-violet-50 to-amber-50 border-2 border-dashed border-black/10 rounded-2xl">
-                <span className="text-[9px] font-black uppercase tracking-widest text-black/40 flex items-center gap-1 mr-2"><Sparkles className="w-3 h-3" /> AI Tools</span>
+                <span className="text-[9px] font-medium text-sm text-black/40 flex items-center gap-1 mr-2"><Sparkles className="w-3 h-3" /> AI Tools</span>
                 <Button
                   type="button"
                   onClick={handleAIWrite}
                   disabled={aiWriting || !currentPost?.title?.trim()}
-                  className="h-9 px-4 bg-violet-600 hover:bg-violet-700 text-white font-black uppercase tracking-widest text-[9px] rounded-lg transition-all disabled:opacity-40"
+                  className="h-9 px-4 bg-violet-600 hover:bg-violet-700 text-white font-medium text-sm text-[9px] rounded-lg transition-all disabled:opacity-40"
                 >
                   {aiWriting ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Writing...</> : <><Sparkles className="w-3.5 h-3.5 mr-1.5" /> AI Write</>}
                 </Button>
@@ -486,7 +486,7 @@ Return ONLY the blog post title, nothing else. Make it compelling and keyword-ri
                   type="button"
                   onClick={handleAIImage}
                   disabled={aiImageGen || !currentPost?.title?.trim()}
-                  className="h-9 px-4 bg-amber-500 hover:bg-amber-600 text-white font-black uppercase tracking-widest text-[9px] rounded-lg transition-all disabled:opacity-40"
+                  className="h-9 px-4 bg-amber-500 hover:bg-amber-600 text-white font-medium text-sm text-[9px] rounded-lg transition-all disabled:opacity-40"
                 >
                   {aiImageGen ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Finding...</> : <><Wand2 className="w-3.5 h-3.5 mr-1.5" /> AI Image</>}
                 </Button>
@@ -500,7 +500,7 @@ Return ONLY the blog post title, nothing else. Make it compelling and keyword-ri
                 <Textarea 
                   value={currentPost?.content || ""}
                   onChange={(e) => setCurrentPost(prev => ({ ...prev, content: e.target.value }))}
-                  className="min-h-[450px] font-mono text-sm border-2 border-black/10 focus:border-black rounded-2xl p-5 bg-white leading-relaxed"
+                  className="min-h-[450px] font-mono text-sm border border-gray-200/10 focus:border-black rounded-2xl p-5 bg-white leading-relaxed"
                   placeholder="# Your story starts here..."
                 />
               </div>
@@ -509,35 +509,35 @@ Return ONLY the blog post title, nothing else. Make it compelling and keyword-ri
             {/* Sidebar */}
             <div className="space-y-5">
               {/* Excerpt */}
-              <Card className="p-5 border-2 border-black rounded-2xl space-y-4">
-                <h4 className="text-[11px] font-black uppercase tracking-widest flex items-center gap-2">
+              <Card className="p-5 border border-gray-200 rounded-2xl space-y-4">
+                <h4 className="text-[11px] font-medium text-sm flex items-center gap-2">
                   <Globe className="w-4 h-4" /> SEO & Meta
                 </h4>
                 
                 <div className="space-y-2">
-                  <label className="text-[9px] font-black uppercase tracking-widest text-black/40">Excerpt / Meta Description</label>
+                  <label className="text-[9px] font-medium text-sm text-black/40">Excerpt / Meta Description</label>
                   <Textarea 
                     value={currentPost?.excerpt || ""}
                     onChange={(e) => setCurrentPost(prev => ({ ...prev, excerpt: e.target.value }))}
-                    className="text-xs font-bold border-2 border-black/5 focus:border-black rounded-xl p-3 min-h-[80px]"
+                    className="text-xs font-bold border border-gray-200/5 focus:border-black rounded-xl p-3 min-h-[80px]"
                     placeholder="Brief preview text for search results..."
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[9px] font-black uppercase tracking-widest text-black/40">SEO Keywords</label>
+                  <label className="text-[9px] font-medium text-sm text-black/40">SEO Keywords</label>
                   <Input 
                     value={currentPost?.seo_keywords || ""}
                     onChange={(e) => setCurrentPost(prev => ({ ...prev, seo_keywords: e.target.value }))}
-                    className="h-10 border-2 border-black/5 focus:border-black rounded-xl text-xs font-bold"
+                    className="h-10 border border-gray-200/5 focus:border-black rounded-xl text-xs font-bold"
                     placeholder="keyword1, keyword2, keyword3..."
                   />
                 </div>
               </Card>
 
               {/* Cover Image */}
-              <Card className="p-5 border-2 border-black rounded-2xl space-y-4">
-                <h4 className="text-[11px] font-black uppercase tracking-widest flex items-center gap-2">
+              <Card className="p-5 border border-gray-200 rounded-2xl space-y-4">
+                <h4 className="text-[11px] font-medium text-sm flex items-center gap-2">
                   <ImageIcon className="w-4 h-4" /> Cover Image
                 </h4>
                 
@@ -545,26 +545,26 @@ Return ONLY the blog post title, nothing else. Make it compelling and keyword-ri
                   <Input 
                     value={currentPost?.image_url || ""}
                     onChange={(e) => setCurrentPost(prev => ({ ...prev, image_url: e.target.value }))}
-                    className="h-10 border-2 border-black/5 focus:border-black rounded-xl text-xs font-bold flex-1"
+                    className="h-10 border border-gray-200/5 focus:border-black rounded-xl text-xs font-bold flex-1"
                     placeholder="https://..."
                   />
                   <div className="relative shrink-0">
-                    <Button variant="outline" size="sm" className={cn("h-10 border-2 border-black/5 rounded-xl", uploadingImage && "opacity-50")}>
+                    <Button variant="outline" size="sm" className={cn("h-10 border border-gray-200/5 rounded-xl", uploadingImage && "opacity-50")}>
                       <ImageIcon className="w-3.5 h-3.5 mr-1" /> {uploadingImage ? "..." : "Upload"}
                     </Button>
                     <input type="file" accept="image/*" onChange={handleImageUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" disabled={uploadingImage} />
                   </div>
                 </div>
                 {currentPost?.image_url && (
-                  <div className="w-full h-36 rounded-xl border-2 border-black overflow-hidden">
+                  <div className="w-full h-36 rounded-xl border border-gray-200 overflow-hidden">
                     <img src={currentPost.image_url} alt="Cover" className="w-full h-full object-cover" />
                   </div>
                 )}
               </Card>
 
               {/* Settings */}
-              <Card className="p-5 border-2 border-black rounded-2xl space-y-4">
-                <h4 className="text-[11px] font-black uppercase tracking-widest flex items-center gap-2">
+              <Card className="p-5 border border-gray-200 rounded-2xl space-y-4">
+                <h4 className="text-[11px] font-medium text-sm flex items-center gap-2">
                   <Tag className="w-4 h-4" /> Settings
                 </h4>
                 
@@ -574,7 +574,7 @@ Return ONLY the blog post title, nothing else. Make it compelling and keyword-ri
                     <Input 
                       value={currentPost?.category || ""}
                       onChange={(e) => setCurrentPost(prev => ({ ...prev, category: e.target.value }))}
-                      className="h-10 border-2 border-black/5 rounded-xl text-xs font-bold uppercase"
+                      className="h-10 border border-gray-200/5 rounded-xl text-xs font-bold uppercase"
                     />
                   </div>
                   <div className="space-y-1">
@@ -582,7 +582,7 @@ Return ONLY the blog post title, nothing else. Make it compelling and keyword-ri
                     <Input 
                       value={currentPost?.read_time || ""}
                       onChange={(e) => setCurrentPost(prev => ({ ...prev, read_time: e.target.value }))}
-                      className="h-10 border-2 border-black/5 rounded-xl text-xs font-bold"
+                      className="h-10 border border-gray-200/5 rounded-xl text-xs font-bold"
                     />
                   </div>
                 </div>
@@ -592,12 +592,12 @@ Return ONLY the blog post title, nothing else. Make it compelling and keyword-ri
                   <Input 
                     value={currentPost?.slug || ""}
                     onChange={(e) => setCurrentPost(prev => ({ ...prev, slug: e.target.value }))}
-                    className="h-10 border-2 border-black/5 rounded-xl text-xs font-bold lowercase"
+                    className="h-10 border border-gray-200/5 rounded-xl text-xs font-bold lowercase"
                     placeholder="auto-generated-slug"
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-gray-50 border-2 border-black/5 rounded-xl">
+                <div className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200/5 rounded-xl">
                   <div>
                     <p className="text-[10px] font-black uppercase">Publish</p>
                     <p className="text-[8px] text-black/40 font-bold uppercase">Visible on /blog</p>
@@ -605,7 +605,7 @@ Return ONLY the blog post title, nothing else. Make it compelling and keyword-ri
                   <button
                     onClick={() => setCurrentPost(prev => ({ ...prev, published: !prev?.published }))}
                     className={cn(
-                      "w-11 h-6 rounded-full relative transition-colors border-2 border-black",
+                      "w-11 h-6 rounded-full relative transition-colors border border-gray-200",
                       currentPost?.published ? "bg-emerald-500" : "bg-gray-200"
                     )}
                   >
@@ -624,19 +624,19 @@ Return ONLY the blog post title, nothing else. Make it compelling and keyword-ri
         {activeTab === "faq" && (
           <div className="max-w-2xl space-y-5">
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-black/40">Question</label>
+              <label className="text-[10px] font-medium text-sm text-black/40">Question</label>
               <Input 
                 value={currentFaq?.question || ""}
                 onChange={(e) => setCurrentFaq(prev => ({ ...prev, question: e.target.value }))}
-                className="h-14 text-lg font-black uppercase border-2 border-black rounded-xl px-5"
+                className="h-14 text-lg font-black uppercase border border-gray-200 rounded-xl px-5"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-black/40">Answer</label>
+              <label className="text-[10px] font-medium text-sm text-black/40">Answer</label>
               <Textarea 
                 value={currentFaq?.answer || ""}
                 onChange={(e) => setCurrentFaq(prev => ({ ...prev, answer: e.target.value }))}
-                className="min-h-[200px] text-sm font-bold border-2 border-black rounded-xl p-5"
+                className="min-h-[200px] text-sm font-bold border border-gray-200 rounded-xl p-5"
               />
             </div>
           </div>
@@ -648,20 +648,20 @@ Return ONLY the blog post title, nothing else. Make it compelling and keyword-ri
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase">Plan Name</label>
-                <Input value={currentPlan?.name || ""} onChange={(e) => setCurrentPlan(prev => ({ ...prev, name: e.target.value }))} className="h-12 font-black uppercase border-2 border-black" />
+                <Input value={currentPlan?.name || ""} onChange={(e) => setCurrentPlan(prev => ({ ...prev, name: e.target.value }))} className="h-12 font-black uppercase border border-gray-200" />
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase">Price</label>
-                <Input value={currentPlan?.price || ""} onChange={(e) => setCurrentPlan(prev => ({ ...prev, price: e.target.value }))} className="h-12 font-black border-2 border-black" />
+                <Input value={currentPlan?.price || ""} onChange={(e) => setCurrentPlan(prev => ({ ...prev, price: e.target.value }))} className="h-12 font-black border border-gray-200" />
               </div>
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase">Features (one per line)</label>
-              <Textarea value={currentPlan?.features?.join('\n') || ""} onChange={(e) => setCurrentPlan(prev => ({ ...prev, features: e.target.value.split('\n') }))} className="min-h-[120px] font-bold border-2 border-black" />
+              <Textarea value={currentPlan?.features?.join('\n') || ""} onChange={(e) => setCurrentPlan(prev => ({ ...prev, features: e.target.value.split('\n') }))} className="min-h-[120px] font-bold border border-gray-200" />
             </div>
             <div className="flex gap-4">
-              <button onClick={() => setCurrentPlan(prev => ({ ...prev, is_popular: !prev?.is_popular }))} className={cn("px-4 py-2 text-[10px] font-black uppercase border-2 border-black rounded-lg", currentPlan?.is_popular ? "bg-yellow-400" : "bg-white")}>Popular Flag</button>
-              <button onClick={() => setCurrentPlan(prev => ({ ...prev, published: !prev?.published }))} className={cn("px-4 py-2 text-[10px] font-black uppercase border-2 border-black rounded-lg", currentPlan?.published ? "bg-emerald-500 text-white" : "bg-white")}>Published</button>
+              <button onClick={() => setCurrentPlan(prev => ({ ...prev, is_popular: !prev?.is_popular }))} className={cn("px-4 py-2 text-[10px] font-black uppercase border border-gray-200 rounded-lg", currentPlan?.is_popular ? "bg-yellow-400" : "bg-white")}>Popular Flag</button>
+              <button onClick={() => setCurrentPlan(prev => ({ ...prev, published: !prev?.published }))} className={cn("px-4 py-2 text-[10px] font-black uppercase border border-gray-200 rounded-lg", currentPlan?.published ? "bg-emerald-500 text-white" : "bg-white")}>Published</button>
             </div>
           </div>
         )}
@@ -675,25 +675,25 @@ Return ONLY the blog post title, nothing else. Make it compelling and keyword-ri
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black uppercase tracking-tight flex items-center gap-2">
+          <h2 className="text-2xl font-semibold text-lg flex items-center gap-2">
             <Newspaper className="w-6 h-6 text-black" /> Content Matrix
           </h2>
           <p className="text-gray-400 text-sm font-medium">Manage blog posts, FAQs, and pricing.</p>
         </div>
         <div className="flex flex-wrap flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
           {/* Tabs */}
-          <div className="flex flex-wrap bg-gray-100 p-1 rounded-xl sm:mr-2 border-2 border-black/5">
+          <div className="flex flex-wrap bg-gray-100 p-1 rounded-xl sm:mr-2 border border-gray-200/5">
              <button 
               onClick={() => setActiveTab("blog")}
-              className={cn("px-4 py-2 text-[9px] font-black uppercase rounded-lg transition-all", activeTab === "blog" ? "bg-black text-white shadow-md" : "text-black/40 hover:text-black")}
+              className={cn("px-4 py-2 text-[9px] font-black uppercase rounded-lg transition-all", activeTab === "blog" ? "bg-primary text-primary-foreground shadow-md" : "text-black/40 hover:text-black")}
              >Articles</button>
              <button 
               onClick={() => setActiveTab("faq")}
-              className={cn("px-4 py-2 text-[9px] font-black uppercase rounded-lg transition-all", activeTab === "faq" ? "bg-black text-white shadow-md" : "text-black/40 hover:text-black")}
+              className={cn("px-4 py-2 text-[9px] font-black uppercase rounded-lg transition-all", activeTab === "faq" ? "bg-primary text-primary-foreground shadow-md" : "text-black/40 hover:text-black")}
              >FAQ</button>
              <button 
               onClick={() => setActiveTab("pricing")}
-              className={cn("px-4 py-2 text-[9px] font-black uppercase rounded-lg transition-all", activeTab === "pricing" ? "bg-black text-white shadow-md" : "text-black/40 hover:text-black")}
+              className={cn("px-4 py-2 text-[9px] font-black uppercase rounded-lg transition-all", activeTab === "pricing" ? "bg-primary text-primary-foreground shadow-md" : "text-black/40 hover:text-black")}
              >Pricing</button>
           </div>
 
@@ -713,7 +713,7 @@ Return ONLY the blog post title, nothing else. Make it compelling and keyword-ri
             <Button 
               onClick={handleAutoGenerate}
               disabled={autoGenerating}
-              className="h-10 px-4 bg-gradient-to-r from-violet-600 to-purple-600 text-white font-black uppercase tracking-widest text-[9px] rounded-xl shadow-[3px_3px_0_0_rgba(139,92,246,0.3)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+              className="h-10 px-4 bg-gradient-to-r from-violet-600 to-purple-600 text-white font-medium text-sm text-[9px] rounded-xl shadow-sm hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
             >
               {autoGenerating ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Generating...</> : <><TrendingUp className="w-3.5 h-3.5 mr-1.5" /> Auto SEO Post</>}
             </Button>
@@ -726,7 +726,7 @@ Return ONLY the blog post title, nothing else. Make it compelling and keyword-ri
               else if (activeTab === "faq") { setCurrentFaq({ question: "", answer: "" }); setIsEditing(true); }
               else { setCurrentPlan({ name: "", price: "0", features: [] }); setIsEditing(true); }
             }}
-            className="h-10 px-5 bg-black text-white font-black uppercase tracking-widest text-[9px] rounded-xl shadow-[3px_3px_0_0_black] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+            className="h-10 px-5 bg-primary text-primary-foreground font-medium text-sm text-[9px] rounded-xl shadow-sm hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
           >
             <Plus className="w-4 h-4 mr-1.5" /> Add {activeTab === "blog" ? "Post" : activeTab === "faq" ? "FAQ" : "Plan"}
           </Button>
@@ -738,7 +738,7 @@ Return ONLY the blog post title, nothing else. Make it compelling and keyword-ri
         <AnimatePresence mode="popLayout">
           {activeTab === "blog" ? filteredPosts.map((post) => (
             <motion.div key={post.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}>
-              <Card className="group relative border-2 border-black p-0 overflow-hidden bg-white shadow-[4px_4px_0_0_rgba(0,0,0,0.05)] hover:shadow-[6px_6px_0_0_rgba(0,0,0,1)] hover:-translate-y-1 transition-all duration-300">
+              <Card className="group relative border border-gray-200 p-0 overflow-hidden bg-white shadow-sm hover:shadow-sm hover:-translate-y-1 transition-all duration-300">
                 <div className="flex flex-col sm:flex-row">
                   <div className="w-full sm:w-28 h-28 sm:h-auto bg-gray-50 flex items-center justify-center border-b-2 sm:border-b-0 sm:border-r-2 border-black relative overflow-hidden">
                      {post.image_url ? (
@@ -760,7 +760,7 @@ Return ONLY the blog post title, nothing else. Make it compelling and keyword-ri
                     <h3 className="text-sm font-black leading-tight uppercase line-clamp-2">{post.title}</h3>
                     <p className="text-gray-400 text-[11px] font-medium line-clamp-1">{post.excerpt}</p>
                     <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                      <span className="text-[9px] font-black uppercase tracking-widest text-black/30">{post.category}</span>
+                      <span className="text-[9px] font-medium text-sm text-black/30">{post.category}</span>
                       <div className="flex items-center gap-1">
                         <Button variant="ghost" size="icon" onClick={() => handleEdit(post)} className="w-7 h-7 rounded-lg hover:bg-black hover:text-white"><Edit3 className="w-3 h-3" /></Button>
                         <Button variant="ghost" size="icon" onClick={() => handleDelete(post.id)} className="w-7 h-7 rounded-lg hover:bg-red-50 hover:text-red-500"><Trash2 className="w-3 h-3" /></Button>
@@ -771,7 +771,7 @@ Return ONLY the blog post title, nothing else. Make it compelling and keyword-ri
               </Card>
             </motion.div>
           )) : activeTab === "faq" ? faqs.map((faq) => (
-             <motion.div key={faq.id} className="bg-white border-2 border-black rounded-2xl p-6 flex gap-4 hover:shadow-[6px_6px_0_0_rgba(0,0,0,1)] transition-all">
+             <motion.div key={faq.id} className="bg-white border border-gray-200 rounded-2xl p-6 flex gap-4 hover:shadow-sm transition-all">
                 <div className="flex-1">
                   <h3 className="text-sm font-black uppercase">{faq.question}</h3>
                   <p className="text-[11px] text-black/50 font-medium mt-2 line-clamp-2">{faq.answer}</p>
@@ -782,7 +782,7 @@ Return ONLY the blog post title, nothing else. Make it compelling and keyword-ri
                 </div>
              </motion.div>
           )) : plans.map((plan) => (
-             <motion.div key={plan.id} className="bg-white border-2 border-black rounded-2xl p-6 relative hover:shadow-[6px_6px_0_0_rgba(0,0,0,1)] transition-all">
+             <motion.div key={plan.id} className="bg-white border border-gray-200 rounded-2xl p-6 relative hover:shadow-sm transition-all">
                 {plan.is_popular && <div className="absolute top-0 right-0 bg-yellow-400 border-l-2 border-b-2 border-black px-3 py-1 text-[8px] font-black uppercase">Popular</div>}
                 <div className="flex justify-between items-start mb-4">
                    <div>
@@ -806,3 +806,4 @@ Return ONLY the blog post title, nothing else. Make it compelling and keyword-ri
     </div>
   );
 };
+

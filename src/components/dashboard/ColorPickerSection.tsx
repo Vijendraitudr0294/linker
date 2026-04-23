@@ -24,7 +24,7 @@ const ColorPickerSection = ({ settings, updateSettings }: ColorPickerSectionProp
           const isHex = /^#[0-9a-fA-F]{6}$/.test(value);
           return (
             <div key={key} className="space-y-1.5">
-              <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50 ml-1">{label}</Label>
+              <Label className="text-[9px] font-medium text-sm text-muted-foreground/50 ml-1">{label}</Label>
               <div className="flex items-center gap-2 bg-card/40 p-1 rounded-xl border border-border/40 focus-within:border-primary/30 transition-all">
                 <div className="relative group">
                   <input
@@ -52,3 +52,4 @@ const ColorPickerSection = ({ settings, updateSettings }: ColorPickerSectionProp
 };
 
 export default ColorPickerSection;
+

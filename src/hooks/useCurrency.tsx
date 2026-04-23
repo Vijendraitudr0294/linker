@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 interface CurrencyInfo {
   code: string;
@@ -12,11 +12,6 @@ const currencyMap: Record<string, { symbol: string; code: string }> = {
   US: { symbol: "$", code: "USD" },
   GB: { symbol: "£", code: "GBP" },
   EU: { symbol: "€", code: "EUR" },
-  DE: { symbol: "€", code: "EUR" },
-  FR: { symbol: "€", code: "EUR" },
-  IT: { symbol: "€", code: "EUR" },
-  ES: { symbol: "€", code: "EUR" },
-  NL: { symbol: "€", code: "EUR" },
   IN: { symbol: "₹", code: "INR" },
   JP: { symbol: "¥", code: "JPY" },
   CN: { symbol: "¥", code: "CNY" },
@@ -40,7 +35,6 @@ const currencyMap: Record<string, { symbol: string; code: string }> = {
   SA: { symbol: "﷼", code: "SAR" },
 };
 
-// Approximate exchange rates vs USD (static fallback)
 const fallbackRates: Record<string, number> = {
   USD: 1, GBP: 0.79, EUR: 0.92, INR: 83.5, JPY: 154, CNY: 7.25,
   KRW: 1340, BRL: 5.05, CAD: 1.37, AUD: 1.55, MXN: 17.2,
@@ -58,37 +52,35 @@ const CurrencyContext = createContext<{
 });
 
 const CURRENCY_CACHE_KEY = "biotra_currency";
-const CURRENCY_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const CURRENCY_CACHE_TTL = 24 * 60 * 60 * 1000;
 
-export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
-  const [currency, setCurrency] = useState<CurrencyInfo>(() => {
-    // Try to load cached currency from localStorage
-    try {
-      const cached = localStorage.getItem(CURRENCY_CACHE_KEY);
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (parsed.expiry > Date.now()) return parsed.currency;
-      }
-    } catch {}
-    return defaultCurrency;
-  });
+export const CurrencyProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [currency, setCurrency] = useState<CurrencyInfo>(defaultCurrency);
 
   useEffect(() => {
-    // Skip geo-IP if we already have a cached non-default currency
+    // 1. Check cache
     try {
       const cached = localStorage.getItem(CURRENCY_CACHE_KEY);
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed.expiry > Date.now()) return;
+        if (parsed.expiry > Date.now()) {
+          setCurrency(parsed.currency);
+          return;
+        }
       }
-    } catch {}
+    } catch (err) {
+      console.warn("Currency cache read error", err);
+    }
 
+    // 2. Detect
     const detect = async () => {
       try {
-        const res = await fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(4000) });
+        const res = await fetch("https://ipapi.co/json/");
+        if (!res.ok) return;
         const data = await res.json();
         const country = data.country_code;
         const match = currencyMap[country];
+        
         if (match) {
           const detected = {
             code: match.code,
@@ -101,10 +93,11 @@ export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
             expiry: Date.now() + CURRENCY_CACHE_TTL,
           }));
         }
-      } catch {
-        // Keep USD default
+      } catch (err) {
+        console.warn("Geo-IP detection failed, using default currency");
       }
     };
+    
     detect();
   }, []);
 
@@ -118,7 +111,7 @@ export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
         minimumFractionDigits: 0,
         maximumFractionDigits: currency.rate > 100 ? 0 : 2,
       }).format(converted);
-    } catch {
+    } catch (err) {
       return `${currency.symbol}${converted.toFixed(2)}`;
     }
   };

@@ -150,9 +150,9 @@ function buildColorTheme(palette: ExtractedPalette, customName?: string): Genera
 
 const StylePill = ({ label, active }: { label: string; active: boolean }) => (
   <span className={cn(
-    "inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border",
+    "inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-medium text-sm border",
     active
-      ? "bg-black text-white border-black"
+      ? "bg-primary text-primary-foreground border-black"
       : "bg-black/5 text-black/30 border-black/10"
   )}>
     {label}
@@ -502,11 +502,11 @@ Rules:
   return (
     <div className="space-y-6">
       {/* Tab strip */}
-      <div className="flex items-center gap-2 p-2 bg-white border-2 border-black rounded-[20px] shadow-[4px_4px_0_0_rgba(0,0,0,1)] w-fit">
+      <div className="flex items-center gap-2 p-2 bg-white border border-gray-200 rounded-[20px] shadow-sm w-fit">
         {tabs.map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-            className={cn("flex items-center gap-2 px-5 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all",
-              activeTab === tab.id ? "bg-black text-white" : "text-black/40 hover:text-black hover:bg-black/5")}>
+            className={cn("flex items-center gap-2 px-5 py-2 rounded-xl text-[11px] font-medium text-sm transition-all",
+              activeTab === tab.id ? "bg-primary text-primary-foreground" : "text-black/40 hover:text-black hover:bg-black/5")}>
             <tab.icon className="w-3.5 h-3.5" />
             {tab.label}
           </button>
@@ -515,15 +515,15 @@ Rules:
 
       {/* ── GENERATOR ─────────────────────────────────────────────────────── */}
       {activeTab === "generate" && (
-        <Card className="bruddle-card p-6 md:p-8 bg-white space-y-8">
+        <Card className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 md:p-8 bg-white space-y-8">
 
           {/* Header */}
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-[#E0E7FF] border-2 border-black flex items-center justify-center shadow-[3px_3px_0_0_rgba(0,0,0,1)]">
+            <div className="w-12 h-12 rounded-2xl bg-[#E0E7FF] border border-gray-200 flex items-center justify-center shadow-sm">
               <Droplets className="w-5 h-5 text-black" />
             </div>
             <div>
-              <h2 className="text-xl font-black text-black tracking-tight uppercase">Design Clone Studio</h2>
+              <h2 className="text-xl font-semibold text-gray-900 tracking-tight uppercase">Design Clone Studio</h2>
               <p className="text-[10px] font-black uppercase text-black/40 tracking-widest mt-0.5">
                 Upload any UI design — we clone its colors, card style, and button shape as a theme
               </p>
@@ -550,7 +550,7 @@ Rules:
 
                   {/* Image thumbnail — for reference only, NOT the background */}
                   <div className="relative shrink-0">
-                    <div className="w-44 h-60 rounded-2xl border-4 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] overflow-hidden">
+                    <div className="w-44 h-60 rounded-2xl border-4 border-black shadow-sm overflow-hidden">
                       <img src={imagePreview} alt="Source design" className="w-full h-full object-cover" />
                     </div>
                     <button
@@ -559,7 +559,7 @@ Rules:
                     >
                       <X className="w-4 h-4 text-white" />
                     </button>
-                    <p className="text-[8px] font-black uppercase tracking-widest text-black/30 mt-3 text-center">
+                    <p className="text-[8px] font-medium text-sm text-black/30 mt-3 text-center">
                       Analysis Reference
                     </p>
                   </div>
@@ -593,12 +593,12 @@ Rules:
 
                         {/* Swatches */}
                         <div>
-                          <p className="text-[9px] font-black uppercase tracking-widest text-black/30 mb-2">Extracted Colours</p>
+                          <p className="text-[9px] font-medium text-sm text-black/30 mb-2">Extracted Colours</p>
                           <div className="flex flex-wrap gap-2">
                             {palette.allColors.map((hex, i) => (
                               <div key={i} className="group/sw relative">
                                 <div
-                                  className="w-9 h-9 rounded-xl border-2 border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)] cursor-pointer hover:-translate-y-1 transition-transform"
+                                  className="w-9 h-9 rounded-xl border border-gray-200 shadow-sm cursor-pointer hover:-translate-y-1 transition-transform"
                                   style={{ backgroundColor: hex }}
                                   onClick={e => { e.stopPropagation(); navigator.clipboard.writeText(hex); toast.success(`Copied ${hex}`); }}
                                 />
@@ -610,7 +610,7 @@ Rules:
 
                         {/* Detected style tags */}
                         <div>
-                          <p className="text-[9px] font-black uppercase tracking-widest text-black/30 mb-2">Detected Design Style</p>
+                          <p className="text-[9px] font-medium text-sm text-black/30 mb-2">Detected Design Style</p>
                           <div className="flex flex-wrap gap-2">
                             <StylePill label={`${palette.style.buttonShape} buttons`} active />
                             <StylePill label={`${palette.style.cardStyle} cards`}     active />
@@ -630,7 +630,7 @@ Rules:
                             { label: "Gradient End",  color: palette.secondary },
                             { label: "Text",         color: palette.text },
                           ].map(({ label, color }) => (
-                            <div key={label} className="flex items-center gap-2 p-2 border-2 border-black/10 rounded-xl">
+                            <div key={label} className="flex items-center gap-2 p-2 border border-gray-200/10 rounded-xl">
                               <div className="w-5 h-5 rounded-lg border border-black/20 shrink-0" style={{ backgroundColor: color }} />
                               <span className="text-[9px] font-black uppercase text-black/50 truncate">{label}</span>
                             </div>
@@ -645,7 +645,7 @@ Rules:
               /* Empty state */
               <div className="p-12 flex flex-col items-center gap-5">
                 <div className={cn(
-                  "w-24 h-24 rounded-3xl border-2 border-black flex items-center justify-center shadow-[4px_4px_0_0_rgba(0,0,0,1)] transition-all",
+                  "w-24 h-24 rounded-3xl border border-gray-200 flex items-center justify-center shadow-sm transition-all",
                   isDragging ? "bg-black rotate-6 scale-110" : "bg-[#FDE68A] hover:rotate-3"
                 )}>
                   <Upload className={cn("w-10 h-10 transition-colors", isDragging ? "text-white" : "text-black")} />
@@ -656,11 +656,11 @@ Rules:
                   <p className="text-[11px] text-black/30 font-medium">PNG · JPG · WEBP — we clone the color + style, not use it as background</p>
                 </div>
                 <div className="flex flex-wrap justify-center gap-2 mt-2">
-                  <div className="flex items-center gap-2 px-4 py-2 bg-[#D1FAE5] border-2 border-black rounded-xl">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-[#D1FAE5] border border-gray-200 rounded-xl">
                     <Droplets className="w-3.5 h-3.5 text-emerald-700" />
                     <span className="text-[10px] font-black uppercase tracking-wider text-emerald-900">Colors cloned exactly</span>
                   </div>
-                  <div className="flex items-center gap-2 px-4 py-2 bg-[#E0E7FF] border-2 border-black rounded-xl">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-[#E0E7FF] border border-gray-200 rounded-xl">
                     <Sparkles className="w-3.5 h-3.5 text-indigo-700" />
                     <span className="text-[10px] font-black uppercase tracking-wider text-indigo-900">Card + button style matched</span>
                   </div>
@@ -672,7 +672,7 @@ Rules:
           {/* ── Text prompt fallback ─────────────────────────────────────── */}
           <div className="space-y-4 pt-4 border-t-2 border-dashed border-black/10">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-black uppercase tracking-widest text-black/40">Guiding Prompt (Optional with image)</p>
+              <p className="text-[10px] font-medium text-sm text-black/40">Guiding Prompt (Optional with image)</p>
               {prompt && (
                 <button onClick={() => setPrompt("")} className="text-[9px] font-black uppercase text-pink-500 hover:text-pink-600 flex items-center gap-1">
                   <X className="w-3 h-3" /> Clear Prompt
@@ -686,7 +686,7 @@ Rules:
                   value={prompt}
                   onChange={e => setPrompt(e.target.value)}
                   placeholder="Paste HTML/CSS, a Website URL, or describe a vibe: 'Make it look like a minimalist dark-mode crypto dashboard with neon accents'..."
-                  className="min-h-[120px] rounded-3xl border-2 border-black/10 focus:border-black bg-black/[0.02] text-sm font-medium resize-none px-5 py-4 transition-all placeholder:text-black/20"
+                  className="min-h-[120px] rounded-3xl border border-gray-200/10 focus:border-black bg-black/[0.02] text-sm font-medium resize-none px-5 py-4 transition-all placeholder:text-black/20"
                 />
                 <div className="absolute right-4 bottom-4 flex gap-2">
                    <button onClick={() => setPrompt("Minimalist brutalist design with high contrast black and yellow")} className="px-2 py-1 bg-white border border-black/10 rounded-lg text-[9px] font-bold text-black/40 hover:text-black transition-colors">Example 1</button>
@@ -698,7 +698,7 @@ Rules:
                 <Button
                   onClick={imagePreview ? () => processImage(imagePreview) : generateFromPrompt}
                   disabled={isGenerating || isExtracting || (!prompt.trim() && !imagePreview)}
-                  className="w-32 h-20 rounded-3xl bg-black text-white font-black uppercase tracking-widest text-[10px] shadow-[4px_4px_0_0_rgba(0,0,0,0.3)] hover:-translate-y-1 hover:shadow-[6px_6px_0_0_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-none transition-all flex-col gap-2"
+                  className="w-32 h-20 rounded-3xl bg-primary text-primary-foreground font-medium text-sm text-[10px] shadow-sm hover:-translate-y-1 hover:shadow-sm active:translate-y-0 active:shadow-none transition-all flex-col gap-2"
                 >
                   {isGenerating || isExtracting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5 text-yellow-400" />}
                   <span>{imagePreview ? "Re-Clone" : "Generate"}</span>
@@ -707,7 +707,7 @@ Rules:
                 <Button
                   variant="outline"
                   onClick={() => fileRef.current?.click()}
-                  className="w-32 h-14 rounded-2xl border-2 border-black font-black uppercase tracking-widest text-[9px] flex items-center gap-2 hover:bg-black hover:text-white transition-all shadow-[3px_3px_0_0_rgba(0,0,0,1)]"
+                  className="w-32 h-14 rounded-2xl border border-gray-200 font-medium text-sm text-[9px] flex items-center gap-2 hover:bg-black hover:text-white transition-all shadow-sm"
                 >
                   <Upload className="w-4 h-4" />
                   {imagePreview ? "Change" : "Attach"}
@@ -725,7 +725,7 @@ Rules:
                 ].map(ps => (
                   <button key={ps.label} onClick={() => setPrompt(ps.p)}
                     className={cn("px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider border transition-all",
-                      prompt.includes(ps.label) ? "bg-black text-white border-black" : "bg-white text-black/40 border-black/5 hover:border-black/20 hover:text-black")}>
+                      prompt.includes(ps.label) ? "bg-primary text-primary-foreground border-black" : "bg-white text-black/40 border-black/5 hover:border-black/20 hover:text-black")}>
                     {ps.label}
                   </button>
                 ))}
@@ -745,7 +745,7 @@ Rules:
                 <div className="flex items-center justify-between gap-4 flex-wrap">
                   <div>
                     <p className="text-[9px] font-black uppercase tracking-[0.4em] text-black/30">Cloned Theme</p>
-                    <h3 className="text-2xl font-black text-black tracking-tight">{generatedTheme.name}</h3>
+                    <h3 className="text-2xl font-semibold text-gray-900 tracking-tight">{generatedTheme.name}</h3>
                     <p className="text-[10px] font-medium text-black/40 mt-0.5">
                       {generatedTheme.cardStyle} cards · {generatedTheme.buttonStyle} buttons
                       {generatedTheme.gradientFrom ? " · gradient bg" : " · solid bg"}
@@ -758,7 +758,7 @@ Rules:
                       { hex: generatedTheme.textColor,       label: "Text" },
                     ].map(({ hex, label }) => (
                       <div key={label} className="flex flex-col items-center gap-1">
-                        <div className="w-9 h-9 rounded-xl border-2 border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)]" style={{ backgroundColor: hex }} />
+                        <div className="w-9 h-9 rounded-xl border border-gray-200 shadow-sm" style={{ backgroundColor: hex }} />
                         <span className="text-[8px] font-black uppercase text-black/30">{label}</span>
                       </div>
                     ))}
@@ -767,7 +767,7 @@ Rules:
 
                 {/* Live preview card */}
                 {previewTheme && (
-                  <div className="rounded-2xl overflow-hidden border-4 border-black shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
+                  <div className="rounded-2xl overflow-hidden border-4 border-black shadow-sm">
                     <ThemePreviewCard theme={previewTheme} selected={false} onSelect={() => {}} />
                   </div>
                 )}
@@ -776,7 +776,7 @@ Rules:
                 <div className="space-y-3">
                   <Button
                     onClick={handleApply}
-                    className="w-full h-13 rounded-2xl bg-black text-white font-black uppercase tracking-widest shadow-[4px_4px_0_0_rgba(0,0,0,0.3)] hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+                    className="w-full h-13 rounded-2xl bg-primary text-primary-foreground font-medium text-sm shadow-sm hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
                   >
                     <Zap className="w-4 h-4" />
                     Apply to My Profile Now
@@ -786,16 +786,16 @@ Rules:
                       placeholder="Name this theme..."
                       value={themeName}
                       onChange={e => setThemeName(e.target.value)}
-                      className="h-11 rounded-xl border-2 border-black/10 focus:border-black text-sm font-bold flex-1"
+                      className="h-11 rounded-xl border border-gray-200/10 focus:border-black text-sm font-bold flex-1"
                     />
                     <Button variant="outline" onClick={() => handleSave(false)} disabled={isSaving}
-                      className="h-11 rounded-xl border-2 border-black text-black font-black uppercase tracking-widest text-[10px] shadow-[3px_3px_0_0_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all shrink-0 px-4">
+                      className="h-11 rounded-xl border border-gray-200 text-black font-medium text-sm text-[10px] shadow-sm hover:-translate-y-0.5 transition-all shrink-0 px-4">
                       {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                       Save
                     </Button>
                     {isSuperAdmin && (
                       <Button onClick={() => handleSave(true)} disabled={isSaving}
-                        className="h-11 rounded-xl bg-[#D1FAE5] text-black border-2 border-black font-black uppercase tracking-widest text-[10px] shadow-[3px_3px_0_0_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all shrink-0 px-4">
+                        className="h-11 rounded-xl bg-[#D1FAE5] text-black border border-gray-200 font-medium text-sm text-[10px] shadow-sm hover:-translate-y-0.5 transition-all shrink-0 px-4">
                         <Globe className="w-4 h-4 mr-2" /> Publish
                       </Button>
                     )}
@@ -815,10 +815,10 @@ Rules:
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-black text-black tracking-tight uppercase">Community Gallery</h2>
+              <h2 className="text-xl font-semibold text-gray-900 tracking-tight uppercase">Community Gallery</h2>
               <p className="text-[10px] font-black uppercase text-black/40 tracking-widest mt-0.5">AI-generated & published themes</p>
             </div>
-            <Badge className="bg-[#E0E7FF] text-black border-2 border-black text-[10px] px-3 h-7 font-black uppercase tracking-widest">
+            <Badge className="bg-[#E0E7FF] text-black border border-gray-200 text-[10px] px-3 h-7 font-medium text-sm">
               {galleryThemes.length} Themes
             </Badge>
           </div>
@@ -827,8 +827,8 @@ Rules:
               {[1,2,3].map(i => <div key={i} className="h-72 bg-black/5 animate-pulse rounded-[28px] border-4 border-black/10" />)}
             </div>
           ) : galleryThemes.length === 0 ? (
-            <Card className="bruddle-card p-16 bg-white flex flex-col items-center gap-5 text-center">
-              <div className="w-20 h-20 rounded-3xl bg-[#FDE68A] border-2 border-black flex items-center justify-center shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+            <Card className="bg-white border border-gray-200 shadow-sm rounded-xl p-16 bg-white flex flex-col items-center gap-5 text-center">
+              <div className="w-20 h-20 rounded-3xl bg-[#FDE68A] border border-gray-200 flex items-center justify-center shadow-sm">
                 <Palette className="w-9 h-9 text-black" />
               </div>
               <div>
@@ -837,7 +837,7 @@ Rules:
                   Upload a design in the Generator tab to clone its style, then publish to share with everyone.
                 </p>
               </div>
-              <Button onClick={() => setActiveTab("generate")} className="bg-black text-white font-black uppercase tracking-widest rounded-xl h-11 px-6 shadow-[3px_3px_0_0_rgba(0,0,0,0.3)]">
+              <Button onClick={() => setActiveTab("generate")} className="bg-primary text-primary-foreground font-medium text-sm rounded-xl h-11 px-6 shadow-sm">
                 Cloning Studio
               </Button>
             </Card>
@@ -856,13 +856,13 @@ Rules:
 
       {/* ── ADMIN ──────────────────────────────────────────────────────────── */}
       {activeTab === "admin" && isAdmin && (
-        <Card className="bruddle-card p-6 md:p-8 bg-white space-y-6">
+        <Card className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 md:p-8 bg-white space-y-6">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-[#FDE68A] border-2 border-black flex items-center justify-center shadow-[3px_3px_0_0_rgba(0,0,0,1)]">
+            <div className="w-12 h-12 rounded-2xl bg-[#FDE68A] border border-gray-200 flex items-center justify-center shadow-sm">
               <Globe className="w-5 h-5 text-black" />
             </div>
             <div>
-              <h2 className="text-xl font-black text-black tracking-tight uppercase">Theme Gallery Admin</h2>
+              <h2 className="text-xl font-semibold text-gray-900 tracking-tight uppercase">Theme Gallery Admin</h2>
               <p className="text-[10px] font-black uppercase text-black/40 tracking-widest mt-0.5">Manage all community & AI Lab themes</p>
             </div>
           </div>
@@ -873,19 +873,19 @@ Rules:
           ) : (
             <div className="space-y-3">
               {galleryThemes.map(theme => (
-                <div key={theme.id} className="flex items-center gap-4 p-4 border-2 border-black rounded-2xl hover:bg-black/[0.02] transition-all group">
+                <div key={theme.id} className="flex items-center gap-4 p-4 border border-gray-200 rounded-2xl hover:bg-black/[0.02] transition-all group">
                   <div className="flex gap-1.5 shrink-0">
                     {[theme.backgroundColor, theme.buttonBg, theme.textColor].map((c, i) => (
-                      <div key={i} className="w-7 h-7 rounded-lg border-2 border-black" style={{ backgroundColor: c }} />
+                      <div key={i} className="w-7 h-7 rounded-lg border border-gray-200" style={{ backgroundColor: c }} />
                     ))}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-black text-black truncate">{theme.name}</p>
-                    <p className="text-[9px] font-black uppercase tracking-widest text-black/30">{theme.category}</p>
+                    <p className="text-[9px] font-medium text-sm text-black/30">{theme.category}</p>
                   </div>
                   <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                     <Button size="sm" variant="outline"
-                      className="h-8 px-3 text-[10px] font-black uppercase border-2 border-black rounded-xl"
+                      className="h-8 px-3 text-[10px] font-black uppercase border border-gray-200 rounded-xl"
                       onClick={() => handleApplyGallery(theme)}>
                       <Eye className="w-3 h-3 mr-1.5" /> Apply
                     </Button>
@@ -906,3 +906,5 @@ Rules:
 };
 
 export default AIThemeCreator;
+
+
